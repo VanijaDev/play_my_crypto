@@ -25,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/VanijaDev/play_my_crypto/issues"
   },
-  "homepage": "https://github.com/VanijaDev/play_my_crypto#readme"
+  "homepage": "https://github.com/VanijaDev/play_my_crypto#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "3.3.0-solc-0.7"
+  }
 }
