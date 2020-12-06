@@ -1,0 +1,29 @@
+{
+  "name": "play_my_crypto",
+  "version": "1.0.0",
+  "description": "PlayMyCrypto P2P games, Decentralized, Staking, Governance, each player get reward no matter what",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VanijaDev/play_my_crypto.git"
+  },
+  "keywords": [
+    "PlayMyCrypto",
+    "P2P",
+    "Games",
+    "Gambling",
+    "Decentralized",
+    "Staking",
+    "Governance",
+    "BSDt"
+  ],
+  "author": "Ivan Solomichev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VanijaDev/play_my_crypto/issues"
+  },
+  "homepage": "https://github.com/VanijaDev/play_my_crypto#readme"
+}
