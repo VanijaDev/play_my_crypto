@@ -27,9 +27,11 @@ contract CoinFlip {
     mapping(address => bool) prizeWithdrawn;
   }
 
-  uint256 public gameMinBetToUpdate;
   uint256 public gameMinBet = 1e16; //  0.001 ETH
+  uint256 public gameMinBetToUpdate;
+  
   uint256 public gameMaxDuration = 1 days;
+  uint256 public gameMaxDurationToUpdate;
 
   uint256 public betsTotal;
   mapping(address => uint256) public playerBetTotal;
@@ -109,7 +111,8 @@ contract CoinFlip {
     lastStartedGame.prize = (_coinSide == CoinSide.heads) ? lastStartedGame.bet.mul(lastStartedGame.tails).div(lastStartedGame.heads) : lastStartedGame.bet.mul(lastStartedGame.heads).div(lastStartedGame.tails);
     //  TODO: 5% of tokens to creator
 
-    updateGameMinBetIfNeeded()
+    updateGameMinBetIfNeeded();
+    updateGameMaxDurationIfNeeded();
 
     emit GameFinished(lastStartedGame.id);
   }
@@ -124,6 +127,7 @@ contract CoinFlip {
     //  TODO: 5% of tokens to all opponents + dev
 
     updateGameMinBetIfNeeded();
+    updateGameMaxDurationIfNeeded();
 
     emit GameFinished(lastStartedGame.id);
   }
@@ -132,7 +136,7 @@ contract CoinFlip {
 
   //  --- UPDATE
   function updateGameMinBet(uint256 _gameMinBet) external {
-    require(_gameMinBet > 0, "Wrong min bet");
+    require(_gameMinBet > 0, "Wrong _gameMinBet");
 
     if (games[gamesStarted().sub(1)].prize == 0) {
        gameMinBetToUpdate = _gameMinBet;
@@ -146,6 +150,24 @@ contract CoinFlip {
     if (gameMinBetToUpdate > 0) {
       gameMinBet = gameMinBetToUpdate;
       delete gameMinBetToUpdate;
+    }
+  }
+
+  function updateGameMaxDuration(uint256 _gameMaxDuration) external {
+    require(_gameMaxDuration > 0, "Wrong duration");
+
+    if (games[gamesStarted().sub(1)].prize == 0) {
+       gameMaxDurationToUpdate = _gameMaxDuration;
+      return;
+    }
+
+    gameMaxDuration = _gameMaxDuration;
+  }
+
+  function updateGameMaxDurationIfNeeded() private {
+    if (gameMaxDurationToUpdate > 0) {
+      gameMaxDuration = gameMaxDurationToUpdate;
+      delete gameMaxDurationToUpdate;
     }
   }
   //  UPDATE ---
@@ -204,6 +226,10 @@ contract CoinFlip {
     uint256 tokens;
 
     emit PrizeWithdrawn(msg.sender, prize, tokens);
+  }
+
+  function withdrawPendingPrize() external {
+    //  TODO: emergency withdrawal
   }
   //  PENDING WITHDRAWAL ---
 
