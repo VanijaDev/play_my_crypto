@@ -19,7 +19,7 @@ contract CoinFlip {
     address creator;
     uint256 id;
     uint256 bet;
-    uint256 startTimestamp;
+    uint256 startBlock;
     uint256 heads;
     uint256 tails;
     uint256 prize; 
@@ -28,10 +28,10 @@ contract CoinFlip {
   }
 
   uint256 public gameMinBet = 1e16; //  0.001 ETH
-  uint256 public gameMinBetToUpdate;
+  uint256 public gameMinBetToUpdate;  // TODO:  move to Update -> Governance
   
-  uint256 public gameMaxDuration = 1 days;
-  uint256 public gameMaxDurationToUpdate;
+  uint8 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
+  uint8 public gameMaxDurationToUpdate;  // TODO:  move to Update -> Governance
 
   uint256 public betsTotal;
   mapping(address => uint256) public playerBetTotal;
@@ -54,7 +54,7 @@ contract CoinFlip {
   }
 
   event GameStarted(uint256 id);
-  event GameJoined(address opponent);
+  event GameJoined(uint256 id, address opponent);
   event GameFinished(uint256 id);
   event PrizeWithdrawn(address player, uint256 prize, uint256 tokens);
 
@@ -64,7 +64,7 @@ contract CoinFlip {
   //  --- GAMEPLAY
   function startGame(bytes32 _coinSideHash) external payable {
     require(_coinSideHash[0] != 0, "Empty hash");
-    require(msg.value > gameMinBet, "value < gameMinBet");
+    require(msg.value >= gameMinBet, "value < gameMinBet");
     require(gamesStarted() == gamesFinished(), "Game is running");
 
     uint256 nextIdx = gamesStarted();
@@ -72,7 +72,7 @@ contract CoinFlip {
     games[nextIdx].creator = msg.sender;
     games[nextIdx].id = nextIdx;
     games[nextIdx].bet = msg.value;
-    games[nextIdx].startTimestamp = block.timestamp;
+    games[nextIdx].startBlock = block.number;
 
     playerParticipatedInGames[msg.sender].push(nextIdx);
 
@@ -85,7 +85,7 @@ contract CoinFlip {
     Game storage lastStartedGame = games[gamesStarted().sub(1)];
     
     require(msg.value == lastStartedGame.bet, "Wrong bet");
-    require(lastStartedGame.startTimestamp.add(gameMaxDuration) >= block.timestamp, "Running game time out");
+    require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Running game time out");
     require(lastStartedGame.opponentCoinSide[msg.sender] == CoinSide.none, "Already joined");
 
     lastStartedGame.opponentCoinSide[msg.sender] = _coinSide;
@@ -95,14 +95,14 @@ contract CoinFlip {
 
     increaseBets();
 
-    emit GameJoined(msg.sender);
+    emit GameJoined(msg.sender, lastStartedGame.bet);
   }
 
   function playGame(uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
     Game storage lastStartedGame = games[gamesStarted().sub(1)];
     
     require(lastStartedGame.creator == msg.sender, "Not creator");
-    require(lastStartedGame.startTimestamp.add(gameMaxDuration) >= block.timestamp, "Time out");
+    require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Time out");
     require(keccak256(abi.encodePacked(uint256(_coinSide), _seedHash)) == lastStartedGame.creatorCoinSideHash, "Wrong hash value");
 
     lastStartedGame.creatorCoinSide = _coinSide;
@@ -120,7 +120,7 @@ contract CoinFlip {
   function finishTimeoutGame() external onlyWhileRunningGame {
     Game storage lastStartedGame = games[gamesStarted().sub(1)];
     
-    require(lastStartedGame.startTimestamp.add(gameMaxDuration) < block.timestamp, "Game still running");
+    require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) < block.number, "Game still running");
 
     lastStartedGame.timeout = true;
     lastStartedGame.prize = lastStartedGame.bet.div(lastStartedGame.heads.add(lastStartedGame.tails));
@@ -153,7 +153,7 @@ contract CoinFlip {
     }
   }
 
-  function updateGameMaxDuration(uint256 _gameMaxDuration) external {
+  function updateGameMaxDuration(uint8 _gameMaxDuration) external {
     require(_gameMaxDuration > 0, "Wrong duration");
 
     if (games[gamesStarted().sub(1)].prize == 0) {
