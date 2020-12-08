@@ -112,7 +112,7 @@ contract CoinFlip {
     return (games[gamesStarted.sub(1)].prize > 0) ? gamesStarted : gamesStarted.sub(1);
   }
 
-  function finishRunningGameOnTimeout() external {
+  function finishTimeoutGame() external {
     Game storage lastStartedGame = games[gamesStarted().sub(1)];
     require(lastStartedGame.prize == 0, "No running game");
     require(lastStartedGame.startTimestamp.add(gameMaxDuration) < block.timestamp, "Game still running");
