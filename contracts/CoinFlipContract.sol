@@ -3,7 +3,7 @@ pragma solidity ^0.7.5;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract CoinFlip {
+contract CoinFlipContract {
   using SafeMath for uint256;
 
   enum CoinSide {
