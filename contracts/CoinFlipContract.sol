@@ -13,7 +13,7 @@ contract CoinFlipContract {
   }
 
   struct Game {
-    bytes32 creatorCoinSide;  //  hash - in startGame, 1 / 2 - in playGame
+    bytes32 creatorCoinSide;  //  coinSide + saltStr = hash - in startGame, coinSide - in playGame
     address creator;
     uint256 bet;
     uint256 startBlock;
@@ -36,7 +36,7 @@ contract CoinFlipContract {
   mapping(address => uint256) public playerParticipatedInGames;
 
   mapping(address => uint256[]) private gamesWithPrizeWithdrawPending; //  game idxs with pending prize withdrawal for player
-  mapping(address => uint256) public gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer; //  last game idx, that was checked for gamesWithPrizeWithdrawPending for player
+  mapping(address => uint256) public gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer; //  game idx, that should be started while checking for gamesWithPrizeWithdrawPending for player
   
   Game[] private games;
 
@@ -104,7 +104,7 @@ contract CoinFlipContract {
   }
 
   function playGame(uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
-    uint256 lastStartedGameIdx = games[gamesStarted().sub(1);  
+    uint256 lastStartedGameIdx = games[gamesStarted().sub(1);
     Game storage lastStartedGame = games[lastStartedGameIdx];
     
     require(lastStartedGame.creator == msg.sender, "Not creator");
@@ -113,13 +113,13 @@ contract CoinFlipContract {
 
     lastStartedGame.creatorCoinSide = bytes32(uint256(_coinSide));
     (_coinSide == CoinSide.heads) ? lastStartedGame.heads = lastStartedGame.heads.add(1) : lastStartedGame.tails = lastStartedGame.tails.add(1);
-
-    if (lastStartedGame.heads.add(lastStartedGame.tails) > 1) {
+  
+    if ((lastStartedGame.heads > 0) && (lastStartedGame.tails > 0)) {
       lastStartedGame.prize = (_coinSide == CoinSide.heads) ? lastStartedGame.bet.mul(lastStartedGame.tails).div(lastStartedGame.heads) : lastStartedGame.bet.mul(lastStartedGame.heads).div(lastStartedGame.tails);
     } else {
       lastStartedGame.prize = lastStartedGame.bet;
     }
-    //  TODO: 5% of tokens to creator
+    //  TODO: 5% of tokens to creator - move to withdraw?
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -134,12 +134,13 @@ contract CoinFlipContract {
     require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) < block.number, "Game still running");
 
     uint256 opponents = lastStartedGame.heads.add(lastStartedGame.tails);
-    if (opponents > 1) {
+    if (opponents > 0) {
       lastStartedGame.prize = lastStartedGame.bet.div(opponents);
     } else {
-      
+      //  TODO: creator only, so bet -> raffle jackpot
     }
-    //  TODO: 5% of tokens to all opponents + dev
+    
+    //  TODO: 5% of tokens to all opponents + dev - move to withdraw?
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -149,7 +150,7 @@ contract CoinFlipContract {
   //  GAMEPLAY ---
 
 
-  //  --- UPDATE
+  //  --- UPDATE -> move to Governance
   function updateGameMinBet(uint256 _gameMinBet) external {
     require(_gameMinBet > 0, "Wrong _gameMinBet");
 
@@ -260,11 +261,9 @@ contract CoinFlipContract {
 
   function gamesFinished() public view returns (uint256) {
     uint256 gamesStarted = games.length;
-    if (gamesStarted == 0) {
-      return 0;
+    if (gamesStarted > 0) {
+      return (games[gamesStarted.sub(1)].prize > 0) ? gamesStarted : gamesStarted.sub(1);
     }
-
-    return (games[gamesStarted.sub(1)].prize > 0) ? gamesStarted : gamesStarted.sub(1);
   }
 
   function gameInfoBasic(uint256 _idx) external returns(
@@ -275,7 +274,7 @@ contract CoinFlipContract {
     uint256 heads,
     uint256 tails,
     uint256 prize) {
-      require(_idx <= games.length, "No game with idx");
+      require(_idx < games.length, "Wrong game idx");
 
       creatorCoinSide = games[_idx].creatorCoinSide;
       creator = games[_idx].creator;
@@ -287,7 +286,7 @@ contract CoinFlipContract {
   }
 
   function gameInfoOpponentInfo(uint256 _idx) external returns(CoinSide opponentCoinSide, bool prizeWithdrawn) {
-    require(_idx <= games.length, "No game with idx");
+    require(_idx < games.length, "Wrong game idx");
 
     opponentCoinSide = games[_idx].opponentCoinSide[msg.sender];
     prizeWithdrawn = games[_idx].prizeWithdrawn[msg.sender];
