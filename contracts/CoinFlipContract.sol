@@ -86,8 +86,7 @@ contract CoinFlipContract {
   }
 
   function joinGame(uint8 _coinSide) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
-    uint256 lastStartedGameIdx = games[gamesStarted().sub(1);  
-    Game storage lastStartedGame = games[gameIdx];
+    Game storage lastStartedGame = lastStartedGame();
     
     require(msg.value == lastStartedGame.bet, "Wrong bet");
     require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Running game time out");
@@ -104,8 +103,7 @@ contract CoinFlipContract {
   }
 
   function playGame(uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
-    uint256 lastStartedGameIdx = games[gamesStarted().sub(1);
-    Game storage lastStartedGame = games[lastStartedGameIdx];
+    Game storage lastStartedGame = lastStartedGame();
     
     require(lastStartedGame.creator == msg.sender, "Not creator");
     require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Time out");
@@ -114,12 +112,18 @@ contract CoinFlipContract {
     lastStartedGame.creatorCoinSide = bytes32(uint256(_coinSide));
     (_coinSide == CoinSide.heads) ? lastStartedGame.heads = lastStartedGame.heads.add(1) : lastStartedGame.tails = lastStartedGame.tails.add(1);
   
+    uint256 gameProfit;
     if ((lastStartedGame.heads > 0) && (lastStartedGame.tails > 0)) {
-      lastStartedGame.prize = (_coinSide == CoinSide.heads) ? lastStartedGame.bet.mul(lastStartedGame.tails).div(lastStartedGame.heads) : lastStartedGame.bet.mul(lastStartedGame.heads).div(lastStartedGame.tails);
+      gameProfit = (_coinSide == CoinSide.heads) ? lastStartedGame.bet.mul(lastStartedGame.tails).div(lastStartedGame.heads) : lastStartedGame.bet.mul(lastStartedGame.heads).div(lastStartedGame.tails);
+
+      //  TODO: 5% * prize in tokens to CREATOR - move to withdraw? 
     } else {
-      lastStartedGame.prize = lastStartedGame.bet;
+      uint256 opponentsOnly = (lastStartedGame.heads > 0) ? lastStartedGame.heads.sub(1) : lastStartedGame.tails.sub(1);
+      gameProfit = lastStartedGame.bet.div(opponentsOnly);
+    
+    //  TODO: 5% * bet in tokens to CREATOR - move to withdraw? 
     }
-    //  TODO: 5% of tokens to creator - move to withdraw?
+    lastStartedGame.prize = lastStartedGame.bet.add(gameProfit);
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -128,19 +132,19 @@ contract CoinFlipContract {
   }
 
   function finishTimeoutGame() external onlyWhileRunningGame {
-    uint256 lastStartedGameIdx = games[gamesStarted().sub(1);  
-    Game storage lastStartedGame = games[lastStartedGameIdx];
-    
+    Game storage lastStartedGame = lastStartedGame();
+
     require(lastStartedGame.startBlock.add(uint256(gameMaxDuration)) < block.number, "Game still running");
 
     uint256 opponents = lastStartedGame.heads.add(lastStartedGame.tails);
     if (opponents > 0) {
-      lastStartedGame.prize = lastStartedGame.bet.div(opponents);
+      uint256 gameProfit = lastStartedGame.bet.div(opponents);
+      lastStartedGame.prize = lastStartedGame.bet.add(gameProfit);
     } else {
       //  TODO: creator only, so bet -> raffle jackpot
     }
     
-    //  TODO: 5% of tokens to all opponents + dev - move to withdraw?
+    //  TODO: 5% of tokens to all OPPONENTS + dev - move to withdraw?
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -148,6 +152,69 @@ contract CoinFlipContract {
     emit GameFinished(lastStartedGameIdx);
   }
   //  GAMEPLAY ---
+
+
+  //  --- PENDING WITHDRAWAL
+  function getGamesWithPrizeWithdrawPending(address _address) external onlyNonZeroAddress(_address) returns(uint256[] memory) {
+    return gamesWithPrizeWithdrawPending[msg.sender];
+  }
+
+  function updateGamesWithPrizeWithdrawPending(uint256 _maxLoop) external {
+    require(gamesFinished() > 0, "No finished games");
+    
+    uint256 startIdx = gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer[msg.sender];
+    uint256 stopIdx = (_maxLoop == 0) ? gamesFinished().sub(1) : startIdx.add(_maxLoop);
+    require(stopIdx < gamesFinished().sub(1), "_maxLoop too high");
+    
+    gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer[msg.sender] = stopIdx;
+
+    for (uint256 i = startIdx; i <= stopIdx; i ++) {
+      Game memory game = games[i];
+      bool timeout = game.creatorCoinSide > CoinSide.tails;
+
+      if (game.creator == msg.sender) {
+        if (timeout) {
+          continue;
+        }
+
+        if ((game.heads == 1 && game.tails == 0) || (game.heads == 0 && game.tails == 1)) {
+          // creator only
+          continue;
+        }
+      } else (!timeout || (game.creatorCoinSide != bytes32(uint256(game.opponentCoinSide[msg.sender])))) {
+        continue;
+      }
+
+      gamesWithPrizeWithdrawPending[msg.sender].push(i);
+    }
+  }
+
+  function withdrawPendingPrizes(uint256 _maxLoop) external {
+    uint256[] idxs = gamesWithPrizeWithdrawPending[msg.sender];
+    require(idxs.length > 0, "No pending");
+
+    uint256 stopIdx = (_maxLoop == 0) ? idxs.length.sub(1) : _maxLoop.sub(1);
+
+    uint256 prize;
+    for (uint256 i = 0; i <= stopIdx; i++) {
+      Game storage game = games[gamesWithPrizeWithdrawPending[i]];
+      prize = prize.add(game.prize);
+      game.prizeWithdrawn[msg.sender] = true;
+    }
+
+    //  TODO: 95% as prize
+    //  TODO: all 1% fees
+
+    msg.sender.transfer(prize);
+    playerWithdrawTotal[msg.sender] = playerWithdrawTotal[msg.sender].add(prize);
+
+    //  TODO: mint token
+    uint256 tokens;
+
+    emit PrizeWithdrawn(msg.sender, prize, tokens);
+  }
+  //  PENDING WITHDRAWAL ---
+
 
 
   //  --- UPDATE -> move to Governance
@@ -188,71 +255,14 @@ contract CoinFlipContract {
   }
   //  UPDATE ---
 
-
-  //  --- PENDING WITHDRAWAL
-  function getGamesWithPrizeWithdrawPending(address _address) external onlyNonZeroAddress(_address) returns(uint256[] memory) {
-    return gamesWithPrizeWithdrawPending[msg.sender];
-  }
-
-  function updateGamesWithPrizeWithdrawPending(uint256 _maxLoop) external {
-    require(gamesFinished() > 0, "No finished games");
-    
-    uint256 startIdx = gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer[msg.sender];
-    uint256 stopIdx = (_maxLoop == 0) ? gamesFinished().sub(1) : startIdx.add(_maxLoop);
-    require(stopIdx < gamesFinished(), "_maxLoop too high");
-    
-    gamesWithPrizeWithdrawPendingLastCheckedIdxForPlayer[msg.sender] = stopIdx;
-
-    for (uint256 i = startIdx; i <= stopIdx; i ++) {
-      Game memory game = games[i];
-      bool timeout = game.creatorCoinSide > CoinSide.tails;
-
-      if (game.creator == msg.sender) {
-        if (timeout) {
-          continue;
-        }
-
-        if ((game.creatorCoinSide == bytes32(uint256(CoinSide.heads))) ? game.tails == 0 : game.heads == 0) {
-          continue;
-        }
-      } else (!timeout || (game.creatorCoinSide != bytes32(uint256(game.opponentCoinSide[msg.sender])))) {
-        continue;
-      }
-
-      gamesWithPrizeWithdrawPending[msg.sender].push(i);
-    }
-  }
-
-  function withdrawPendingPrizes(uint256 _maxLoop) external {
-    uint256[] idxs = gamesWithPrizeWithdrawPending[msg.sender];
-    require(idxs.length > 0, "No pending");
-
-    uint256 stopIdx = (_maxLoop == 0) ? idxs.length.sub(1) : _maxLoop.sub(1);
-
-    uint256 prize;
-    for (uint256 i = 0; i <= stopIdx; i++) {
-      Game storage game = games[gamesWithPrizeWithdrawPending[i]];
-      prize = prize.add(game.prize);
-      game.prizeWithdrawn[msg.sender] = true;
-    }
-
-    //  TODO: 95% as prize
-    //  TODO: all 1% fees
-
-    msg.sender.transfer(prize);
-    playerWithdrawTotal[msg.sender] = playerWithdrawTotal[msg.sender].add(prize);
-
-    //  TODO: mint token
-    uint256 tokens;
-
-    emit PrizeWithdrawn(msg.sender, prize, tokens);
-  }
-  //  PENDING WITHDRAWAL ---
-
-
   function increaseBets() private {
     playerBetTotal[msg.sender] = playerBetTotal[msg.sender].add(msg.value);
     betsTotal = betsTotal.add(msg.value);
+  }
+
+  function lastStartedGame() private returns (Game storage game) {
+    uint256 lastStartedGameIdx = games[gamesStarted().sub(1)];
+    game = games[lastStartedGameIdx];
   }
 
   function gamesStarted() public view returns (uint256) {
