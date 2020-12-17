@@ -22,6 +22,7 @@ contract CoinFlipContract {
     uint256 creatorPrize; 
     uint256 opponentPrize; 
     mapping(address => CoinSide) opponentCoinSide;
+    mapping(address => address) referral;
   }
 
   uint256 private constant PRIZE_PERCENTAGE = 95;
@@ -69,7 +70,7 @@ contract CoinFlipContract {
 
 
   //  --- GAMEPLAY
-  function startGame(bytes32 _coinSideHash) external payable {
+  function startGame(bytes32 _coinSideHash, address _referral) external payable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000002
@@ -82,6 +83,9 @@ contract CoinFlipContract {
     games[nextIdx].creator = msg.sender;
     games[nextIdx].bet = msg.value;
     games[nextIdx].startBlock = block.number;
+    if (_referral != address(0)) {
+      games[nextIdx].referral[msg.sender] = _referral;
+    }
 
     gamesParticipated[msg.sender].push(nextIdx);
     increaseBets();
@@ -89,7 +93,7 @@ contract CoinFlipContract {
     emit GameStarted(nextIdx);
   }
 
-  function joinGame(CoinSide _coinSide) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
+  function joinGame(CoinSide _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
     Game storage game = ongoingGame();
     
     require(msg.value == game.bet, "Wrong bet");
@@ -98,6 +102,9 @@ contract CoinFlipContract {
 
     game.opponentCoinSide[msg.sender] = _coinSide;
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
+    if (_referral != address(0)) {
+      game.referral[msg.sender] = _referral;
+    }
 
     gamesParticipated[msg.sender].push(gamesStarted().sub(1));
     increaseBets();
@@ -201,13 +208,17 @@ contract CoinFlipContract {
     (, stopIdx) = startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(_maxLoop);
     gamesParticipatedIdxToStartCheckForPendingWithdrawal[msg.sender] = stopIdx.add(1);
 
+    //  ETH / ERC
+    //  TODO: ERC
     playerWithdrawTotal[msg.sender] = playerWithdrawTotal[msg.sender].add(pendingPrize);
-    playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
-
     uint256 transferAmount = pendingPrize.mul(100).div(PRIZE_PERCENTAGE);
     msg.sender.transfer(transferAmount);
 
-    //  TODO: all 1% fees
+    //  tokens
+    playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
+    //  TODO: transfer
+
+    //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
     //  TODO: referral
@@ -291,7 +302,8 @@ contract CoinFlipContract {
     uint256 heads,
     uint256 tails,
     uint256 prize,
-    CoinSide opponentCoinSide) {
+    CoinSide opponentCoinSide,
+    address referral) {
       require(_idx < games.length, "Wrong game idx");
 
       creatorCoinSide = games[_idx].creatorCoinSide;
@@ -304,5 +316,6 @@ contract CoinFlipContract {
       if (_addr != address(0)) {
         opponentCoinSide = games[_idx].opponentCoinSide[_addr];
       }
+      referral = games[_idx].referral;
   }
 }
