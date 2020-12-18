@@ -16,7 +16,7 @@ contract Mortable is Ownable {
     _;
   }
 
-  function startmortal() external onlyOwner {
+  function startMortal() external onlyOwner {
     mortalStartedAt = block.number;
   }
 
