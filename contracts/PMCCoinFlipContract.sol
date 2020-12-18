@@ -47,10 +47,6 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
   mapping(address => uint256[]) public gamesParticipated;
   mapping(address => uint256) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  game idx, that should be started while checking for gamesParticipated for player
-  
-  mapping(address => uint256) public referralFeesPending;
-  mapping(address => uint256) public referralFeesWithdrawn;
-  uint256 public totalUsedReferralFees;
 
   Game[] private games;
 
@@ -195,7 +191,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             if (referral != address(0)) {
-              referralFeesPending[referral] = referralFeesPending[referral].add(game.creatorPrize.div(100));
+              increaseReferralFee(referral, game.creatorPrize.div(100));
             } else {
               //  TODO: add to raffle jackpot
             }
@@ -213,7 +209,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             if (referral != address(0)) {
-              referralFeesPending[referral] = referralFeesPending[referral].add(game.opponentPrize.div(100));
+              increaseReferralFee(referral, game.opponentPrize.div(100));
             } else {
               //  TODO: add to raffle jackpot
             }
