@@ -2,10 +2,10 @@
 pragma solidity ^0.7.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./FeeManager.sol";
-import "./Mortable.sol";
+import "./PMCFeeManager.sol";
+import "./PMCMortable.sol";
 
-contract CoinFlipContract is FeeManager, Mortable {
+contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -253,13 +253,16 @@ contract CoinFlipContract is FeeManager, Mortable {
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
     
-    //  partner
+    //  partner fee
     increasePartnerFee(singleFee);
 
-    //  dev
+    //  dev fee
     increaseDevFee(singleFee);
 
-    //  TODO: raffle
+    //  raffle
+    
+
+
     //  TODO: staking
     
 

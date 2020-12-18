@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract Mortable is Ownable {
+contract PMCMortable is Ownable {
   using SafeMath for uint256;
 
   uint256 mortalStartedAt;

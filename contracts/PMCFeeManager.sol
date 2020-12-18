@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @notice Both partner and dev fees
  */
-contract FeeManager is Ownable {
+contract PMCFeeManager is Ownable {
   using SafeMath for uint256;
 
   address partner;
