@@ -2,9 +2,10 @@
 pragma solidity ^0.7.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./Partnership.sol";
+import "./FeeManager.sol";
+import "./Mortable.sol";
 
-contract CoinFlipContract is Partnership {
+contract CoinFlipContract is FeeManager, Mortable {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -78,7 +79,7 @@ contract CoinFlipContract is Partnership {
 
 
   //  --- GAMEPLAY
-  function startGame(bytes32 _coinSideHash, address _referral) external payable {
+  function startGame(bytes32 _coinSideHash, address _referral) external payable onlyLivable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000002
@@ -255,9 +256,12 @@ contract CoinFlipContract is Partnership {
     //  partner
     increasePartnerFee(singleFee);
 
+    //  dev
+    increaseDevFee(singleFee);
+
     //  TODO: raffle
     //  TODO: staking
-    //  TODO: dev
+    
 
     emit PrizeWithdrawn(msg.sender, pendingPrize, pendingTokens);
   }
