@@ -14,6 +14,8 @@ contract PMCFeeManager is Ownable {
 
   mapping(address => uint256) public feePending;
   mapping(address => uint256) public feeWithdrawn;
+
+  uint256 public totalUsedReferralFees;
   
   function updatePartner(address _partner) external onlyOwner {
     partner = _partner;
@@ -22,6 +24,7 @@ contract PMCFeeManager is Ownable {
   function increasePartnerFee(uint256 _amount) internal {
     require(partner != address(0), "no partner for fee");
     feePending[partner] = feePending[partner].add(_amount);
+    totalUsedReferralFees = totalUsedReferralFees.add(_amount);
   }
 
   function increaseDevFee(uint256 _amount) internal {

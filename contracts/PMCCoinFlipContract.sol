@@ -44,14 +44,6 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
   mapping(address => uint256[]) public gamesParticipated;
   mapping(address => uint256) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  game idx, that should be started while checking for gamesParticipatedPrizeWithdrawPending____ for player
-
-
-  mapping(address => uint256) public referralFeesPending;
-  mapping(address => uint256) public referralFeesWithdrawn;
-
-  uint256 public devFeePending;
-
-  uint256 public totalUsedReferralFees;
   
   Game[] private games;
 
