@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./PMCFeeManager.sol";
 import "./PMCMortable.sol";
+import "./PMCRaffle.sol";
 import "./PMCt.sol";
 
-contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
+contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -94,6 +94,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
     }
 
     gamesParticipated[msg.sender].push(nextIdx);
+    addRafflePlayer();
     increaseBets();
 
     emit GameStarted(nextIdx);
@@ -113,6 +114,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
     }
 
     gamesParticipated[msg.sender].push(gamesStarted().sub(1));
+    addRafflePlayer();
     increaseBets();
 
     emit GameJoined(gamesStarted(), msg.sender);
@@ -145,6 +147,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
+    runRaffle();
 
     emit GameFinished(gamesStarted(), false);
   }
@@ -159,7 +162,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
       uint256 opponentsProfit = game.bet.div(opponents);
       game.opponentPrize = game.bet.add(opponentsProfit);
     } else {
-      //  TODO: creator only, so bet -> raffle jackpot
+      increaseOngoingRaffleJackpot(game.bet);
     }
 
     updateGameMinBetIfNeeded();
@@ -190,10 +193,11 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
+            uint256 referralFee = game.creatorPrize.div(100);
             if (referral != address(0)) {
-              increaseReferralFee(referral, game.creatorPrize.div(100));
+              increaseReferralFee(referral, referralFee);
             } else {
-              //  TODO: add to raffle jackpot
+              increaseOngoingRaffleJackpot(referralFee);
             }
           }
         }
@@ -208,10 +212,11 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
+            uint256 referralFee = game.opponentPrize.div(100);
             if (referral != address(0)) {
               increaseReferralFee(referral, game.opponentPrize.div(100));
             } else {
-              //  TODO: add to raffle jackpot
+              increaseOngoingRaffleJackpot(referralFee);
             }
           }
         }
@@ -257,8 +262,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
     increaseDevFee(singleFee);
 
     //  raffle
-    
-
+    increaseOngoingRaffleJackpot(singleFee);
 
     //  TODO: staking
     
@@ -324,7 +328,8 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
   function gamesFinished() public view returns (uint256) {
     uint256 startedGames = games.length;
     if (startedGames > 0) {
-      return (games[startedGames.sub(1)].opponentPrize > 0) ? startedGames : startedGames.sub(1);
+      Game storage game = lastStartedGame();
+      return (game.creatorPrize > 0 || (game.opponentPrize > 0)) ? startedGames : startedGames.sub(1);
     }
     
     return 0;
