@@ -2,8 +2,9 @@
 pragma solidity ^0.7.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./Partnership.sol";
 
-contract CoinFlipContract {
+contract CoinFlipContract is Partnership {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -252,7 +253,7 @@ contract CoinFlipContract {
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
     
     //  partner
-    
+    increasePartnerFee(singleFee);
 
     //  TODO: raffle
     //  TODO: staking
