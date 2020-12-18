@@ -28,7 +28,6 @@ contract CoinFlipContract {
   uint256 private constant PRIZE_PERCENTAGE = 95;
   uint256 private constant FEE_DIVISION = 5;
   uint256 public constant TOKEN_PERCENTAGE = 5;
-  uint256 public constant FEE_PERCENTAGE = 1;
 
   uint256 public gameMinBet = 1e16; //  0.001 ETH
   uint256 public gameMinBetToUpdate;  // TODO:  move to Update -> Governance
@@ -43,6 +42,14 @@ contract CoinFlipContract {
 
   mapping(address => uint256[]) public gamesParticipated;
   mapping(address => uint256) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  game idx, that should be started while checking for gamesParticipatedPrizeWithdrawPending____ for player
+
+
+  mapping(address => uint256) public referralFeesPending;
+  mapping(address => uint256) public referralFeesWithdrawn;
+
+  uint256 public devFeePending;
+
+  uint256 public totalUsedReferralFees;
   
   Game[] private games;
 
@@ -94,7 +101,7 @@ contract CoinFlipContract {
   }
 
   function joinGame(CoinSide _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
-    Game storage game = ongoingGame();
+    Game storage game = lastStartedGame();
     
     require(msg.value == game.bet, "Wrong bet");
     require(game.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Running game time out");
@@ -113,7 +120,7 @@ contract CoinFlipContract {
   }
 
   function playGame(CoinSide _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame {
-    Game storage game = ongoingGame();
+    Game storage game = lastStartedGame();
     
     require(game.creator == msg.sender, "Not creator");
     require(game.startBlock.add(uint256(gameMaxDuration)) >= block.number, "Time out");
@@ -144,7 +151,7 @@ contract CoinFlipContract {
   }
 
   function finishTimeoutGame() external onlyWhileRunningGame {
-    Game storage game = ongoingGame();
+    Game storage game = lastStartedGame();
 
     require(game.startBlock.add(uint256(gameMaxDuration)) < block.number, "Game still running");
 
@@ -165,25 +172,48 @@ contract CoinFlipContract {
 
 
   //  --- PENDING WITHDRAWAL
-  function pendingPrizeToWithdraw(uint256 _maxLoop) public view returns(uint256 prize, uint256 tokens) {
+  function pendingPrizeToWithdraw(uint256 _maxLoop) external returns(uint256 prize, uint256 tokens) {
+    return pendingPrizeToWithdrawAndReferralFeesUpdate(_maxLoop, false);
+  }
+
+  function pendingPrizeToWithdrawAndReferralFeesUpdate(uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 tokens) {
     uint256 startIdx;
     uint256 stopIdx;
     (startIdx, stopIdx) = startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(_maxLoop);
 
     for (uint256 i = startIdx; i <= stopIdx; i ++) {
       Game storage game = games[gamesParticipated[msg.sender][i]];
+
       if (game.creator == msg.sender) {
         if (game.creatorPrize > 0) {
           prize = prize.add(game.creatorPrize);
           tokens = tokens.add(game.creatorPrize.mul(TOKEN_PERCENTAGE).div(100));
+
+          if (_updateReferralFees) {
+            address referral = game.referral[msg.sender];
+            if (referral != address(0)) {
+              referralFeesPending[referral] = referralFeesPending[referral].add(game.creatorPrize.div(100));
+            } else {
+              //  TODO: add to raffle jackpot
+            }
+          }
         }
       } else {
         bool timeout = game.creatorCoinSide > bytes32(uint256(CoinSide.tails));
         if (timeout || (game.creatorCoinSide == bytes32(uint256(game.opponentCoinSide[msg.sender])))) {
           prize = prize.add(game.opponentPrize);
           
-          if (game.creatorCoinSide == 0) {
+          if (timeout) {
             tokens = tokens.add(game.opponentPrize.mul(TOKEN_PERCENTAGE).div(100));
+          }
+
+          if (_updateReferralFees) {
+            address referral = game.referral[msg.sender];
+            if (referral != address(0)) {
+              referralFeesPending[referral] = referralFeesPending[referral].add(game.opponentPrize.div(100));
+            } else {
+              //  TODO: add to raffle jackpot
+            }
           }
         }
       }
@@ -202,32 +232,33 @@ contract CoinFlipContract {
   function withdrawPendingPrizes(uint256 _maxLoop) external {
     uint256 pendingPrize;
     uint256 pendingTokens;
-    (pendingPrize, pendingTokens) = pendingPrizeToWithdraw(_maxLoop);
+    (pendingPrize, pendingTokens) = pendingPrizeToWithdrawAndReferralFeesUpdate(_maxLoop, true);
     
     uint256 stopIdx;
     (, stopIdx) = startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(_maxLoop);
     gamesParticipatedIdxToStartCheckForPendingWithdrawal[msg.sender] = stopIdx.add(1);
 
-    //  ETH / ERC
-    //  TODO: ERC
+    //  ETH
     playerWithdrawTotal[msg.sender] = playerWithdrawTotal[msg.sender].add(pendingPrize);
-    uint256 transferAmount = pendingPrize.mul(100).div(PRIZE_PERCENTAGE);
+    uint256 transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE).div(100);
     msg.sender.transfer(transferAmount);
 
-    //  tokens
+    //  PMCt
     playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
-    //  TODO: transfer
+    //  TODO: transfer PMCt
 
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
-    //  TODO: referral
-    //  TODO: partner
+    
+    //  partner
+    
+
     //  TODO: raffle
     //  TODO: staking
     //  TODO: dev
 
-    emit PrizeWithdrawn(msg.sender, pendingPrize, tokens);
+    emit PrizeWithdrawn(msg.sender, pendingPrize, pendingTokens);
   }
   //  PENDING WITHDRAWAL ---
 
@@ -276,7 +307,7 @@ contract CoinFlipContract {
     betsTotal = betsTotal.add(msg.value);
   }
 
-  function ongoingGame() private view returns (Game storage game) {
+  function lastStartedGame() private view returns (Game storage game) {
     uint256 ongoingGameIdx = gamesStarted().sub(1);
     game = games[ongoingGameIdx];
   }
@@ -316,6 +347,6 @@ contract CoinFlipContract {
       if (_addr != address(0)) {
         opponentCoinSide = games[_idx].opponentCoinSide[_addr];
       }
-      referral = games[_idx].referral;
+      referral = games[_idx].referral[_addr];
   }
 }
