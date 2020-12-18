@@ -4,6 +4,7 @@ pragma solidity ^0.7.6;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./PMCFeeManager.sol";
 import "./PMCMortable.sol";
+import "./PMCt.sol";
 
 contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
   using SafeMath for uint256;
@@ -30,6 +31,8 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
   uint256 private constant PRIZE_PERCENTAGE = 95;
   uint256 private constant FEE_DIVISION = 5;
   uint256 public constant TOKEN_PERCENTAGE = 5;
+
+  PMCt public pmct;
 
   uint256 public gameMinBet = 1e16; //  0.001 ETH
   uint256 public gameMinBetToUpdate;  // TODO:  move to Update -> Governance
@@ -71,7 +74,9 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
   event GameFinished(uint256 id, bool timeout);
   event PrizeWithdrawn(address player, uint256 prize, uint256 tokens);
 
-  constructor() {}
+  constructor() {
+    pmct = new PMCt();
+  }
 
 
   //  --- GAMEPLAY
@@ -243,7 +248,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable {
 
     //  PMCt
     playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
-    //  TODO: transfer PMCt
+    pmct.mint(msg.sender, pendingTokens);
 
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
