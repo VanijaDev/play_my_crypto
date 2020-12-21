@@ -6,9 +6,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @notice Both partner and dev fees
+ * partner, referral, dev - implemented
+ * raffle - inherited
+ * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
   using SafeMath for uint256;
+
+  enum FeeType {
+    partner,
+    referral,
+    dev,
+    stake
+  }
 
   //  partner
   address partner;
@@ -23,23 +33,28 @@ contract PMCFeeManager is Ownable {
   //  dev
   uint256 public devFeePending;
 
+  //  staking
+  uint256 public stakeRewardPool;
+  
   
   function updatePartner(address _partner) external onlyOwner {
     partner = _partner;
   }
 
-  function increasePartnerFee(uint256 _amount) internal {
-    require(partner != address(0), "no partner for fee");
-    partnerFeePending[partner] = partnerFeePending[partner].add(_amount);
-  }
-
-  function increaseReferralFee(address _referral, uint256 _amount) internal {
-    require(_referral != address(0), "wrong _referral");
-    referralFeePending[_referral] = referralFeePending[_referral].add(_amount);
-  }
-
-  function increaseDevFee(uint256 _amount) internal {
-    devFeePending = devFeePending.add(_amount);
+  function increaseFee(FeeType _type, uint256 _amount, address _address) internal {
+    if (_type == FeeType.partner) {
+      require(partner != address(0), "no partner for fee");
+      partnerFeePending[partner] = partnerFeePending[partner].add(_amount);
+    } else if (_type == FeeType.referral) (
+      require(_referral != address(0), "wrong _referral");
+      referralFeePending[_referral] = referralFeePending[_referral].add(_amount);
+    ) else if (_type == FeeType.dev) {
+      devFeePending = devFeePending.add(_amount);
+    } else if (_type == FeeType.stake) {
+      stakeRewardPool = stakeRewardPool.add(_amount);
+    } else {
+      revert("Wrong FeeType");
+    }
   }
 
   function withdrawPartnerFee() external {

@@ -195,7 +195,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.creatorPrize.div(100);
             if (referral != address(0)) {
-              increaseReferralFee(referral, referralFee);
+              increaseFee(FeeType.referral, referralFee, referral);
             } else {
               increaseOngoingRaffleJackpot(referralFee);
             }
@@ -214,7 +214,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.opponentPrize.div(100);
             if (referral != address(0)) {
-              increaseReferralFee(referral, game.opponentPrize.div(100));
+              increaseFee(FeeType.referral, game.opponentPrize.div(100), referral);
             } else {
               increaseOngoingRaffleJackpot(referralFee);
             }
@@ -256,15 +256,16 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
     
     //  partner fee
-    increasePartnerFee(singleFee);
+    increaseFee(FeeType.partner, singleFee, address(0));
 
     //  dev fee
-    increaseDevFee(singleFee);
+    increaseFee(FeeType.dev, singleFee, address(0));
+
+    //  staking
+    increaseFee(FeeType.stake, singleFee, address(0));
 
     //  raffle
     increaseOngoingRaffleJackpot(singleFee);
-
-    //  TODO: staking
     
 
     emit PrizeWithdrawn(msg.sender, pendingPrize, pendingTokens);
