@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract PMCMortable is Ownable {
   using SafeMath for uint256;
 
-  uint256 mortalStartedAt;
-  uint256 mortalPeriod = 40320; //  blocks
+  uint256 public mortalStartedAt;
+  uint256 public constant MORTAL_PERIOD = 40320; //  blocks
 
   modifier onlyLivable {
     require(mortalStartedAt == 0, "mortal started");
