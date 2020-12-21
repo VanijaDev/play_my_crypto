@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @notice Both partner and dev fees
  * partner, referral, dev - implemented
- * raffle - inherited
+ * raffle - inherited Smart Contract
  * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
@@ -45,10 +45,10 @@ contract PMCFeeManager is Ownable {
     if (_type == FeeType.partner) {
       require(partner != address(0), "no partner for fee");
       partnerFeePending[partner] = partnerFeePending[partner].add(_amount);
-    } else if (_type == FeeType.referral) (
-      require(_referral != address(0), "wrong _referral");
-      referralFeePending[_referral] = referralFeePending[_referral].add(_amount);
-    ) else if (_type == FeeType.dev) {
+    } else if (_type == FeeType.referral) {
+      require(_address != address(0), "wrong _referral");
+      referralFeePending[_address] = referralFeePending[_address].add(_amount);
+    } else if (_type == FeeType.dev) {
       devFeePending = devFeePending.add(_amount);
     } else if (_type == FeeType.stake) {
       stakeRewardPool = stakeRewardPool.add(_amount);

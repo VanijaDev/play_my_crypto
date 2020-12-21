@@ -256,7 +256,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
     
     //  partner fee
-    increaseFee(FeeType.partner, singleFee, address(0));
+    (partner != address(0)) ? increaseFee(FeeType.partner, singleFee, address(0)) : increaseOngoingRaffleJackpot(singleFee);
 
     //  dev fee
     increaseFee(FeeType.dev, singleFee, address(0));

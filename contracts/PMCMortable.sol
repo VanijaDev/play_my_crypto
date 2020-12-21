@@ -9,7 +9,7 @@ contract PMCMortable is Ownable {
   using SafeMath for uint256;
 
   uint256 public mortalStartedAt;
-  uint256 public constant MORTAL_PERIOD = 40320; //  blocks
+  uint16 public constant MORTAL_PERIOD = 40320; //  blocks
 
   modifier onlyLivable {
     require(mortalStartedAt == 0, "mortal started");
@@ -21,7 +21,7 @@ contract PMCMortable is Ownable {
   }
 
   function kill() external {
-    require(block.number > mortalStartedAt.add(mortalPeriod), "still alive");
+    require(block.number > mortalStartedAt.add(MORTAL_PERIOD), "still alive");
     selfdestruct(address(0));
   }
 }
