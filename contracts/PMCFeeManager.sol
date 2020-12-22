@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @notice Both partner and dev fees
  * partner, referral, dev - implemented
- * raffle - inherited Smart Contract
+ * raffle, governance - inherited Smart Contract
  * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
