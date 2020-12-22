@@ -130,19 +130,19 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
     game.creatorCoinSide = bytes32(uint256(_coinSide));
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
-    uint256 opponentsProfit;
+    uint256 opponentsReward;
     if ((game.heads > 0) && (game.tails > 0)) {
-      opponentsProfit = (_coinSide == CoinSide.heads) ? game.bet.mul(game.tails).div(game.heads) : game.bet.mul(game.heads).div(game.tails);
-      game.creatorPrize = game.bet.add(opponentsProfit);
+      opponentsReward = (_coinSide == CoinSide.heads) ? game.bet.mul(game.tails).div(game.heads) : game.bet.mul(game.heads).div(game.tails);
+      game.creatorPrize = game.bet.add(opponentsReward);
     } else {
       uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);
       if (opponentsOnly > 0) {
-        opponentsProfit = game.bet.div(opponentsOnly);
+        opponentsReward = game.bet.div(opponentsOnly);
       }
     }
 
-    if (opponentsProfit > 0) {
-      game.opponentPrize = game.bet.add(opponentsProfit);
+    if (opponentsReward > 0) {
+      game.opponentPrize = game.bet.add(opponentsReward);
     }
 
     updateGameMinBetIfNeeded();
@@ -159,8 +159,8 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
 
     uint256 opponents = game.heads.add(game.tails);
     if (opponents > 0) {
-      uint256 opponentsProfit = game.bet.div(opponents);
-      game.opponentPrize = game.bet.add(opponentsProfit);
+      uint256 opponentsReward = game.bet.div(opponents);
+      game.opponentPrize = game.bet.add(opponentsReward);
     } else {
       increaseOngoingRaffleJackpot(game.bet);
     }
