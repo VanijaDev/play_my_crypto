@@ -7,6 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
   function mint(address account, uint256 amount) public onlyOwner {
-      super._mint(account, amount);
+    super._mint(account, amount);
   }
 }
