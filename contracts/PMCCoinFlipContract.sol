@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
+import "./PMCGovernanceCompliant.sol";
 import "./PMCFeeManager.sol";
 import "./PMCMortable.sol";
 import "./PMCRaffle.sol";
 import "./PMCt.sol";
 
-contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
+contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCRaffle {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -33,12 +34,6 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
   uint256 public constant TOKEN_PERCENTAGE = 5;
 
   PMCt public pmct;
-
-  uint256 public gameMinBet = 1e16; //  0.001 ETH
-  uint256 public gameMinBetToUpdate;  // TODO:  move to Update -> Governance
-  
-  uint16 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
-  uint16 public gameMaxDurationToUpdate;  // TODO:  move to Update -> Governance
 
   uint256 public betsTotal;
   mapping(address => uint256) public playerBetTotal;
@@ -75,7 +70,7 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
   }
 
 
-  //  --- GAMEPLAY
+  //  <-- GAMEPLAY
   function startGame(bytes32 _coinSideHash, address _referral) external payable onlyLivable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
@@ -170,10 +165,10 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
 
     emit GameFinished(gamesStarted(), true);
   }
-  //  GAMEPLAY ---
+  //  GAMEPLAY -->
 
 
-  //  --- PENDING WITHDRAWAL
+  //  <-- PENDING WITHDRAWAL
   function pendingPrizeToWithdraw(uint256 _maxLoop) external returns(uint256 prize, uint256 tokens) {
     return pendingPrizeToWithdrawAndReferralFeesUpdate(_maxLoop, false);
   }
@@ -270,47 +265,8 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
 
     emit PrizeWithdrawn(msg.sender, pendingPrize, pendingTokens);
   }
-  //  PENDING WITHDRAWAL ---
+  //  PENDING WITHDRAWAL -->
 
-
-
-  //  --- UPDATE -> move to Governance
-  function updateGameMinBet(uint256 _gameMinBet) external {
-    require(_gameMinBet > 0, "Wrong _gameMinBet");
-
-    if (games[gamesStarted().sub(1)].opponentPrize == 0) {
-       gameMinBetToUpdate = _gameMinBet;
-      return;
-    }
-
-    gameMinBet = _gameMinBet;
-  }
-
-  function updateGameMinBetIfNeeded() private {
-    if (gameMinBetToUpdate > 0) {
-      gameMinBet = gameMinBetToUpdate;
-      delete gameMinBetToUpdate;
-    }
-  }
-
-  function updateGameMaxDuration(uint8 _gameMaxDuration) external {
-    require(_gameMaxDuration > 0, "Wrong duration");
-
-    if (games[gamesStarted().sub(1)].opponentPrize == 0) {
-       gameMaxDurationToUpdate = _gameMaxDuration;
-      return;
-    }
-
-    gameMaxDuration = _gameMaxDuration;
-  }
-
-  function updateGameMaxDurationIfNeeded() private {
-    if (gameMaxDurationToUpdate > 0) {
-      gameMaxDuration = gameMaxDurationToUpdate;
-      delete gameMaxDurationToUpdate;
-    }
-  }
-  //  UPDATE ---
 
   function increaseBets() private {
     playerBetTotal[msg.sender] = playerBetTotal[msg.sender].add(msg.value);
@@ -330,10 +286,14 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
     uint256 startedGames = games.length;
     if (startedGames > 0) {
       Game storage game = lastStartedGame();
-      return (game.creatorPrize > 0 || (game.opponentPrize > 0)) ? startedGames : startedGames.sub(1);
+      return isGameFinished(game) ? startedGames : startedGames.sub(1);
     }
     
     return 0;
+  }
+
+  function isGameFinished(Game storage _game) private view returns(bool) {
+     return (_game.creatorPrize > 0 || _game.opponentPrize > 0);
   }
 
   function gameInfoBasic(uint256 _idx, address _addr) external view returns(
@@ -359,5 +319,24 @@ contract PMCCoinFlipContract is PMCFeeManager, PMCMortable, PMCRaffle {
         opponentCoinSide = games[_idx].opponentCoinSide[_addr];
       }
       referral = games[_idx].referral[_addr];
+  }
+
+  /**
+   * PMCGovernanceCompliant
+   */
+  function updateGameMinBet(uint256 _gameMinBet) external override onlyGovernance(msg.sender) {
+    require(_gameMinBet > 0, "Wrong _gameMinBet");
+
+    Game storage game = lastStartedGame();
+    bool later = !isGameFinished(game);
+    updateGameMinBetLater(_gameMinBet, later);
+  }
+
+  function updateGameDuration(uint16 _gameMaxDuration) external override onlyGovernance(msg.sender) {
+    require(_gameMaxDuration > 0, "Wrong duration");
+
+    Game storage game = lastStartedGame();
+    bool later = !isGameFinished(game);
+    updateGameDurationLater(_gameMaxDuration, later);
   }
 }
