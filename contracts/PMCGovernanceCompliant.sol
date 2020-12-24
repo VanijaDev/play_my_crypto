@@ -4,6 +4,10 @@ pragma solidity ^0.7.6;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+/**
+ * @notice Min bet, game duration.
+ * @dev Smart Contract used to handle Gocernance.
+ */
 abstract contract PMCGovernanceCompliant is Ownable {
   using SafeMath for uint256;
   
