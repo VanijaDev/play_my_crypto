@@ -3,7 +3,6 @@ pragma solidity ^0.7.6;
 
 import "./PMCGovernanceCompliant.sol";
 import "./PMCFeeManager.sol";
-import "./PMCMortable.sol";
 import "./PMCStaking.sol";
 import "./PMCRaffle.sol";
 
@@ -15,7 +14,7 @@ import "./PMCRaffle.sol";
   * 4. Deploy Governance(PMCt, Game);
  */
 
-contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCStaking, PMCRaffle {
+contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStaking, PMCRaffle {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -76,7 +75,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
 
 
   //  <-- GAMEPLAY
-  function startGame(bytes32 _coinSideHash, address _referral) external payable onlyLivable {
+  function startGame(bytes32 _coinSideHash, address _referral) external payable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000002
