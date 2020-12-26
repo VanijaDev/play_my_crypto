@@ -9,7 +9,10 @@ import "./PMCRaffle.sol";
 
 /**
   * @notice Deplyment flow:
-  * 1.
+  * 1. Deploy PMCt;
+  * 2. Deploy Game(PMCt);
+  * 3. Add Game to minters for PMCt;
+  * 4. Deploy Governance(PMCt, Game);
  */
 
 contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCStaking, PMCRaffle {
