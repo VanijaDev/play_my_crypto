@@ -14,7 +14,7 @@ contract PMCStaking {
     uint256 stakesTotal;
   }
 
-  bool stakesStarted;
+  bool private stakesStarted;
   uint256 public stakesTotal;
   StateForIncome[] private incomes;
 
@@ -29,12 +29,13 @@ contract PMCStaking {
   }
   
   constructor(address _pmct) {
-      require(_pmct != address(0), "Wrong pmct");
-      pmct = _pmct;
+    require(_pmct != address(0), "Wrong pmct");
+    pmct = _pmct;
   }
 
-  function replenishRewardPool() internal {
-    incomes.push(StateForIncome(msg.value, stakesTotal));
+  function replenishRewardPool(uint256 _amount) internal {
+    require(_amount > 0, "Wrong replenish amnt");
+    incomes.push(StateForIncome(_amount, stakesTotal));
   }
 
   function stake(uint256 _tokens) external onlyAllowedTokens(_tokens) {
@@ -61,12 +62,12 @@ contract PMCStaking {
   }
 
   function unstake(uint256 _tokens) external {
-    require(_tokens >= stakeOf[msg.sender], "Not enough tokens");
+    require(_tokens > 0, "Wrong tokens");
+    require(_tokens <= stakeOf[msg.sender], "Not enough tokens");
     withdrawReward(0);
 
     stakeOf[msg.sender] = stakeOf[msg.sender].sub(_tokens);
     stakesTotal = stakesTotal.sub(_tokens);
-    
     
     ERC20(pmct).transfer(msg.sender, _tokens);
   }
@@ -88,13 +89,13 @@ contract PMCStaking {
   function calculateReward(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
     require(stakeOf[msg.sender] > 0, "No stake");
 
-    uint256 incomesLength = incomes.length; //  2, 4, 6, 8, 5, 3 == 6
+    uint256 incomesLength = incomes.length;
     require(incomesLength > 0, "No incomes");
 
-    uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender]; //  3
+    uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
     require(startIdx < incomesLength, "Nothing to calculate");
 
-    uint256 incomesToCalculate = incomesLength.sub(startIdx); //  6 - 3 = 3
+    uint256 incomesToCalculate = incomesLength.sub(startIdx);
     uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
 
     for (uint256 i = startIdx; i <= stopIdx; i++) {
