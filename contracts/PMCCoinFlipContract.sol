@@ -205,7 +205,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.opponentPrize.div(100);
-            increaseFee(FeeType.referral, game.opponentPrize.div(100), referral);
+            increaseFee(FeeType.referral, referralFee, referral);
           }
         }
       }
