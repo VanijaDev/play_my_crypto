@@ -89,9 +89,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
     games[nextIdx].creator = msg.sender;
     games[nextIdx].bet = msg.value;
     games[nextIdx].startBlock = block.number;
-    if (_referral != address(0)) {
-      games[nextIdx].referral[msg.sender] = _referral;
-    }
+    games[nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipated[msg.sender].push(nextIdx);
     addRafflePlayer();
@@ -109,9 +107,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
 
     game.opponentCoinSide[msg.sender] = _coinSide;
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
-    if (_referral != address(0)) {
-      game.referral[msg.sender] = _referral;
-    }
+    games[nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipated[msg.sender].push(gamesStarted().sub(1));
     addRafflePlayer();
@@ -194,11 +190,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.creatorPrize.div(100);
-            if (referral != address(0)) {
-              increaseFee(FeeType.referral, referralFee, referral);
-            } else {
-              increaseOngoingRaffleJackpot(referralFee);
-            }
+            increaseFee(FeeType.referral, referralFee, referral);
           }
         }
       } else {
@@ -213,11 +205,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.opponentPrize.div(100);
-            if (referral != address(0)) {
-              increaseFee(FeeType.referral, game.opponentPrize.div(100), referral);
-            } else {
-              increaseOngoingRaffleJackpot(referralFee);
-            }
+            increaseFee(FeeType.referral, game.opponentPrize.div(100), referral);
           }
         }
       }
