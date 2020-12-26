@@ -4,10 +4,15 @@ pragma solidity ^0.7.6;
 import "./PMCGovernanceCompliant.sol";
 import "./PMCFeeManager.sol";
 import "./PMCMortable.sol";
+import "./PMCStaking.sol";
 import "./PMCRaffle.sol";
-import "./PMCt.sol";
 
-contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCRaffle {
+/**
+  * @notice Deplyment flow:
+  * 1.
+ */
+
+contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCStaking, PMCRaffle {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -32,8 +37,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
   uint256 private constant PRIZE_PERCENTAGE = 95;
   uint256 private constant FEE_DIVISION = 5;
   uint256 public constant TOKEN_PERCENTAGE = 5;
-
-  PMCt public pmct;
 
   uint256 public betsTotal;
   mapping(address => uint256) public playerBetTotal;
@@ -65,8 +68,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
   event GameFinished(uint256 id, bool timeout);
   event PrizeWithdrawn(address player, uint256 prize, uint256 tokens);
 
-  constructor() {
-    pmct = new PMCt();
+  constructor(address _pmct) PMCStaking(_pmct) {
   }
 
 
@@ -244,7 +246,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
 
     //  PMCt
     playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
-    pmct.mint(msg.sender, pendingTokens);
+    PMCt(pmct).mint(msg.sender, pendingTokens);
 
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
