@@ -8,7 +8,7 @@ import "./PMCGovernanceCompliant.sol";
 
 /**
  * @notice Min bet, game duration.
- * @dev Common Governance fo all games.
+ * @dev Common Governance for all games, that bet ETH only.
  */
 contract PMCGovernance is Ownable {
   using SafeMath for uint256;
@@ -58,14 +58,14 @@ contract PMCGovernance is Ownable {
   /**
    * @dev Constructs Smart Contract.
    * @param _pmct PMCt address.
-   * @param _games Game addresses, that shuld be governed by this Smart Contract. Should be PMCGovernanceCompliant.
+   * @param _games Game addresses, that should be governed by this Smart Contract. Should be PMCGovernanceCompliant.
    */
   constructor(address _pmct, address[] memory _games) {
     require(_pmct != address(0), "Wrong _pmct");
     pmct = _pmct;
 
     for (uint8 i = 0; i < _games.length; i++) {
-      require(_games[i] != address(0), "Wrong _erc20Game");
+      require(_games[i] != address(0), "Wrong _game");
       games.push(_games[i]);
     }
   }
