@@ -107,7 +107,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
 
     game.opponentCoinSide[msg.sender] = _coinSide;
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
-    games[nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
+    game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipated[msg.sender].push(gamesStarted().sub(1));
     addRafflePlayer();
@@ -205,7 +205,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
             uint256 referralFee = game.opponentPrize.div(100);
-            increaseFee(FeeType.referral, game.opponentPrize.div(100), referral);
+            increaseFee(FeeType.referral, referralFee, referral);
           }
         }
       }
