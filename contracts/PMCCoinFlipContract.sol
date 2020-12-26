@@ -3,7 +3,6 @@ pragma solidity ^0.7.6;
 
 import "./PMCGovernanceCompliant.sol";
 import "./PMCFeeManager.sol";
-import "./PMCMortable.sol";
 import "./PMCStaking.sol";
 import "./PMCRaffle.sol";
 
@@ -15,7 +14,7 @@ import "./PMCRaffle.sol";
   * 4. Deploy Governance(PMCt, Game);
  */
 
-contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortable, PMCStaking, PMCRaffle {
+contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStaking, PMCRaffle {
   using SafeMath for uint256;
 
   enum CoinSide {
@@ -41,23 +40,23 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
   uint256 private constant FEE_DIVISION = 5;
   uint256 public constant TOKEN_PERCENTAGE = 5;
 
-  uint256 public betsTotal;
-  mapping(address => uint256) public playerBetTotal;
-  mapping(address => uint256) public playerWithdrawTotal;
-  mapping(address => uint256) public playerWithdrawTokensTotal;
+  mapping(address => uint256) public betsTotal; //  0x0 - ETH, 0x... - token
+  mapping(address => mapping(address => uint256)) public playerBetTotal;    //  token => (player => amount)
+  mapping(address => mapping(address => uint256)) public playerWithdrawTotal;   //  token => (player => amount)
+  mapping(address => uint256) public playerWithdrawPMCtTotal;
 
-  mapping(address => uint256[]) public gamesParticipated;
-  mapping(address => uint256) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  game idx, that should be started while checking for gamesParticipated for player
+  mapping(address => mapping(address => uint256[])) public gamesParticipated;    //  token => (player => amount)
+  mapping(address => mapping(address => uint256)) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  game idx, that should be started while checking for gamesParticipated for player
 
-  Game[] private games;
+  mapping(address => Game[]) private games; //  0x0 - ETH, 0x... - token
 
   modifier onlyCorrectCoinSide(CoinSide _coinSide) {
     require(_coinSide == CoinSide.heads || _coinSide == CoinSide.tails, "Wrong side");
     _;
   }
   
-  modifier onlyWhileRunningGame() {
-    require(gamesStarted() > gamesFinished(), "No running games");
+  modifier onlyWhileRunningGame(address _address) {
+    require(gamesStarted(_address) > gamesFinished(_address), "No running games");
     _;
   }
 
@@ -66,17 +65,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
     _;
   }
 
-  event GameStarted(uint256 id);
-  event GameJoined(uint256 id, address opponent);
-  event GameFinished(uint256 id, bool timeout);
-  event PrizeWithdrawn(address player, uint256 prize, uint256 tokens);
+  event GameStarted(uint256 id, address token);
+  event GameJoined(uint256 id, address token, address opponent);
+  event GameFinished(uint256 id, address token, bool timeout);
+  event PrizeWithdrawn(address player, address token, uint256 prize, uint256 tokens);
 
   constructor(address _pmct) PMCStaking(_pmct) {
   }
 
 
   //  <-- GAMEPLAY
-  function startGame(bytes32 _coinSideHash, address _referral) external payable onlyLivable {
+  function startGame(bytes32 _coinSideHash, address _referral, address token) external payable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000002
@@ -236,7 +235,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
     msg.sender.transfer(transferAmount);
 
     //  PMCt
-    playerWithdrawTokensTotal[msg.sender] = playerWithdrawTokensTotal[msg.sender].add(pendingTokens);
+    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingTokens);
     PMCt(pmct).mint(msg.sender, pendingTokens);
 
     //  fee
@@ -261,24 +260,24 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCMortab
   //  PENDING WITHDRAWAL -->
 
 
-  function increaseBets() private {
-    playerBetTotal[msg.sender] = playerBetTotal[msg.sender].add(msg.value);
+  function increaseBets(address _address) private {
+    playerBetTotal[_address][msg.sender] = playerBetTotal[_address][msg.sender].add(msg.value);
     betsTotal = betsTotal.add(msg.value);
   }
 
-  function lastStartedGame() private view returns (Game storage game) {
-    uint256 ongoingGameIdx = gamesStarted().sub(1);
-    game = games[ongoingGameIdx];
+  function lastStartedGame(address _address) private view returns (Game storage game) {
+    uint256 ongoingGameIdx = gamesStarted(_address).sub(1);
+    game = games[_address][ongoingGameIdx];
   }
 
-  function gamesStarted() public view returns (uint256) {
-    return games.length;
+  function gamesStarted(address _address) public view returns (uint256) {
+    return games[_address].length;
   }
 
-  function gamesFinished() public view returns (uint256) {
-    uint256 startedGames = games.length;
+  function gamesFinished(address _address) public view returns (uint256) {
+    uint256 startedGames = games[_address].length;
     if (startedGames > 0) {
-      Game storage game = lastStartedGame();
+      Game storage game = lastStartedGame(_address);
       return isGameFinished(game) ? startedGames : startedGames.sub(1);
     }
     

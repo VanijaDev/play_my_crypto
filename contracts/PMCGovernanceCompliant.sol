@@ -13,16 +13,22 @@ abstract contract PMCGovernanceCompliant is Ownable {
   
   address governance;
 
-  uint256 public gameMinBet = 1e16; //  0.001 ETH
-  uint256 public gameMinBetToUpdate;
+  mapping(address => uint256) public gameMinBet;    //  token => amount, 0x0 - ETH
+  mapping(address => uint256) public gameMinBetToUpdate;    //  token => amount, 0x0 - ETH
   
   uint16 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
   uint16 public gameMaxDurationToUpdate;
+  
+  address[] minBetToUpdate; //  tokens to update min bet
   
 
   modifier onlyGovernance(address _address) {
     require(_address == governance, "Not PMCGovernance");
     _;
+  }
+  
+  constructor() {
+      gameMinBet[address(0)] = 1e16; //  0.001 ETH
   }
 
   /**
@@ -37,27 +43,38 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @dev Governance calls when min bet update proposal accepted.
    * @param _gameMinBet Bet value to be used.
    */
-  function updateGameMinBet(uint256 _gameMinBet) external virtual;
+  function updateGameMinBet(address _token, uint256 _gameMinBet) external virtual;
 
   /**
    * @dev Updates min bet.
    * @param _gameMinBet Bet value to be used.
    * @param _later Should be updated later.
    */
-  function updateGameMinBetLater(uint256 _gameMinBet, bool _later) internal {
-    require(_gameMinBet != gameMinBet, "Same gameMinBet");
+  function updateGameMinBetLater(address _token, uint256 _gameMinBet, bool _later) internal {
+    require(_gameMinBet != gameMinBet[_token], "Same gameMinBet");
 
-    _later ? gameMinBetToUpdate = _gameMinBet : gameMinBet = _gameMinBet;
+    if (_later) {
+        gameMinBetToUpdate[_token] = _gameMinBet;
+        minBetToUpdate.push(_token);
+        
+    } else {
+        gameMinBet[_token] = _gameMinBet;
+    }
+        
   }
 
   /**
    * @dev Checks if min bet should be updated.
    */
   function updateGameMinBetIfNeeded() internal {
-    if (gameMinBetToUpdate > 0) {
-      gameMinBet = gameMinBetToUpdate;
-      delete gameMinBetToUpdate;
-    }
+      for (uint8 i = 0; i < minBetToUpdate.length; i ++) {
+        address tokenAddr = minBetToUpdate[i];
+        if (gameMinBetToUpdate[tokenAddr] > 0) {
+          gameMinBet[tokenAddr] = gameMinBetToUpdate[tokenAddr];
+          delete gameMinBetToUpdate[tokenAddr];
+        }   
+      }
+      delete minBetToUpdate;
   }
 
   /**
