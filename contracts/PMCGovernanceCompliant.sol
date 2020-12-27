@@ -13,13 +13,12 @@ abstract contract PMCGovernanceCompliant is Ownable {
   
   address governance;
 
-  mapping(address => uint256) public gameMinBet;    //  token => amount, 0x0 - ETH
-  mapping(address => uint256) public gameMinBetToUpdate;    //  token => amount, 0x0 - ETH
-  
   uint16 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
   uint16 public gameMaxDurationToUpdate;
   
-  address[] minBetToUpdate; //  tokens to update min bet
+  mapping(address => uint256) public gameMinBetForToken;    //  token => amount, 0x0 - ETH
+  mapping(address => uint256) public gameMinBetToUpdateForToken;    //  token => amount, 0x0 - ETH
+  address[] tokenToUpdateMinBet; //  tokens to update min bet
   
 
   modifier onlyGovernance(address _address) {
@@ -28,7 +27,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
   
   constructor() {
-      gameMinBet[address(0)] = 1e16; //  0.001 ETH
+      gameMinBetForToken[address(0)] = 1e16; //  ETH => 0.001 ETH
   }
 
   /**
@@ -51,30 +50,29 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _later Should be updated later.
    */
   function updateGameMinBetLater(address _token, uint256 _gameMinBet, bool _later) internal {
-    require(_gameMinBet != gameMinBet[_token], "Same gameMinBet");
-
-    if (_later) {
-        gameMinBetToUpdate[_token] = _gameMinBet;
-        minBetToUpdate.push(_token);
-        
-    } else {
-        gameMinBet[_token] = _gameMinBet;
-    }
-        
+    if (_gameMinBet != gameMinBetForToken[_token]) {
+        if (_later) {
+            gameMinBetToUpdateForToken[_token] = _gameMinBet;
+            tokenToUpdateMinBet.push(_token);
+            
+        } else {
+            gameMinBetForToken[_token] = _gameMinBet;
+        }
+    } 
   }
 
   /**
    * @dev Checks if min bet should be updated.
    */
   function updateGameMinBetIfNeeded() internal {
-      for (uint8 i = 0; i < minBetToUpdate.length; i ++) {
-        address tokenAddr = minBetToUpdate[i];
-        if (gameMinBetToUpdate[tokenAddr] > 0) {
-          gameMinBet[tokenAddr] = gameMinBetToUpdate[tokenAddr];
-          delete gameMinBetToUpdate[tokenAddr];
+      for (uint8 i = 0; i < tokenToUpdateMinBet.length; i ++) {
+        address tokenAddr = tokenToUpdateMinBet[i];
+        if (gameMinBetToUpdateForToken[tokenAddr] > 0) {
+          gameMinBetForToken[tokenAddr] = gameMinBetToUpdateForToken[tokenAddr];
+          delete gameMinBetToUpdateForToken[tokenAddr];
         }   
       }
-      delete minBetToUpdate;
+      delete tokenToUpdateMinBet;
   }
 
   /**
@@ -90,9 +88,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _later Should be updated later.
    */
   function updateGameDurationLater(uint16 _gameMaxDuration, bool _later) internal {
-    require(_gameMaxDuration != gameMaxDuration, "Same gameMaxDuration");
-
-    _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
+    if (_gameMaxDuration != gameMaxDuration) {
+        _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
+    }
   }
 
   /**
