@@ -102,4 +102,15 @@ abstract contract PMCGovernanceCompliant is Ownable {
       delete gameMaxDurationToUpdate;
     }
   }
+  
+  /**
+   * @dev Adds token to be used in games.
+   * @param _token Token address.
+   * @param _minBet Min bet for token.
+   */
+  function addToken(address _token, uint256 _minBet) external {
+      if(_token != address(0) && _minBet > 0) {
+        gameMinBetForToken[_token] = _minBet;
+      }
+  }
 }
