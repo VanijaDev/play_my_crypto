@@ -26,6 +26,10 @@ abstract contract PMCGovernanceCompliant is Ownable {
     _;
   }
   
+  event GameMaxDurationUpdated(uint16 gameMaxDuration);
+  event GameMinBetUpdated(address _token, uint256 _minBet);
+  event GameTokenAdded(address _token);
+  
   constructor() {
       gameMinBetForToken[address(0)] = 1e16; //  ETH => 0.001 ETH
   }
@@ -57,6 +61,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
             
         } else {
             gameMinBetForToken[_token] = _gameMinBet;
+            emit GameMinBetUpdated(_token, _gameMinBet);
         }
     } 
   }
@@ -70,6 +75,8 @@ abstract contract PMCGovernanceCompliant is Ownable {
         if (gameMinBetToUpdateForToken[tokenAddr] > 0) {
           gameMinBetForToken[tokenAddr] = gameMinBetToUpdateForToken[tokenAddr];
           delete gameMinBetToUpdateForToken[tokenAddr];
+          
+          emit GameMinBetUpdated(tokenAddr, gameMinBetForToken[tokenAddr]);
         }   
       }
       delete tokenToUpdateMinBet;
@@ -80,16 +87,21 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @dev Governance calls when game duration update proposal accepted.
    * @param _gameMaxDuration Duration value to be used.
    */
-  function updateGameDuration(uint16 _gameMaxDuration) external virtual;
+  function updateGameMaxDuration(uint16 _gameMaxDuration) external virtual;
 
   /**
    * @dev Updates game duration.
    * @param _gameMaxDuration Game duration value to be used.
    * @param _later Should be updated later.
    */
-  function updateGameDurationLater(uint16 _gameMaxDuration, bool _later) internal {
+  function updateGameMaxDurationLater(uint16 _gameMaxDuration, bool _later) internal {
     if (_gameMaxDuration != gameMaxDuration) {
-        _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
+        if (_later) {
+            gameMaxDurationToUpdate = _gameMaxDuration;
+            emit GameMaxDurationUpdated(_gameMaxDuration);
+        } else {
+            gameMaxDuration = _gameMaxDuration;
+        }
     }
   }
 
@@ -100,6 +112,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
     if (gameMaxDurationToUpdate > 0) {
       gameMaxDuration = gameMaxDurationToUpdate;
       delete gameMaxDurationToUpdate;
+      emit GameMaxDurationUpdated(gameMaxDuration);
     }
   }
   
@@ -108,9 +121,11 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _token Token address.
    * @param _minBet Min bet for token.
    */
-  function addToken(address _token, uint256 _minBet) external {
+  function addToken(address _token, uint256 _minBet) external onlyGovernance(msg.sender) {
       if(_token != address(0) && _minBet > 0) {
         gameMinBetForToken[_token] = _minBet;
+        
+        emit GameTokenAdded(_token);
       }
   }
 }
