@@ -316,7 +316,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   /**
    * PMCGovernanceCompliant
    */
-  function updateGameMinBet(uint256 _gameMinBet) external override onlyGovernance(msg.sender) {
+  function updateGameMinBet(address _token, uint256 _gameMinBet) external override onlyGovernance(msg.sender) {
     require(_gameMinBet > 0, "Wrong gameMinBet");
 
     Game storage game = lastStartedGame();
