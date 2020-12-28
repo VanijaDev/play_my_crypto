@@ -68,7 +68,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @dev Governance calls when game duration update proposal accepted.
    * @param _gameMaxDuration Duration value to be used.
    */
-  function updateGameDuration(uint16 _gameMaxDuration) external virtual;
+  function updateGameMaxDuration(uint16 _gameMaxDuration) external virtual;
 
   /**
    * @dev Updates game duration.

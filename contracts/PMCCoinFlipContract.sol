@@ -324,11 +324,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     updateGameMinBetLater(_gameMinBet, later);
   }
 
-  function updateGameDuration(uint16 _gameMaxDuration) external override onlyGovernance(msg.sender) {
+  function updateGameMaxDuration(uint16 _gameMaxDuration) external override onlyGovernance(msg.sender) {
     require(_gameMaxDuration > 0, "Wrong duration");
 
     Game storage game = lastStartedGame();
     bool later = !isGameFinished(game);
-    updateGameDurationLater(_gameMaxDuration, later);
+    updateGameMaxDurationLater(_gameMaxDuration, later);
   }
 }
