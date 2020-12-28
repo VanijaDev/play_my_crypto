@@ -16,7 +16,8 @@ abstract contract PMCGovernanceCompliant is Ownable {
   uint16 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
   uint16 public gameMaxDurationToUpdate;
   
-  mapping(address => uint256) public gameMinBetForToken;    //  token => amount, 0x0 - ETH
+  uint256 constant public MIN_BET_FOR_ETH = 1e16; //  0.001 ETH
+  
   mapping(address => uint256) public gameMinBetToUpdateForToken;    //  token => amount, 0x0 - ETH
   address[] tokenToUpdateMinBet; //  tokens to update min bet
   
@@ -30,9 +31,6 @@ abstract contract PMCGovernanceCompliant is Ownable {
   event GameMinBetUpdated(address _token, uint256 _minBet);
   event GameTokenAdded(address _token);
   
-  constructor() {
-      gameMinBetForToken[address(0)] = 1e16; //  ETH => 0.001 ETH
-  }
 
   /**
    * @dev Updates Governance Contract address.
@@ -119,10 +117,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
   /**
    * @dev Adds token to be used in games.
    * @param _token Token address.
-   * @param _minBet Min bet for token.
    */
-  function addToken(address _token, uint256 _minBet) external onlyGovernance(msg.sender) {
-      if(_token != address(0) && _minBet > 0) {
+  function updateGameAddToken(address _token) external onlyGovernance(msg.sender) {
+      if(_token != address(0)) {
         gameMinBetForToken[_token] = _minBet;
         
         emit GameTokenAdded(_token);

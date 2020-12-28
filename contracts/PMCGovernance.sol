@@ -37,13 +37,21 @@ contract PMCGovernance is Ownable {
   address pmct;
   address[] games;  //  individual game Smart Contracts to be governed
 
+    //  minBet
   mapping(address => uint256[]) public proposalsMinBetValueForToken;   //  token => values[]
   mapping(address => mapping(uint256 => Proposal)) public proposalsMinBetForToken;  //  token => (value => Proposal)
   mapping(address => MinBetVote) public proposalMinBetValueParticipated;   //  address => MinBetVote(token, value)
   
+  //    gameMaxDuration
   uint256[] public proposalsGameMaxDurationValues;
   mapping(address => uint256) public proposalGameMaxDurationValueParticipated;
   mapping(uint256 => Proposal) public proposalsGameMaxDuration;
+
+    //  addToken
+  address[] public proposalsAddTokenValues;
+  mapping(address => address) public proposalAddTokenValueParticipated;
+  mapping(address => Proposal) public proposalsAddToken;
+    
 
   modifier onlyValidProposal(ProposalType _proposalType) {
     require(_proposalType <= ProposalType.addToken, "Wrong type");
@@ -90,7 +98,7 @@ contract PMCGovernance is Ownable {
       } else if (_proposalType == ProposalType.gameMaxDuration) {
           _addProposalGameMaxDuration(_value, _tokens);
       } else {
-          //    TODO: addToken
+          _addProposalAddToken(_token, _tokens);
       }
   }
 
@@ -240,6 +248,93 @@ contract PMCGovernance is Ownable {
   }
 
   //  ADD, VOTE GAME DURATION -->
+  
+  
+  //  <-- ADD, VOTE ADD TOKEN
+  /**
+   * @dev Adds proposal addToken.
+   * @param _token Token address to be added.
+   * @param _tokens PMCt amount to vote.
+   */
+  function _addProposalAddToken(address _token, uint256 _tokens) private {
+    require(proposalAddTokenValueParticipated[msg.sender] == address(0) || proposalAddTokenValueParticipated[msg.sender] == _token, "Already voted");
+    
+    (proposalsAddToken[_token].votersTotal == 0) ? _createProposalAddToken(_token, _tokens) : voteProposalGameMaxDuration(_token, _tokens);
+  }
+
+  /**
+   * @dev Creates proposal addToken.
+   * @param _token Token address to be added.
+   * @param _tokens PMCt amount to vote.
+   */
+  function _createProposalAddToken(address _token, uint256 _tokens) private onlyAllowedTokens(_tokens) {
+    require(_token != address(0), "Wrong token");
+    require(proposalsAddToken[_token].votersTotal == 0, "Already exists");
+
+    proposalsAddTokenValues.push(_token);
+    proposalAddTokenValueParticipated[msg.sender] = _token;
+
+    proposalsAddToken[_token].votersTotal = 1;
+    proposalsAddToken[_token].tokensTotal = _tokens;
+    proposalsAddToken[_token].tokensOfVoter[msg.sender] = _tokens;
+
+    ERC20(pmct).transferFrom(msg.sender, address(this), _tokens);
+
+    emit ProposalAdded(msg.sender, ProposalType.addToken, _token);
+  }
+
+  /**
+   * @dev Votes proposal addToken.
+   * @param _token Token address to be added.
+   * @param _tokens PMCt amount to vote.
+   */
+  function voteProposalAddToken(address _token, uint256 _tokens) public onlyAllowedTokens(_tokens) {
+    require(_token != address(0), "Wrong token");
+    require(proposalsAddToken[_token].votersTotal > 0, "No proposal");
+    
+    proposalsAddToken[_token].votersTotal = proposalsAddToken[_token].votersTotal.add(1);
+    proposalsAddToken[_token].tokensTotal = proposalsAddToken[_token].tokensTotal.add(_tokens);
+    proposalsAddToken[_token].tokensOfVoter[msg.sender] = proposalsAddToken[_token].tokensOfVoter[msg.sender].add(_tokens);
+    
+    ERC20(pmct).transferFrom(msg.sender, address(this), _tokens);
+    
+    emit ProposalVoted(msg.sender, ProposalType.addToken, _token);
+
+    _checkAndAcceptProposalAddToken(_token);
+  }
+
+  /**
+   * @dev Checks if proposal addToken should be accepted and accepts if needed.
+   * @param _token Token address to be added.
+   */
+  function _checkAndAcceptProposalAddToken(address _token) private {
+      
+      
+    //   struct Proposal {
+    //     uint256 votersTotal; //  individual voters
+    //     uint256 tokensTotal;
+    //     mapping(address => uint256) tokensOfVoter;
+    //   }
+  
+//   address[] public proposalsAddTokenValues;
+//   mapping(address => address) public proposalAddTokenValueParticipated;
+//   mapping(address => Proposal) public proposalsAddToken;
+  
+  
+    if (proposalsAddToken[_token].votersTotal < MIN_VOTERS_TO_ACCEPT_PROPOSAL) {
+      return;
+    }
+
+    uint256 tokensToAccept = ERC20(pmct).totalSupply().mul(MIN_TOKENS_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    if (proposalsAddToken[_token].tokensTotal < tokensToAccept) {
+      return;
+    }
+
+    for (uint8 i = 0; i < games.length; i++) {
+      PMCGovernanceCompliant(games[i]).updateGameAddToken(_token);
+    }
+  }
+  //  ADD, VOTE ADD TOKEN -->
 
 
   //  <-- QUIT PROPOSAL
