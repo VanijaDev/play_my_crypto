@@ -29,12 +29,11 @@ abstract contract PMCRaffle is Ownable {
   event CF_RafflePlayed(address indexed winner, uint256 indexed prize);
   event CF_RaffleJackpotWithdrawn(address indexed winner);
 
-  function increaseOngoingRaffleJackpot(uint256 _amount) internal {
+  function addToOngoingRaffleJackpot(uint256 _amount) internal {
     ongoingRaffleJackpot = ongoingRaffleJackpot.add(_amount);
   }
 
   function addRafflePlayer() internal {
-    ongoingRaffleJackpot = ongoingRaffleJackpot.add(msg.value);
     ongoingRaffleParticipants.push(msg.sender);
   }
 
@@ -42,7 +41,7 @@ abstract contract PMCRaffle is Ownable {
    * @dev Gets raffle participants.
    * @return Participants count.
    */
-  function getongoingRaffleParticipants() external view returns (address[] memory) {
+  function getOngoingRaffleParticipants() external view returns (address[] memory) {
     return ongoingRaffleParticipants;
   }
 
