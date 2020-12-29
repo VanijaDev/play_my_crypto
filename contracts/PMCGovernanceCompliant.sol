@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -25,6 +26,13 @@ abstract contract PMCGovernanceCompliant is Ownable {
 
   modifier onlyGovernance(address _address) {
     require(_address == governance, "Not PMCGovernance");
+    _;
+  }
+  
+  modifier onlyAllowedTokens(address _token, uint256 _amount) {
+    require(_token != address(0), "Token(0x0)");
+    require(_amount > 0, "0 amount");
+    require(ERC20(_token).allowance(msg.sender, address(this)) >= _amount, "Tokens not allowed");
     _;
   }
 

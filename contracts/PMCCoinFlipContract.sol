@@ -55,8 +55,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     _;
   }
   
-  modifier onlyWhileRunningGame(address _address) {
-    require(gamesStarted(_address) > gamesFinished(_address), "No running games");
+  modifier onlyWhileRunningGame(address _token) {
+    require(gamesStarted(_token) > gamesFinished(_token), "No running games");
     _;
   }
 
@@ -75,24 +75,48 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
 
   //  <-- GAMEPLAY
-  function startGame(bytes32 _coinSideHash, address _referral, address token) external payable {
+  function startGame(address _token, bytes32 _coinSideHash, address _referral) external payable {
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000000
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000001
     //  test: bytes32: 0x0000000000000000000000000000000000000000000000000000000000000002
+    
     require(_coinSideHash[0] != 0, "Empty hash");
+    (_token == address(0)) ? _startGameETH(_coinSideHash, _referral) : _startGameToken(_token, _coinSideHash, _referral);
+  }
+  
+  function _startGameETH(bytes32 _coinSideHash, address _referral) private {
     require(msg.value >= gameMinBet, "value < gameMinBet");
-    require(gamesStarted() == gamesFinished(), "Game is running");
+    require(gamesStarted(address(0)) == gamesFinished(), "Game is running");
 
-    uint256 nextIdx = gamesStarted();
+    uint256 nextIdx = gamesStarted(address(0));
     games[nextIdx].creatorCoinSide = _coinSideHash;
     games[nextIdx].creator = msg.sender;
     games[nextIdx].bet = msg.value;
     games[nextIdx].startBlock = block.number;
     games[nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipated[msg.sender].push(nextIdx);
+    gamesParticipated[address(0)][msg.sender].push(nextIdx);
     addRafflePlayer();
-    increaseBets();
+    increaseBets(address(0), msg.sender);
+
+    emit GameStarted(nextIdx);
+  }
+  
+  function _startGameToken(address _token, uint256 _amount, bytes32 _coinSideHash, address _referral) private onlyAllowedTokens(_token, _amount) {
+    require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
+
+    uint256 nextIdx = gamesStarted(_token);
+    games[nextIdx].creatorCoinSide = _coinSideHash;
+    games[nextIdx].creator = msg.sender;
+    games[nextIdx].bet = _amount;
+    games[nextIdx].startBlock = block.number;
+    games[nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
+
+    gamesParticipated[_token][msg.sender].push(nextIdx);
+    addRafflePlayer();
+    increaseBets(_token, _amount);
+    
+    ERC20(_token).transferFrom(msg.sender, address(this), _amount);
 
     emit GameStarted(nextIdx);
   }
@@ -270,24 +294,24 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   //  PENDING WITHDRAWAL -->
 
 
-  function increaseBets(address _address) private {
-    playerBetTotal[_address][msg.sender] = playerBetTotal[_address][msg.sender].add(msg.value);
-    betsTotal = betsTotal.add(msg.value);
+  function increaseBets(address _token, uint256 _amount) private {
+    playerBetTotal[_token][msg.sender] = playerBetTotal[_token][msg.sender].add(_amount);
+    betsTotal[_token] = betsTotal[_token].add(_amount);
   }
 
-  function lastStartedGame(address _address) private view returns (Game storage game) {
-    uint256 ongoingGameIdx = gamesStarted(_address).sub(1);
-    game = games[_address][ongoingGameIdx];
+  function lastStartedGame(address _token) private view returns (Game storage game) {
+    uint256 ongoingGameIdx = gamesStarted(_token).sub(1);
+    game = games[_token][ongoingGameIdx];
   }
 
-  function gamesStarted(address _address) public view returns (uint256) {
-    return games[_address].length;
+  function gamesStarted(address _token) public view returns (uint256) {
+    return games[_token].length;
   }
 
-  function gamesFinished(address _address) public view returns (uint256) {
-    uint256 startedGames = games[_address].length;
+  function gamesFinished(address _token) public view returns (uint256) {
+    uint256 startedGames = games[_token].length;
     if (startedGames > 0) {
-      Game storage game = lastStartedGame(_address);
+      Game storage game = lastStartedGame(_token);
       return isGameFinished(game) ? startedGames : startedGames.sub(1);
     }
     
