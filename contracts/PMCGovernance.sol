@@ -57,10 +57,11 @@ contract PMCGovernance is Ownable {
     require(_proposalType <= ProposalType.addToken, "Wrong type");
     _;
   }
-
-  modifier onlyAllowedTokens(uint256 _tokens) {
-    require(_tokens > 0, "0 tokens");
-    require(ERC20(pmct).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
+  
+  modifier onlyAllowedTokens(address _token, uint256 _amount) {
+    require(_token != address(0), "Wrong token");
+    require(_amount > 0, "0 amount");
+    require(ERC20(_token).allowance(msg.sender, address(this)) >= _amount, "Tokens not allowed");
     _;
   }
 
@@ -120,7 +121,7 @@ contract PMCGovernance is Ownable {
    * @param _minBet minBet value.
    * @param _tokens PMCt amount to vote.
    */
-  function _createProposalMinBet(uint256 _minBet, uint256 _tokens) private onlyAllowedTokens(_tokens) {
+  function _createProposalMinBet(uint256 _minBet, uint256 _tokens) private onlyAllowedTokens(pmct, _tokens) {
     require(proposalsMinBet[_minBet].votersTotal == 0, "Already exists");
     
     proposalsMinBetValues.push(_minBet);
@@ -140,7 +141,7 @@ contract PMCGovernance is Ownable {
    * @param _minBet minBet value.
    * @param _tokens PMCt amount to vote.
    */
-  function voteProposalMinBet(uint256 _minBet, uint256 _tokens) public onlyAllowedTokens(_tokens) {
+  function voteProposalMinBet(uint256 _minBet, uint256 _tokens) public onlyAllowedTokens(pmct, _tokens) {
     require(proposalsMinBet[_minBet].votersTotal > 0, "No proposal");
     require(_minBet > 0, "Wrong minBet");
   
@@ -193,7 +194,7 @@ contract PMCGovernance is Ownable {
    * @param _blocks blocks duration value.
    * @param _tokens PMCt amount to vote.
    */
-  function _createProposalGameMaxDuration(uint256 _blocks, uint256 _tokens) private onlyAllowedTokens(_tokens) {
+  function _createProposalGameMaxDuration(uint256 _blocks, uint256 _tokens) private onlyAllowedTokens(pmct, _tokens) {
     require(_blocks > 0, "Wrong duration");
     require(proposalsGameMaxDuration[_blocks].votersTotal == 0, "Already exists");
 
@@ -214,7 +215,7 @@ contract PMCGovernance is Ownable {
    * @param _blocks blocks duration value.
    * @param _tokens PMCt amount to vote.
    */
-  function voteProposalGameMaxDuration(uint256 _blocks, uint256 _tokens) public onlyAllowedTokens(_tokens) {
+  function voteProposalGameMaxDuration(uint256 _blocks, uint256 _tokens) public onlyAllowedTokens(pmct, _tokens) {
     require(proposalsGameMaxDuration[_blocks].votersTotal > 0, "No proposal");
     require(_blocks > 0, "Wrong duration");
     
@@ -268,7 +269,7 @@ contract PMCGovernance is Ownable {
    * @param _token Token address to be added.
    * @param _tokens PMCt amount to vote.
    */
-  function _createProposalAddToken(address _token, uint256 _tokens) private onlyAllowedTokens(_tokens) {
+  function _createProposalAddToken(address _token, uint256 _tokens) private onlyAllowedTokens(pmct, _tokens) {
     require(_token != address(0), "Wrong token");
     require(proposalsAddToken[_token].votersTotal == 0, "Already exists");
 
@@ -289,7 +290,7 @@ contract PMCGovernance is Ownable {
    * @param _token Token address to be added.
    * @param _tokens PMCt amount to vote.
    */
-  function voteProposalAddToken(address _token, uint256 _tokens) public onlyAllowedTokens(_tokens) {
+  function voteProposalAddToken(address _token, uint256 _tokens) public onlyAllowedTokens(pmct, _tokens) {
     require(_token != address(0), "Wrong token");
     require(proposalsAddToken[_token].votersTotal > 0, "No proposal");
     
