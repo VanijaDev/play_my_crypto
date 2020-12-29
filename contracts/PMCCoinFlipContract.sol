@@ -140,9 +140,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       game.opponentPrize = game.bet.add(opponentsReward);
     }
 
+    runRaffle();
+    moveOngoingRewardPoolToStakingRewards();
+
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
-    runRaffle();
 
     emit GameFinished(gamesStarted(), false);
   }
@@ -164,6 +166,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     updateGameMaxDurationIfNeeded();
 
     emit GameFinished(gamesStarted(), true);
+  }
+  
+  function moveOngoingRewardPoolToStakingRewards() private {
+    //  ETH only
+    replenishRewardPool(stakeRewardPoolOngoing);
+    delete stakeRewardPoolOngoing;
   }
   //  GAMEPLAY -->
 
@@ -241,9 +249,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = feeTotal.div(FEE_DIVISION);
+    uint256 unusedFee;
     
     //  partner fee
-    (partner != address(0)) ? increaseFee(FeeType.partner, singleFee, address(0)) : increaseOngoingRaffleJackpot(singleFee);
+    (partner != address(0)) ? increaseFee(FeeType.partner, singleFee, address(0)) : unusedFee = singleFee;
 
     //  dev fee
     increaseFee(FeeType.dev, singleFee, address(0));
@@ -252,7 +261,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     increaseFee(FeeType.stake, singleFee, address(0));
 
     //  raffle
-    increaseOngoingRaffleJackpot(singleFee);
+    uint256 stakingFee = (unusedFee == 0) ? singleFee : singleFee.add(unusedFee);
+    increaseOngoingRaffleJackpot(stakingFee);
     
 
     emit PrizeWithdrawn(msg.sender, pendingPrize, pendingTokens);

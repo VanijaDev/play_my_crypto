@@ -4,6 +4,9 @@ pragma solidity ^0.7.6;
 import "./PMCt.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+/**
+ * @notice ETH only
+ */
 contract PMCStaking {
   using SafeMath for uint256;
 
