@@ -411,7 +411,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
      return (_game.creatorPrize > 0 || _game.opponentPrize > 0);
   }
 
-  function gameInfoBasic(uint256 _idx, address _addr) external view returns(
+  function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
     bytes32 creatorCoinSide,
     address creator,
     uint256 bet,
