@@ -425,19 +425,19 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 prize,
     CoinSide opponentCoinSide,
     address referral) {
-      require(_idx < games.length, "Wrong game idx");
+      require(_idx < games[_token].length, "Wrong game idx");
 
-      creatorCoinSide = games[_idx].creatorCoinSide;
-      creator = games[_idx].creator;
-      bet = games[_idx].bet;
-      startBlock = games[_idx].startBlock;
-      heads = games[_idx].heads;
-      tails = games[_idx].tails;
-      prize = games[_idx].opponentPrize;
+      creatorCoinSide = games[_token][_idx].creatorCoinSide;
+      creator = games[_token][_idx].creator;
+      bet = games[_token][_idx].bet;
+      startBlock = games[_token][_idx].startBlock;
+      heads = games[_token][_idx].heads;
+      tails = games[_token][_idx].tails;
+      prize = games[_token][_idx].opponentPrize;
       if (_addr != address(0)) {
-        opponentCoinSide = games[_idx].opponentCoinSide[_addr];
+        opponentCoinSide = games[_token][_idx].opponentCoinSide[_addr];
       }
-      referral = games[_idx].referral[_addr];
+      referral = games[_token][_idx].referral[_addr];
   }
 
   /**
