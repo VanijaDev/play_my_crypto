@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @notice ETH only
+ * @dev Run when game is played by creator. Acumulates balances & participants of not played games.
  */
 abstract contract PMCRaffle is Ownable {
   using SafeMath for uint256;
@@ -13,43 +14,52 @@ abstract contract PMCRaffle is Ownable {
   struct RaffleResult {
     address winner;
     uint256 prize;
-    uint256 time;
   }
   
   mapping(address => uint256) public raffleJackpotWithdrawPending;
   mapping(address => uint256) public raffleJackpotWithdrawn;
   
-  uint256 public ongoingRaffleJackpot;
+  uint256 public raffleJackpot;
   uint256 public raffleJackpotsWonTotal;
 
-  address[] public ongoingRaffleParticipants;
+  address[] private raffleParticipants;
   RaffleResult[] public raffleResults;
 
 
   event CF_RafflePlayed(address indexed winner, uint256 indexed prize);
   event CF_RaffleJackpotWithdrawn(address indexed winner);
 
-  function addToOngoingRaffleJackpot(uint256 _amount) internal {
-    ongoingRaffleJackpot = ongoingRaffleJackpot.add(_amount);
+  function addToRaffleJackpot(uint256 _amount) internal {
+    raffleJackpot = raffleJackpot.add(_amount);
   }
 
-  function addRafflePlayer() internal {
-    ongoingRaffleParticipants.push(msg.sender);
+  function addRafflePlayer(address _address) internal {
+    require(_address != address(0), "Raffle player 0x0");
+
+    raffleParticipants.push(_address);
   }
 
   /**
    * @dev Gets raffle participants.
-   * @return Participants count.
+   * @return Participants list.
    */
-  function getOngoingRaffleParticipants() external view returns (address[] memory) {
-    return ongoingRaffleParticipants;
+  function getraffleParticipants() external view returns (address[] memory) {
+    return raffleParticipants;
   }
 
   /**
-   * @dev Gets past raffle results count.
-   * @return Results count.
+   * @dev Gets raffle participants number.
+   * @return Participants number.
    */
-  function getRaffleResultCount() external view returns (uint256) {
+  function getraffleParticipantsNumber() external view returns (uint256) {
+    return raffleParticipants.length;
+  }
+
+  /**
+   * @dev Gets past raffle results number.
+   * @return Results number.
+   */
+  function getRaffleResultNumber() external view returns (uint256) {
     return raffleResults.length;
   }
 
@@ -58,30 +68,31 @@ abstract contract PMCRaffle is Ownable {
    */
   function runRaffle() internal virtual {
     uint256 winnerIdx = rand();
-    raffleJackpotWithdrawPending[ongoingRaffleParticipants[winnerIdx]] = raffleJackpotWithdrawPending[ongoingRaffleParticipants[winnerIdx]].add(ongoingRaffleJackpot);
-    raffleJackpotsWonTotal = raffleJackpotsWonTotal.add(ongoingRaffleJackpot);
-    raffleResults.push(RaffleResult(ongoingRaffleParticipants[winnerIdx], ongoingRaffleJackpot, block.timestamp));
+    raffleJackpotWithdrawPending[raffleParticipants[winnerIdx]] = raffleJackpotWithdrawPending[raffleParticipants[winnerIdx]].add(raffleJackpot);
+    raffleJackpotsWonTotal = raffleJackpotsWonTotal.add(raffleJackpot);
+    raffleResults.push(RaffleResult(raffleParticipants[winnerIdx], raffleJackpot));
 
-    emit CF_RafflePlayed(ongoingRaffleParticipants[winnerIdx], ongoingRaffleJackpot);
+    emit CF_RafflePlayed(raffleParticipants[winnerIdx], raffleJackpot);
 
-    delete ongoingRaffleJackpot;
-    delete ongoingRaffleParticipants;
+    delete raffleJackpot;
+    delete raffleParticipants;
   }
 
   /**
    * @dev Generates random number
    */
   function rand() private view returns(uint256) {
-    require(ongoingRaffleParticipants.length > 0, "No participants");
-    return uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, ongoingRaffleJackpot, ongoingRaffleParticipants.length))) % ongoingRaffleParticipants.length;
+    require(raffleParticipants.length > 0, "No participants");
+    return uint256(keccak256(abi.encodePacked(block.timestamp, raffleJackpot, raffleParticipants.length))) % raffleParticipants.length;
   }
 
   /**
    * @dev Withdraw jackpots for all won raffles.
    */
-  function withdrawRaffleJackpotsCombined() external {
+  function withdrawRaffleJackpotsPending() external {
     uint256 amountToSend = raffleJackpotWithdrawPending[msg.sender];
     require(amountToSend > 0, "No prize");
+    
     delete raffleJackpotWithdrawPending[msg.sender];
 
     raffleJackpotWithdrawn[msg.sender] = raffleJackpotWithdrawn[msg.sender].add(amountToSend);
