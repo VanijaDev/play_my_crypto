@@ -72,16 +72,23 @@ contract PMCGovernance is Ownable {
   /**
    * @dev Constructs Smart Contract.
    * @param _pmct PMCt address.
-   * @param _games Game addresses, that should be governed by this Smart Contract. Should be PMCGovernanceCompliant.
+   * @param _game Game addresses, that should be governed by this Smart Contract. Should be PMCGovernanceCompliant.
    */
-  constructor(address _pmct, address[] memory _games) {
+  constructor(address _pmct, address _game) {
     require(keccak256(abi.encodePacked(ERC20(_pmct).symbol())) == keccak256(abi.encodePacked("PMCt")), "Wrong _pmct");
     pmct = _pmct;
 
-    for (uint8 i = 0; i < _games.length; i++) {
-      require(_games[i] != address(0), "Wrong _game");
-      games.push(_games[i]);
-    }
+    require(_game != address(0), "Wrong _game");
+    games.push(_game);
+  }
+
+  /**
+   * @dev Adds game to be governed.
+   * @param _game Game addresses, that should be governed by this Smart Contract. Should be PMCGovernanceCompliant.
+   */
+  function addGame(address _game) external onlyOwner {
+    require(_game != address(0), "Wrong _game");
+    games.push(_game);
   }
 
   /**
