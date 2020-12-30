@@ -83,7 +83,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _gameMaxDuration Game duration value to be used.
    * @param _later Should be updated later.
    */
-  function updateGameDurationLater(uint16 _gameMaxDuration, bool _later) internal {
+  function updateGameMaxDurationLater(uint16 _gameMaxDuration, bool _later) internal {
     require(_gameMaxDuration != gameMaxDuration, "Same gameMaxDuration");
 
     _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
