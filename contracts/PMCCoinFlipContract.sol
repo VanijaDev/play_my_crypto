@@ -202,9 +202,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameFinished(gamesStarted(address(0)).sub(1), address(0), false);
   }
   
-  function _playGameToken(address _token, CoinSide _coinSide, bytes32 _seedHash) private {
-    require(_token != address(0), "Wrong token");
-    
+  function _playGameToken(address _token, CoinSide _coinSide, bytes32 _seedHash) private onlyNonZeroAddress(_token) {
     Game storage game = lastStartedGame(_token);
     
     require(game.creator == msg.sender, "Not creator");
@@ -264,9 +262,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameFinished(gamesStarted(address(0)).sub(1), address(0), true);
   }
   
-  function _finishTimeoutGameToken(address _token) private {
-    require(_token != address(0), "Wrong token");
-    
+  function _finishTimeoutGameToken(address _token) private onlyNonZeroAddress(_token) {
     Game storage game = lastStartedGame(_token);
 
     require(game.startBlock.add(uint256(gameMaxDuration)) < block.number, "Still running");
