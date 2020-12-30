@@ -232,36 +232,64 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     runRaffle();
     moveOngoingRewardPoolToStakingRewards();
 
+    updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
 
-    emit GameFinished(gamesStarted(_token).sub(1), address(0), false);
+    emit GameFinished(gamesStarted(_token).sub(1), _token, false);
       
   }
   //  PLAY -->
 
-  function finishTimeoutGame() external onlyWhileRunningGame {
-    Game storage game = lastStartedGame();
+  //  <-- FINISH ON TIMEOUT
+  function finishTimeoutGame(address _token) external onlyWhileRunningGame(_token) {
+    (_token == address(0)) ? _finishTimeoutGameETH() : _finishTimeoutGameToken(_token);
+  }
+  
+  function _finishTimeoutGameETH() private {
+    Game storage game = lastStartedGame(address(0));
 
-    require(game.startBlock.add(uint256(gameMaxDuration)) < block.number, "Game still running");
+    require(game.startBlock.add(uint256(gameMaxDuration)) < block.number, "Still running");
 
     uint256 opponents = game.heads.add(game.tails);
     if (opponents > 0) {
       uint256 opponentsReward = game.bet.div(opponents);
       game.opponentPrize = game.bet.add(opponentsReward);
     } else {
-      increaseOngoingRaffleJackpot(game.bet);
+      addToRaffleJackpot(game.bet);
     }
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
 
-    emit GameFinished(gamesStarted(), true);
+    emit GameFinished(gamesStarted(address(0)).sub(1), address(0), true);
+  }
+  
+  function _finishTimeoutGameToken(address _token) private {
+    require(_token != address(0), "Wrong token");
+    
+    Game storage game = lastStartedGame(_token);
+
+    require(game.startBlock.add(uint256(gameMaxDuration)) < block.number, "Still running");
+
+    uint256 opponents = game.heads.add(game.tails);
+    if (opponents > 0) {
+      uint256 opponentsReward = game.bet.div(opponents);
+      game.opponentPrize = game.bet.add(opponentsReward);
+    } else {
+      addToRaffleJackpot(game.bet);
+    }
+
+    updateGameMinBetIfNeeded();
+    updateGameMaxDurationIfNeeded();
+
+    emit GameFinished(gamesStarted(_token).sub(1), _token, true);
   }
   
   function moveOngoingRewardPoolToStakingRewards() private {
     replenishRewardPool(stakeRewardPoolOngoing);  //  ETH only
     delete stakeRewardPoolOngoing;
   }
+  //  FINISH ON TIMEOUT -->
   //  GAMEPLAY -->
 
 
