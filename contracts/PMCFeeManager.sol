@@ -86,8 +86,7 @@ contract PMCFeeManager is Ownable {
     partnerFeeWithdrawn[_token][msg.sender] = partnerFeeWithdrawn[_token][msg.sender].add(feeTmp);
 
     if (_token != address(0)) {
-      approveTokensToWithdrawFee(_token, feeTmp, msg.sender);
-      ERC20(_token).transferFrom(address(this), msg.sender, feeTmp);
+      ERC20(_token).transfer(msg.sender, feeTmp);
       return;
     }
     
@@ -108,8 +107,7 @@ contract PMCFeeManager is Ownable {
     totalUsedReferralFees[_token] = totalUsedReferralFees[_token].add(feeTmp);
 
     if (_token != address(0)) {
-      approveTokensToWithdrawFee(_token, feeTmp, msg.sender);
-      ERC20(_token).transferFrom(address(this), msg.sender, feeTmp);
+      ERC20(_token).transfer(msg.sender, feeTmp);
       return;
     }
     
@@ -129,21 +127,10 @@ contract PMCFeeManager is Ownable {
     devFeeWithdrawn[_token] = devFeeWithdrawn[_token].add(feeTmp);
 
     if (_token != address(0)) {
-      approveTokensToWithdrawFee(_token, feeTmp, msg.sender);
-      ERC20(_token).transferFrom(address(this), msg.sender, feeTmp);
+      ERC20(_token).transfer(msg.sender, feeTmp);
       return;
     }
     
     msg.sender.transfer(feeTmp);
-  }
-
-  /**
-   * @dev Approves tokens to withdraw.
-   * @param _token Token address.
-   * @param _amount Token amount.
-   * @param _spender Spender address.
-   */
-  function approveTokensToWithdrawFee(address _token, uint256 _amount, address _spender) private {
-    ERC20(_token).approve(_spender, _amount);
   }
 }
