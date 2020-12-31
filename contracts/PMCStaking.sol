@@ -24,12 +24,7 @@ contract PMCStaking {
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
-
-  modifier onlyAllowedTokens(uint256 _tokens) {
-    require(_tokens > 0, "0 tokens");
-    require(ERC20(pmct).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
-    _;
-  }
+  
   
   constructor(address _pmct) {
     require(_pmct != address(0), "Wrong pmct");
@@ -41,7 +36,10 @@ contract PMCStaking {
     incomes.push(StateForIncome(_amount, stakesTotal));
   }
 
-  function stake(uint256 _tokens) external onlyAllowedTokens(_tokens) {
+  function stake(uint256 _tokens) external {
+    require(_tokens > 0, "0 tokens");
+    require(ERC20(pmct).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
+    
     if (stakeOf[msg.sender] == 0) {
       if (!stakesStarted) {
         stakesStarted = true;
