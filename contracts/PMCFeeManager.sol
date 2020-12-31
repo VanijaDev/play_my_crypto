@@ -23,13 +23,13 @@ contract PMCFeeManager is Ownable {
 
   //  partner
   address partner;
-  mapping(address => mapping(address => uint256)) public partnerFeePending; //  player => (token => amount), token 0x0 - ETH
+  mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH
   mapping(address => mapping(address => uint256)) public partnerFeeWithdrawn;
 
   //  referral
   mapping(address => mapping(address => uint256)) public referralFeePending;
   mapping(address => mapping(address => uint256)) public referralFeeWithdrawn;
-  mapping(address => uint256) public totalUsedReferralFees;
+  mapping(address => uint256) public totalUsedReferralFees; //  (token => amount), token 0x0 - ETH
 
   //  dev
   mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH
@@ -60,9 +60,9 @@ contract PMCFeeManager is Ownable {
 
     if (_type == FeeType.partner) {
       require(partner != address(0), "No partner");
-      partnerFeePending[partner][_token] = partnerFeePending[partner][_token].add(_amount);
+      partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
     } else if (_type == FeeType.referral) {
-      referralFeePending[_referralAddress][_token] = referralFeePending[_referralAddress][_token].add(_amount);
+      referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
     } else if (_type == FeeType.dev) {
       devFeePending[_token] = devFeePending[_token].add(_amount);
     } else if (_type == FeeType.stake) {
@@ -79,11 +79,11 @@ contract PMCFeeManager is Ownable {
    * @param _token Token address. if 0x0 -> ETH
    */
   function withdrawPartnerFee(address _token) external {
-    uint256 feeTmp = partnerFeePending[msg.sender][_token];
+    uint256 feeTmp = partnerFeePending[_token][msg.sender];
     require(feeTmp > 0, "no fee");
 
-    delete partnerFeePending[msg.sender][_token];
-    partnerFeeWithdrawn[msg.sender][_token] = partnerFeeWithdrawn[msg.sender][_token].add(feeTmp);
+    delete partnerFeePending[_token][msg.sender];
+    partnerFeeWithdrawn[_token][msg.sender] = partnerFeeWithdrawn[_token][msg.sender].add(feeTmp);
 
     if (_token != address(0)) {
       approveTokensToWithdrawFee(_token, feeTmp, msg.sender);
@@ -100,11 +100,12 @@ contract PMCFeeManager is Ownable {
    * @param _token Token address. if 0x0 -> ETH
    */
   function withdrawReferralFee(address _token) external {
-    uint256 feeTmp = referralFeePending[msg.sender][_token];
+    uint256 feeTmp = referralFeePending[_token][msg.sender];
     require(feeTmp > 0, "no fee");
 
-    delete referralFeePending[msg.sender][_token];
-    referralFeeWithdrawn[msg.sender][_token] = referralFeeWithdrawn[msg.sender][_token].add(feeTmp);
+    delete referralFeePending[_token][msg.sender];
+    referralFeeWithdrawn[_token][msg.sender] = referralFeeWithdrawn[_token][msg.sender].add(feeTmp);
+    totalUsedReferralFees[_token] = totalUsedReferralFees[_token].add(feeTmp);
 
     if (_token != address(0)) {
       approveTokensToWithdrawFee(_token, feeTmp, msg.sender);
