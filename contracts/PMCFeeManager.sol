@@ -36,7 +36,7 @@ contract PMCFeeManager is Ownable {
   mapping(address => uint256) public devFeeWithdrawn;
 
   //  staking
-  uint256 public stakeRewardPoolOngoing;  //  ETH only
+  uint256 public stakeRewardPoolOngoing_ETH;  //  ETH only
   
   
   /**
@@ -68,7 +68,7 @@ contract PMCFeeManager is Ownable {
     } else if (_type == FeeType.stake) {
       require(_token == address(0), "No token for staking");
       require(_referralAddress == address(0), "No ref for staking");
-      stakeRewardPoolOngoing = stakeRewardPoolOngoing.add(_amount);
+      stakeRewardPoolOngoing_ETH = stakeRewardPoolOngoing_ETH.add(_amount);
     } else {
       revert("Wrong FeeType");
     }
