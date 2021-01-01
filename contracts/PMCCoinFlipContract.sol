@@ -24,6 +24,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   struct Game {
+    bool running;
     bytes32 creatorCoinSide;  //  startGame: hash(coinSide + saltStr), playGame: hash(coinSide)
     address creator;
     uint256 bet;
@@ -36,21 +37,20 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     mapping(address => address) referral;
   }
 
-  uint256 private constant FEE_NUMBER_ETH = 5;
-  uint256 private constant PRIZE_PERCENTAGE_ETH = 95;
+  uint8 private constant FEE_NUMBER_ETH = 5;
+  uint8 private constant PRIZE_PERCENTAGE_ETH = 95;
   
-  uint256 private constant FEE_NUMBER_TOKEN = 4;
-  uint256 private constant PRIZE_PERCENTAGE_TOKEN = 96;
+  uint8 private constant FEE_NUMBER_TOKEN = 4;
+  uint8 private constant PRIZE_PERCENTAGE_TOKEN = 96;
   
-  uint256 private constant PMCT_TOKEN_PERCENTAGE = 5;
+  uint8 private constant PMCT_TOKEN_PERCENTAGE = 5;
 
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH
   mapping(address => mapping(address => uint256)) public playerBetTotal;    //  token => (player => amount)
   mapping(address => mapping(address => uint256)) public playerWithdrawTotal;   //  token => (player => amount)
   mapping(address => uint256) public playerWithdrawPMCtTotal;
 
-  mapping(address => mapping(address => uint256[])) public gamesParticipated;    //  token => (player => amount)
-  mapping(address => mapping(address => uint256)) public gamesParticipatedIdxToStartCheckForPendingWithdrawal; //  token => (player => idx); game idx, that should be started while checking for gamesParticipated for player
+  mapping(address => mapping(address => uint256[])) public gamesParticipatedToCheckPrize;    //  token => (player => game idxs)
 
   mapping(address => Game[]) private games; //  token => Game[], 0x0 - ETH
 
@@ -60,7 +60,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   modifier onlyWhileRunningGame(address _token) {
-    require(gamesStarted(_token) > gamesFinished(_token), "No running games");
+    require(_lastStartedGame(_token).running, "No running games");
     _;
   }
 
@@ -92,32 +92,35 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     require(gamesStarted(address(0)) == gamesFinished(address(0)), "Game is running");
 
     uint256 nextIdx = gamesStarted(address(0));
+    games[address(0)][nextIdx].running = true;
     games[address(0)][nextIdx].creatorCoinSide = _coinSideHash;
     games[address(0)][nextIdx].creator = msg.sender;
     games[address(0)][nextIdx].bet = msg.value;
     games[address(0)][nextIdx].startBlock = block.number;
     games[address(0)][nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipated[address(0)][msg.sender].push(nextIdx);
+    gamesParticipatedToCheckPrize[address(0)][msg.sender].push(nextIdx);
     addRafflePlayer(address(0), msg.sender);
-    increaseBets(address(0), msg.value);
+    _increaseBets(address(0), msg.value);
 
     emit GameStarted(address(0), nextIdx);
   }
   
   function _startGameToken(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) private onlyAllowedTokens(_token, _tokens) {
+    require(msg.value == 0, "Value must be 0");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
 
     uint256 nextIdx = gamesStarted(_token);
+    games[address(0)][nextIdx].running = true;
     games[_token][nextIdx].creatorCoinSide = _coinSideHash;
     games[_token][nextIdx].creator = msg.sender;
     games[_token][nextIdx].bet = _tokens;
     games[_token][nextIdx].startBlock = block.number;
     games[_token][nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipated[_token][msg.sender].push(nextIdx);
+    gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
     addRafflePlayer(_token, msg.sender);
-    increaseBets(_token, _tokens);
+    _increaseBets(_token, _tokens);
     
     ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
 
@@ -131,7 +134,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   function _joinGameETH(CoinSide _coinSide, address _referral) private {
-    Game storage game = lastStartedGame(address(0));
+    Game storage game = _lastStartedGame(address(0));
     
     require(msg.value == game.bet, "Wrong bet");
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
@@ -141,15 +144,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
     game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipated[address(0)][msg.sender].push(gamesStarted(address(0)).sub(1));
+    gamesParticipatedToCheckPrize[address(0)][msg.sender].push(gamesStarted(address(0)).sub(1));
     addRafflePlayer(address(0), msg.sender);
-    increaseBets(address(0), msg.value);
+    _increaseBets(address(0), msg.value);
 
     emit GameJoined(address(0), gamesStarted(address(0)).sub(1), msg.sender);
   }
   
   function _joinGameToken(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) private onlyAllowedTokens(_token, _tokens) {
-    Game storage game = lastStartedGame(_token);
+    Game storage game = _lastStartedGame(_token);
     
     require(_tokens == game.bet, "Wrong bet");
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
@@ -159,9 +162,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
     game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipated[_token][msg.sender].push(gamesStarted(_token).sub(1));
+    gamesParticipatedToCheckPrize[_token][msg.sender].push(gamesStarted(_token).sub(1));
     addRafflePlayer(_token, msg.sender);
-    increaseBets(_token, _tokens);
+    _increaseBets(_token, _tokens);
 
     ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     
@@ -176,12 +179,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   function _playGameETH(CoinSide _coinSide, bytes32 _seedHash) private {
-    Game storage game = lastStartedGame(address(0));
+    Game storage game = _lastStartedGame(address(0));
     
     require(game.creator == msg.sender, "Not creator");
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Time out");
     require(keccak256(abi.encodePacked(uint256(_coinSide), _seedHash)) == game.creatorCoinSide, "Wrong hash value");
 
+    delete game.running;
     game.creatorCoinSide = bytes32(uint256(_coinSide));
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
@@ -198,10 +202,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     if (opponentsReward > 0) {
       game.opponentPrize = game.bet.add(opponentsReward);
-    }
 
-    runRaffle(address(0));
-    moveOngoingRewardPoolToStakingRewards_ETH_ONLY();
+      runRaffle(address(0));
+      moveOngoingRewardPoolToStakingRewards_ETH_ONLY();
+    } else {
+      addToRaffleJackpot(address(0), game.bet); //  creator only
+    }
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -210,12 +216,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   function _playGameToken(address _token, CoinSide _coinSide, bytes32 _seedHash) private onlyNonZeroAddress(_token) {
-    Game storage game = lastStartedGame(_token);
+    Game storage game = _lastStartedGame(_token);
     
     require(game.creator == msg.sender, "Not creator");
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Time out");
     require(keccak256(abi.encodePacked(uint256(_coinSide), _seedHash)) == game.creatorCoinSide, "Wrong hash value");
 
+    delete game.running;
     game.creatorCoinSide = bytes32(uint256(_coinSide));
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
@@ -232,9 +239,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     if (opponentsReward > 0) {
       game.opponentPrize = game.bet.add(opponentsReward);
+      
+      runRaffle(_token);
+    } else {
+      addToRaffleJackpot(_token, game.bet); //  creator only
     }
-
-    runRaffle(_token);
 
     updateGameMinBetIfNeeded();
     updateGameMaxDurationIfNeeded();
@@ -250,10 +259,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   function _finishTimeoutGameETH() private {
-    Game storage game = lastStartedGame(address(0));
+    Game storage game = _lastStartedGame(address(0));
 
     require(game.startBlock.add(gameMaxDuration) < block.number, "Still running");
 
+    delete game.running;
     uint256 opponents = game.heads.add(game.tails);
     if (opponents > 0) {
       uint256 opponentReward = game.bet.div(opponents);
@@ -269,10 +279,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
   
   function _finishTimeoutGameToken(address _token) private onlyNonZeroAddress(_token) {
-    Game storage game = lastStartedGame(_token);
+    Game storage game = _lastStartedGame(_token);
 
     require(game.startBlock.add(gameMaxDuration) < block.number, "Still running");
 
+    delete game.running;
     uint256 opponents = game.heads.add(game.tails);
     if (opponents > 0) {
       uint256 opponentReward = game.bet.div(opponents);
@@ -301,12 +312,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   function pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmct_tokens) {
-    uint256 startIdx;
-    uint256 stopIdx;
-    (startIdx, stopIdx) = startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(_token, _maxLoop);
+    uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
+    require(gamesToCheck > 0, "No games to check");
 
-    for (uint256 i = startIdx; i <= stopIdx; i ++) {
-      Game storage game = games[_token][gamesParticipated[_token][msg.sender][i]];
+    uint256 loop = (_maxLoop < gamesToCheck) ? _maxLoop : gamesToCheck;
+
+    while (loop > 0) {
+      Game storage game = games[_token][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
 
       if (game.creator == msg.sender) {
         if (game.creatorPrize > 0) {
@@ -320,10 +332,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
           }
         }
       } else {
-        bool timeout = game.creatorCoinSide > bytes32(uint256(CoinSide.tails));
-        if (timeout || (game.creatorCoinSide == bytes32(uint256(game.opponentCoinSide[msg.sender])))) {
+        if (game.opponentPrize > 0) {
           prize = prize.add(game.opponentPrize);
-          
+
+          bool timeout = game.creatorCoinSide > bytes32(uint256(CoinSide.tails));
           if (timeout) {
             pmct_tokens = pmct_tokens.add(game.opponentPrize.mul(PMCT_TOKEN_PERCENTAGE).div(100));
           }
@@ -336,30 +348,20 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
         }
       }
     }
-  }
 
-  function startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(address _token, uint256 _maxLoop) private view returns(uint256 startIdx, uint stopIdx) {
-    uint256[] memory participatedInGames = gamesParticipated[_token][msg.sender];
-    require(participatedInGames.length > 0, "No participated games");
-    
-    startIdx = gamesParticipatedIdxToStartCheckForPendingWithdrawal[_token][msg.sender];
-    stopIdx = (_maxLoop == 0) ? participatedInGames.length.sub(1) : startIdx.add(_maxLoop.sub(1));
-    require(stopIdx < participatedInGames.length, "_maxLoop too high");
+    gamesParticipatedToCheckPrize[_token][msg.sender].pop();
   }
 
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
-    uint256 pendingTokens;
-    (pendingPrize, pendingTokens) = pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
+    uint256 pendingTokensPMCt;
+    (pendingPrize, pendingTokensPMCt) = pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
     
-    uint256 stopIdx;
-    (, stopIdx) = startStopIdxsInGamesParticipatedToCheckForPendingWithdrawal(_token, _maxLoop);
-    gamesParticipatedIdxToStartCheckForPendingWithdrawal[_token][msg.sender] = stopIdx.add(1);
     playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(pendingPrize);
 
     //  PMCt
-    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingTokens);
-    PMCt(pmct).mint(msg.sender, pendingTokens);
+    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingTokensPMCt);
+    PMCt(pmct).mint(msg.sender, pendingTokensPMCt);
 
     //  ETH / token
     uint256 transferAmount;
@@ -367,44 +369,44 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_ETH).div(100);
       msg.sender.transfer(transferAmount);
     } else {
-      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100); //  no staking fee for token bets, so +1 %
+      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100);
       ERC20(_token).transfer(msg.sender, transferAmount);
     }
     
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = (_token == address(0)) ? feeTotal.div(FEE_NUMBER_ETH) : feeTotal.div(FEE_NUMBER_TOKEN);
-    uint256 unusedFee;
+    uint256 raffleFee = singleFee;
+
     
     //  partner fee
     if (partner != address(0)) {
-        addFee(FeeType.partner, _token, singleFee, partner);
+      addFee(FeeType.partner, _token, singleFee, partner);
     } else {
-        unusedFee = singleFee;
+      raffleFee = raffleFee.add(singleFee);
     }
 
-    //  dev fee
-    addFee(FeeType.dev, _token, singleFee, address(0));
+    //  raffle
+    addToRaffleJackpot(_token, raffleFee);
 
     //  staking
     addFee(FeeType.stake, _token, singleFee, address(0));
-
-    //  raffle
-    uint256 stakingFee = (unusedFee == 0) ? singleFee : singleFee.add(unusedFee);
-    addToRaffleJackpot(_token, stakingFee);
     
+    //  dev fee
+    uint256 usedFee = (_token == address(0)) ? singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1));
+    addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
 
-    emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingTokens);
+    emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingTokensPMCt);
   }
   //  PENDING WITHDRAWAL -->
 
 
-  function increaseBets(address _token, uint256 _amount) private {
+  function _increaseBets(address _token, uint256 _amount) private {
     playerBetTotal[_token][msg.sender] = playerBetTotal[_token][msg.sender].add(_amount);
     betsTotal[_token] = betsTotal[_token].add(_amount);
   }
 
-  function lastStartedGame(address _token) private view returns (Game storage) {
+  function _lastStartedGame(address _token) private view returns (Game storage) {
     uint256 ongoingGameIdx = gamesStarted(_token).sub(1);
     return games[_token][ongoingGameIdx];
   }
@@ -414,20 +416,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   function gamesFinished(address _token) public view returns (uint256) {
-    uint256 startedGames = games[_token].length;
+    uint256 startedGames = gamesStarted(_token);
     if (startedGames > 0) {
-      Game storage game = lastStartedGame(_token);
-      return isGameFinished(game) ? startedGames : startedGames.sub(1);
+      Game storage game = _lastStartedGame(_token);
+      return (game.running) ? startedGames.sub(1) : startedGames;
     }
     
     return 0;
   }
 
-  function isGameFinished(Game storage _game) private view returns(bool) {
-     return (_game.creatorPrize > 0 || _game.opponentPrize > 0);
-  }
-
   function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
+    bool running,
     bytes32 creatorCoinSide,
     address creator,
     uint256 bet,
@@ -437,8 +436,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 prize,
     CoinSide opponentCoinSide,
     address referral) {
-      require(_idx < games[_token].length, "Wrong game idx");
+      require(_idx < gamesStarted(_token), "Wrong game idx");
 
+      running = games[_token][_idx].running;
       creatorCoinSide = games[_token][_idx].creatorCoinSide;
       creator = games[_token][_idx].creator;
       bet = games[_token][_idx].bet;
@@ -458,16 +458,16 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   function updateGameMinBet(uint256 _gameMinBet) external override onlyGovernance(msg.sender) {
     require(_gameMinBet > 0, "Wrong gameMinBet");
 
-    Game storage game = lastStartedGame(address(0));
-    bool later = !isGameFinished(game);
+    Game storage game = _lastStartedGame(address(0));
+    bool later = game.running;
     updateGameMinBetLater(_gameMinBet, later);
   }
 
   function updateGameMaxDuration(uint16 _gameMaxDuration) external override onlyGovernance(msg.sender) {
     require(_gameMaxDuration > 0, "Wrong duration");
 
-    Game storage game = lastStartedGame(address(0));
-    bool later = !isGameFinished(game);
+    Game storage game = _lastStartedGame(address(0));
+    bool later = game.running;
     updateGameMaxDurationLater(_gameMaxDuration, later);
   }
 }
