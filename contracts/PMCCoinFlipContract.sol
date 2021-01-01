@@ -377,9 +377,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 unusedFee;
     
     //  partner fee
-    // (partner != address(0)) ? addFee(FeeType.partner, _token, singleFee, address(0)) : unusedFee = singleFee;
     if (partner != address(0)) {
-        addFee(FeeType.partner, _token, singleFee, address(0));
+        addFee(FeeType.partner, _token, singleFee, partner);
     } else {
         unusedFee = singleFee;
     }
