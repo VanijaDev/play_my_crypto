@@ -20,6 +20,7 @@ contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
    */
   function addMinter(address _minter) external onlyOwner {
     require(_minter != address(0), "Wrong minter");
+    require(!minters[msg.sender], "Already minter");
 
     minters[_minter] = true;
   }
