@@ -110,31 +110,18 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   function joinGame(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
-    (_token == address(0)) ? _joinGameETH(_coinSide, _referral) : _joinGameToken(_token, _tokens, _coinSide, _referral);
-  }
-  
-  function _joinGameETH(CoinSide _coinSide, address _referral) private {
-    Game storage game = _lastStartedGame(address(0));
-    
-    require(msg.value == game.bet, "Wrong bet");
-    require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
-    require(game.opponentCoinSide[msg.sender] == CoinSide.none, "Already joined");
-
-    game.opponentCoinSide[msg.sender] = _coinSide;
-    (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
-    game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
-
-    uint256 gameIdx = gamesStarted(address(0)).sub(1);
-    gamesParticipatedToCheckPrize[address(0)][msg.sender].push(gameIdx);
-    _increaseBets(address(0), msg.value);
-
-    emit GameJoined(address(0), gameIdx, msg.sender);
-  }
-  
-  function _joinGameToken(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) private onlyAllowedTokens(_token, _tokens) {
     Game storage game = _lastStartedGame(_token);
+
+    if (_token != address(0)) {
+      require(_tokens == game.bet, "Wrong bet");
+      require(tokensAllowed(_token, _tokens), "Tokens not allowed");
     
-    require(_tokens == game.bet, "Wrong bet");
+      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
+    } else {
+      require(_tokens == 0, "Remove tokens");
+      require(msg.value == game.bet, "Wrong bet");
+    }
+
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
     require(game.opponentCoinSide[msg.sender] == CoinSide.none, "Already joined");
 
@@ -144,10 +131,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     uint256 gameIdx = gamesStarted(_token).sub(1);
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
-    _increaseBets(_token, _tokens);
+    _increaseBets(_token, msg.value);
 
-    ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
-    
     emit GameJoined(_token, gameIdx, msg.sender);
   }
   
