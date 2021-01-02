@@ -42,6 +42,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   
   uint8 private constant FEE_NUMBER_TOKEN = 4;
   uint8 private constant PRIZE_PERCENTAGE_TOKEN = 96;
+  uint8 private constant MIN_TOKENS_TO_BET = 100;
   
   uint8 private constant PMCT_TOKEN_PERCENTAGE = 5;
 
@@ -107,7 +108,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   
   function _startGameToken(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) private onlyAllowedTokens(_token, _tokens) {
     require(msg.value == 0, "Value must be 0");
-    require(_tokens > 100, "tokens must be > 0");
+    require(_tokens > MIN_TOKENS_TO_BET, "tokens must be > 0");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
 
     uint256 nextIdx = gamesStarted(_token);
@@ -299,8 +300,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   //  FINISH ON TIMEOUT -->
   
   function _moveOngoingRewardPoolToStakingRewards_ETH_ONLY() private {
-    replenishRewardPool(stakeRewardPoolOngoing_ETH);
-    delete stakeRewardPoolOngoing_ETH;
+    if (stakeRewardPoolOngoing_ETH > 0) {
+      replenishRewardPool(stakeRewardPoolOngoing_ETH);
+      delete stakeRewardPoolOngoing_ETH;
+    }
   }
   //  GAMEPLAY -->
 
@@ -319,7 +322,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     while (loop > 0) {
       Game storage game = games[_token][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
 
-      if (game.creator == msg.sender) {
+      if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
           prize = prize.add(game.creatorPrize);
           pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
@@ -354,14 +357,14 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
-    uint256 pendingTokensPMCt;
-    (pendingPrize, pendingTokensPMCt) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
+    uint256 pendingPMCt;
+    (pendingPrize, pendingPMCt) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
     
     playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(pendingPrize);
 
     //  PMCt
-    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingTokensPMCt);
-    PMCt(pmct).mint(msg.sender, pendingTokensPMCt);
+    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
+    PMCt(pmct).mint(msg.sender, pendingPMCt);
 
     //  ETH / token
     uint256 transferAmount;
@@ -389,13 +392,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     addToRaffle(_token, raffleFee, msg.sender);
 
     //  staking
-    addFee(FeeType.stake, _token, singleFee, address(0));
+    if (_token == address(0)) {
+      addFee(FeeType.stake, _token, singleFee, address(0));
+    }
     
     //  dev fee
     uint256 usedFee = (_token == address(0)) ? singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1));
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
 
-    emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingTokensPMCt);
+    emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingPMCt);
   }
   //  PENDING WITHDRAWAL -->
 
