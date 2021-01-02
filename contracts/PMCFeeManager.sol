@@ -29,7 +29,7 @@ contract PMCFeeManager is Ownable {
   //  referral
   mapping(address => mapping(address => uint256)) public referralFeePending;
   mapping(address => mapping(address => uint256)) public referralFeeWithdrawn;
-  mapping(address => uint256) public totalUsedReferralFees; //  (token => amount), token 0x0 - ETH
+  mapping(address => uint256) public totalWithdrawnReferralFees; //  (token => amount), token 0x0 - ETH
 
   //  dev
   mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH
@@ -62,12 +62,11 @@ contract PMCFeeManager is Ownable {
       require(partner != address(0), "No partner");
       partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
     } else if (_type == FeeType.referral) {
+      require(_referralAddress != address(0), "No referral");
       referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
     } else if (_type == FeeType.dev) {
       devFeePending[_token] = devFeePending[_token].add(_amount);
     } else if (_type == FeeType.stake) {
-      require(_token == address(0), "No token for staking");
-      require(_referralAddress == address(0), "No ref for staking");
       stakeRewardPoolOngoing_ETH = stakeRewardPoolOngoing_ETH.add(_amount);
     } else {
       revert("Wrong FeeType");
@@ -87,10 +86,9 @@ contract PMCFeeManager is Ownable {
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
-      return;
+    } else {
+      msg.sender.transfer(feeTmp);
     }
-    
-    msg.sender.transfer(feeTmp);
   }
 
   
@@ -104,14 +102,13 @@ contract PMCFeeManager is Ownable {
 
     delete referralFeePending[_token][msg.sender];
     referralFeeWithdrawn[_token][msg.sender] = referralFeeWithdrawn[_token][msg.sender].add(feeTmp);
-    totalUsedReferralFees[_token] = totalUsedReferralFees[_token].add(feeTmp);
+    totalWithdrawnReferralFees[_token] = totalWithdrawnReferralFees[_token].add(feeTmp);
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
-      return;
+    } else {
+      msg.sender.transfer(feeTmp);
     }
-    
-    msg.sender.transfer(feeTmp);
   }
 
   
@@ -128,9 +125,8 @@ contract PMCFeeManager is Ownable {
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
-      return;
+    } else {
+      msg.sender.transfer(feeTmp);
     }
-    
-    msg.sender.transfer(feeTmp);
   }
 }
