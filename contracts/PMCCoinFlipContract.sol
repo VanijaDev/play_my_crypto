@@ -175,32 +175,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameFinished(_token, gamesStarted(_token).sub(1), false);
   }
 
-  //  <-- FINISH ON TIMEOUT
   function finishTimeoutGame(address _token) external onlyWhileRunningGame(_token) {
-    (_token == address(0)) ? _finishTimeoutGameETH() : _finishTimeoutGameToken(_token);
-  }
-  
-  function _finishTimeoutGameETH() private {
-    Game storage game = _lastStartedGame(address(0));
-
-    require(game.startBlock.add(gameMaxDuration) < block.number, "Still running");
-
-    delete game.running;
-    uint256 opponents = game.heads.add(game.tails);
-    if (opponents > 0) {
-      uint256 opponentReward = game.bet.div(opponents);
-      game.opponentPrize = game.bet.add(opponentReward);
-    } else {
-      addToRaffleNoPlayer(address(0), game.bet); //  creator only in game
-    }
-
-    updateGameMinBetIfNeeded();
-    updateGameMaxDurationIfNeeded();
-
-    emit GameFinished(address(0), gamesStarted(address(0)).sub(1), true);
-  }
-  
-  function _finishTimeoutGameToken(address _token) private onlyNonZeroAddress(_token) {
     Game storage game = _lastStartedGame(_token);
 
     require(game.startBlock.add(gameMaxDuration) < block.number, "Still running");
@@ -219,7 +194,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     emit GameFinished(_token, gamesStarted(_token).sub(1), true);
   }
-  //  FINISH ON TIMEOUT -->
   
   function _moveOngoingRewardPoolToStakingRewards_ETH_ONLY() private {
     if (stakeRewardPoolOngoing_ETH > 0) {
