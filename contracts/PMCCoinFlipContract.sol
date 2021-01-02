@@ -239,10 +239,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
           }
         }
       }
+      gamesParticipatedToCheckPrize[_token][msg.sender].pop();
+      loop = loop.sub(1);
     }
-
-    gamesParticipatedToCheckPrize[_token][msg.sender].pop();
-    loop = loop.sub(1);
   }
 
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
