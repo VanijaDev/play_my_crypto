@@ -72,7 +72,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   event GameStarted(address token, uint256 id);
   event GameJoined(address token, uint256 id, address opponent);
   event GameFinished(address token, uint256 id, bool timeout);
-  event PrizeWithdrawn(address token, address player, uint256 prize, uint256 tokens);
+  event PrizeWithdrawn(address token, address player, uint256 prize, uint256 pmct);
 
   constructor(address _pmct) PMCStaking(_pmct) {
   }
@@ -100,7 +100,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     games[address(0)][nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[address(0)][msg.sender].push(nextIdx);
-    addRafflePlayer(address(0), msg.sender);
     _increaseBets(address(0), msg.value);
 
     emit GameStarted(address(0), nextIdx);
@@ -108,10 +107,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   
   function _startGameToken(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) private onlyAllowedTokens(_token, _tokens) {
     require(msg.value == 0, "Value must be 0");
+    require(_tokens > 100, "tokens must be > 0");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
 
     uint256 nextIdx = gamesStarted(_token);
-    games[address(0)][nextIdx].running = true;
+    games[_token][nextIdx].running = true;
     games[_token][nextIdx].creatorCoinSide = _coinSideHash;
     games[_token][nextIdx].creator = msg.sender;
     games[_token][nextIdx].bet = _tokens;
@@ -119,7 +119,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     games[_token][nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
-    addRafflePlayer(_token, msg.sender);
     _increaseBets(_token, _tokens);
     
     ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
@@ -144,11 +143,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
     game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipatedToCheckPrize[address(0)][msg.sender].push(gamesStarted(address(0)).sub(1));
-    addRafflePlayer(address(0), msg.sender);
+    uint256 gameIdx = gamesStarted(address(0)).sub(1);
+    gamesParticipatedToCheckPrize[address(0)][msg.sender].push(gameIdx);
     _increaseBets(address(0), msg.value);
 
-    emit GameJoined(address(0), gamesStarted(address(0)).sub(1), msg.sender);
+    emit GameJoined(address(0), gameIdx, msg.sender);
   }
   
   function _joinGameToken(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) private onlyAllowedTokens(_token, _tokens) {
@@ -162,13 +161,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
     game.referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
-    gamesParticipatedToCheckPrize[_token][msg.sender].push(gamesStarted(_token).sub(1));
-    addRafflePlayer(_token, msg.sender);
+    uint256 gameIdx = gamesStarted(_token).sub(1);
+    gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
     _increaseBets(_token, _tokens);
 
     ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     
-    emit GameJoined(_token, gamesStarted(_token).sub(1), msg.sender);
+    emit GameJoined(_token, gameIdx, msg.sender);
   }
   //  JOIN -->
 
@@ -204,9 +203,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       game.opponentPrize = game.bet.add(opponentsReward);
 
       runRaffle(address(0));
-      moveOngoingRewardPoolToStakingRewards_ETH_ONLY();
+      _moveOngoingRewardPoolToStakingRewards_ETH_ONLY();
     } else {
-      addToRaffleJackpot(address(0), game.bet); //  creator only
+      addToRaffleNoPlayer(address(0), game.bet); //  creator only in game
     }
 
     updateGameMinBetIfNeeded();
@@ -242,7 +241,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       
       runRaffle(_token);
     } else {
-      addToRaffleJackpot(_token, game.bet); //  creator only
+      addToRaffleNoPlayer(_token, game.bet); //  creator only in game
     }
 
     updateGameMinBetIfNeeded();
@@ -269,7 +268,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       uint256 opponentReward = game.bet.div(opponents);
       game.opponentPrize = game.bet.add(opponentReward);
     } else {
-      addToRaffleJackpot(address(0), game.bet);
+      addToRaffleNoPlayer(address(0), game.bet); //  creator only in game
     }
 
     updateGameMinBetIfNeeded();
@@ -289,7 +288,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       uint256 opponentReward = game.bet.div(opponents);
       game.opponentPrize = game.bet.add(opponentReward);
     } else {
-      addToRaffleJackpot(_token, game.bet);
+      addToRaffleNoPlayer(_token, game.bet); //  creator only in game
     }
 
     updateGameMinBetIfNeeded();
@@ -297,21 +296,21 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     emit GameFinished(_token, gamesStarted(_token).sub(1), true);
   }
+  //  FINISH ON TIMEOUT -->
   
-  function moveOngoingRewardPoolToStakingRewards_ETH_ONLY() private {
+  function _moveOngoingRewardPoolToStakingRewards_ETH_ONLY() private {
     replenishRewardPool(stakeRewardPoolOngoing_ETH);
     delete stakeRewardPoolOngoing_ETH;
   }
-  //  FINISH ON TIMEOUT -->
   //  GAMEPLAY -->
 
 
   //  <-- PENDING WITHDRAWAL
   function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external returns(uint256 prize, uint256 pmct_tokens) {
-    return pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
+    return _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
   }
 
-  function pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmct_tokens) {
+  function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmct_tokens) {
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     require(gamesToCheck > 0, "No games to check");
 
@@ -323,7 +322,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       if (game.creator == msg.sender) {
         if (game.creatorPrize > 0) {
           prize = prize.add(game.creatorPrize);
-          pmct_tokens = pmct_tokens.add(game.creatorPrize.mul(PMCT_TOKEN_PERCENTAGE).div(100));
+          pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
 
           if (_updateReferralFees) {
             address referral = game.referral[msg.sender];
@@ -337,7 +336,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
           bool timeout = game.creatorCoinSide > bytes32(uint256(CoinSide.tails));
           if (timeout) {
-            pmct_tokens = pmct_tokens.add(game.opponentPrize.mul(PMCT_TOKEN_PERCENTAGE).div(100));
+            pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
           }
 
           if (_updateReferralFees) {
@@ -350,12 +349,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     }
 
     gamesParticipatedToCheckPrize[_token][msg.sender].pop();
+    loop = loop.sub(1);
   }
 
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
     uint256 pendingTokensPMCt;
-    (pendingPrize, pendingTokensPMCt) = pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
+    (pendingPrize, pendingTokensPMCt) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
     
     playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(pendingPrize);
 
@@ -378,7 +378,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 singleFee = (_token == address(0)) ? feeTotal.div(FEE_NUMBER_ETH) : feeTotal.div(FEE_NUMBER_TOKEN);
     uint256 raffleFee = singleFee;
 
-    
     //  partner fee
     if (partner != address(0)) {
       addFee(FeeType.partner, _token, singleFee, partner);
@@ -387,7 +386,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     }
 
     //  raffle
-    addToRaffleJackpot(_token, raffleFee);
+    addToRaffle(_token, raffleFee, msg.sender);
 
     //  staking
     addFee(FeeType.stake, _token, singleFee, address(0));

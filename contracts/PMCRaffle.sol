@@ -30,14 +30,18 @@ abstract contract PMCRaffle is Ownable {
   event CF_RafflePlayed(address token, address indexed winner, uint256 indexed prize);
   event CF_RaffleJackpotWithdrawn(address token, address indexed winner);
 
-  function addToRaffleJackpot(address _token, uint256 _amount) internal {
-    raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
-  }
-
-  function addRafflePlayer(address _token, address _player) internal {
+  function addToRaffle(address _token, uint256 _amount, address _player) internal {
+    require(_amount > 0, "Wrong amount");
     require(_player != address(0), "Raffle player 0x0");
 
+    raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
     raffleParticipants[_token].push(_player);
+  }
+
+  function addToRaffleNoPlayer(address _token, uint256 _amount) internal {
+    require(_amount > 0, "Wrong amount");
+
+    raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
   }
 
   /**
@@ -68,15 +72,17 @@ abstract contract PMCRaffle is Ownable {
    * @dev Runs the raffle.
    */
   function runRaffle(address _token) internal {
-    uint256 winnerIdx = rand(_token);
-    raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]] = raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]].add(raffleJackpot[_token]);
-    raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
-    raffleResults[_token].push(RaffleResult(raffleParticipants[_token][winnerIdx], raffleJackpot[_token]));
+    if (raffleJackpot[_token] > 0 && raffleParticipants[_token].length > 0) {
+      uint256 winnerIdx = rand(_token);
+      raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]] = raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]].add(raffleJackpot[_token]);
+      raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
+      raffleResults[_token].push(RaffleResult(raffleParticipants[_token][winnerIdx], raffleJackpot[_token]));
 
-    emit CF_RafflePlayed(_token, raffleParticipants[_token][winnerIdx], raffleJackpot[_token]);
+      emit CF_RafflePlayed(_token, raffleParticipants[_token][winnerIdx], raffleJackpot[_token]);
 
-    delete raffleJackpot[_token];
-    delete raffleParticipants[_token];
+      delete raffleJackpot[_token];
+      delete raffleParticipants[_token];
+    }
   }
 
   /**
