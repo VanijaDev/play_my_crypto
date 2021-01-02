@@ -65,11 +65,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     _;
   }
 
-  modifier onlyNonZeroAddress(address _address) {
-    require(_address != address(0), "address(0)");
-    _;
-  }
-
   event GameStarted(address token, uint256 id);
   event GameJoined(address token, uint256 id, address opponent);
   event GameFinished(address token, uint256 id, bool timeout);
@@ -104,7 +99,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     games[_token][nextIdx].referral[msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
-    _increaseBets(_token, msg.value);
+    (_token != address(0)) ? _increaseBets(_token, _tokens) : _increaseBets(_token, msg.value);
 
     emit GameStarted(_token, nextIdx);
   }
@@ -118,7 +113,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
-      require(_tokens == 0, "Remove tokens");
       require(msg.value == game.bet, "Wrong bet");
     }
 
@@ -131,7 +125,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     uint256 gameIdx = gamesStarted(_token).sub(1);
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
-    _increaseBets(_token, msg.value);
+    (_token != address(0)) ? _increaseBets(_token, _tokens) : _increaseBets(_token, msg.value);
 
     emit GameJoined(_token, gameIdx, msg.sender);
   }
@@ -259,8 +253,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(pendingPrize);
 
     //  PMCt
-    playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
-    PMCt(pmct).mint(msg.sender, pendingPMCt);
+    if (pendingPMCt > 0) {
+      playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
+      PMCt(pmct).mint(msg.sender, pendingPMCt);
+    }
 
     //  ETH / token
     uint256 transferAmount;

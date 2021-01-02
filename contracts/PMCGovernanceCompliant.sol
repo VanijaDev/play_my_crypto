@@ -29,10 +29,8 @@ abstract contract PMCGovernanceCompliant is Ownable {
     _;
   }
   
-  modifier onlyAllowedTokens(address _token, uint256 _amount) {
-    require(_token != address(0), "Token(0x0)");
-    require(_amount > 0, "0 amount");
-    require(ERC20(_token).allowance(msg.sender, address(this)) >= _amount, "Tokens not allowed");
+  modifier onlyAllowedTokens(address _token, uint256 _tokens) {
+    require(tokensAllowed(_token, _tokens), "Tokens not allowed");
     _;
   }
 
@@ -116,5 +114,12 @@ abstract contract PMCGovernanceCompliant is Ownable {
       tokensSupported.push(_token);
       isTokenSupported[_token] = true;
     }
+  }
+  
+  function tokensAllowed(address _token, uint256 _tokens) public view returns (bool) {
+    bool correctToken = _token != address(0);
+    bool correctAmount = _tokens > 0;
+    bool correctAllowance = ERC20(_token).allowance(msg.sender, address(this)) >= _tokens;
+    return correctToken && correctAmount && correctAllowance;
   }
 }
