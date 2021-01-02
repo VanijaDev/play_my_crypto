@@ -58,9 +58,7 @@ contract PMCGovernance is Ownable {
   }
   
   modifier onlyAllowedTokens(address _token, uint256 _amount) {
-    require(_token != address(0), "Wrong token");
-    require(_amount > 0, "0 amount");
-    require(ERC20(_token).allowance(msg.sender, address(this)) >= _amount, "Tokens not allowed");
+    require(tokensAllowed(_token, _amount), "Tokens not allowed");
     _;
   }
 
@@ -454,5 +452,12 @@ contract PMCGovernance is Ownable {
       tokensTotal = proposalsAddToken[_token].tokensTotal;
       tokensOfVoter = proposalsAddToken[_token].tokensOfVoter[msg.sender];
     }
+  }
+
+  function tokensAllowed(address _token, uint256 _amount) public returns (bool) {
+    bool correctToken = _token != address(0);
+    bool correctAmount = _amount > 0;
+    bool correctAllowance = ERC20(_token).allowance(msg.sender, address(this)) >= _amount;
+    return correctToken && correctAmount && correctAllowance;
   }
 }
