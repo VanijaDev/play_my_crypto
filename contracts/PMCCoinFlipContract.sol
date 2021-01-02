@@ -249,7 +249,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     updateGameMaxDurationIfNeeded();
 
     emit GameFinished(_token, gamesStarted(_token).sub(1), false);
-      
   }
   //  PLAY -->
 
