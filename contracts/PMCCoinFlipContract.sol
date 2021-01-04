@@ -80,8 +80,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     if (_token != address(0)) {
       require(isTokenSupportedToBet[_token], "Wrong token");
       require(msg.value == 0, "Wrong value");
-      require(tokensAllowed(_token, _tokens), "Tokens not allowed");
       require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
+      require(ERC20(_token).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
     
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
@@ -111,7 +111,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     if (_token != address(0)) {
       require(msg.value == 0, "Wrong value");
       require(_tokens == game.bet, "Wrong bet");
-      require(tokensAllowed(_token, _tokens), "Tokens not allowed");
+      require(ERC20(_token).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
     
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
