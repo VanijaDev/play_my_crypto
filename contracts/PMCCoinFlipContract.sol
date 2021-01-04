@@ -317,6 +317,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       Game storage game = _lastStartedGame(_token);
       return (game.running) ? startedGames.sub(1) : startedGames;
     }
+    
+    return 0;
   }
 
   function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
