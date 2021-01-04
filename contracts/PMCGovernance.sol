@@ -8,7 +8,7 @@ import "./PMCGovernanceCompliant.sol";
 /**
  * @notice Min bet, game duration, add token.
  * @notice User can participate in single proposal of the type.
- * @dev Common Governance for all games, that bet ETH only.
+ * @dev Common Governance for all games.
  */
 contract PMCGovernance is Ownable {
   using SafeMath for uint256;
