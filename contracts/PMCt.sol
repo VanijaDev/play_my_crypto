@@ -33,6 +33,6 @@ contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
     require(_minter != address(0), "Wrong minter");
     require(minters[msg.sender], "Not minter");
 
-    minters[_minter] = false;
+    delete minters[_minter];
   }
 }
