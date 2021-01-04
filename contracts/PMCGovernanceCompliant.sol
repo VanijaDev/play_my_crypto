@@ -20,8 +20,8 @@ abstract contract PMCGovernanceCompliant is Ownable {
   uint16 public gameMaxDuration;
   uint16 public gameMaxDurationToUpdate;
   
-  address[] private tokensSupported;
-  mapping(address => bool) public isTokenSupported;
+  address[] private tokensSupportedToBet;
+  mapping(address => bool) public isTokenSupportedToBet;
   
 
   modifier onlyGovernance(address _address) {
@@ -106,8 +106,8 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @dev Returns tokens, that can be used for bet.
    * @return Token address list.
    */
-  function getTokensSupported() external view returns(address[] memory) {
-    return tokensSupported;
+  function gettokensSupportedToBet() external view returns(address[] memory) {
+    return tokensSupportedToBet;
   }
   
   /**
@@ -115,16 +115,21 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _token Token address to be added.
    */
   function updateGameAddToken(address _token) external onlyGovernance(msg.sender) {
-    if (_token != address(0) && !isTokenSupported[_token]) {
-      tokensSupported.push(_token);
-      isTokenSupported[_token] = true;
+    if (_token != address(0) && !isTokenSupportedToBet[_token]) {
+      tokensSupportedToBet.push(_token);
+      isTokenSupportedToBet[_token] = true;
     }
   }
   
   function tokensAllowed(address _token, uint256 _tokens) public view returns (bool) {
-    bool correctToken = _token != address(0);
-    bool correctAmount = _tokens > 0;
-    bool correctAllowance = ERC20(_token).allowance(msg.sender, address(this)) >= _tokens;
-    return correctToken && correctAmount && correctAllowance;
+    if (_token == address(0)) {
+      return false;
+    }
+
+    if (_tokens == 0) {
+      return false;
+    }
+
+    return ERC20(_token).allowance(msg.sender, address(this)) >= _tokens;
   }
 }

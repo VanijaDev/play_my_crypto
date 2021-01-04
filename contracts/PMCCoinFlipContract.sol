@@ -78,6 +78,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
   function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
     if (_token != address(0)) {
+      require(isTokenSupportedToBet[_token], "Wrong token");
       require(msg.value == 0, "Wrong value");
       require(tokensAllowed(_token, _tokens), "Tokens not allowed");
       require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
@@ -303,6 +304,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   function _lastStartedGame(address _token) private view returns (Game storage) {
+    require(isTokenSupportedToBet[_token], "Wrong token");
+
     uint256 ongoingGameIdx = gamesStarted(_token).sub(1);
     return games[_token][ongoingGameIdx];
   }
