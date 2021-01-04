@@ -78,9 +78,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
   function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
     if (_token != address(0)) {
-      require(msg.value == 0, "Wrong bets");
-      require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
+      require(msg.value == 0, "Wrong value");
       require(tokensAllowed(_token, _tokens), "Tokens not allowed");
+      require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
     
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
@@ -108,6 +108,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     Game storage game = _lastStartedGame(_token);
 
     if (_token != address(0)) {
+      require(msg.value == 0, "Wrong value");
       require(_tokens == game.bet, "Wrong bet");
       require(tokensAllowed(_token, _tokens), "Tokens not allowed");
     
@@ -227,7 +228,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
         if (game.opponentPrize > 0) {
           prize = prize.add(game.opponentPrize);
 
-          bool timeout = game.creatorCoinSide > bytes32(uint256(CoinSide.tails));
+          bool timeout = (game.creatorCoinSide != bytes32(uint256(CoinSide.heads)) && game.creatorCoinSide != bytes32(uint256(CoinSide.tails)));
           if (timeout) {
             pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
           }
@@ -259,17 +260,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     //  ETH / token
     uint256 transferAmount;
-    if (_token == address(0)) {
-      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_ETH).div(100);
-      msg.sender.transfer(transferAmount);
-    } else {
+    if (_token != address(0)) {
       transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100);
       ERC20(_token).transfer(msg.sender, transferAmount);
+    } else {
+      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_ETH).div(100);
+      msg.sender.transfer(transferAmount);
     }
     
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
-    uint256 singleFee = (_token == address(0)) ? feeTotal.div(FEE_NUMBER_ETH) : feeTotal.div(FEE_NUMBER_TOKEN);
+    uint256 singleFee = (_token != address(0)) ? feeTotal.div(FEE_NUMBER_TOKEN) : feeTotal.div(FEE_NUMBER_ETH);
     uint256 raffleFee = singleFee;
 
     //  partner fee
@@ -288,7 +289,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     }
     
     //  dev fee
-    uint256 usedFee = (_token == address(0)) ? singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1));
+    uint256 usedFee = (_token != address(0)) ? singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1));
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
 
     emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingPMCt);
@@ -316,8 +317,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       Game storage game = _lastStartedGame(_token);
       return (game.running) ? startedGames.sub(1) : startedGames;
     }
-    
-    return 0;
   }
 
   function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
