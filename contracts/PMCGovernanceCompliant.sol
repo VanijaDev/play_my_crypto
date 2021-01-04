@@ -14,10 +14,10 @@ abstract contract PMCGovernanceCompliant is Ownable {
   
   address governance;
 
-  uint256 public gameMinBet = 1e16; //  0.001 ETH
+  uint256 public gameMinBet;
   uint256 public gameMinBetToUpdate;
   
-  uint16 public gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
+  uint16 public gameMaxDuration;
   uint16 public gameMaxDurationToUpdate;
   
   address[] private tokensSupported;
@@ -32,6 +32,11 @@ abstract contract PMCGovernanceCompliant is Ownable {
   modifier onlyAllowedTokens(address _token, uint256 _tokens) {
     require(tokensAllowed(_token, _tokens), "Tokens not allowed");
     _;
+  }
+
+  constructor() {
+    gameMinBet = 1e16; //  0.001 ETH
+    gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
   }
 
   /**
