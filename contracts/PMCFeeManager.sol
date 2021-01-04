@@ -35,8 +35,8 @@ contract PMCFeeManager is Ownable {
   mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH
   mapping(address => uint256) public devFeeWithdrawn;
 
-  //  staking
-  uint256 public stakeRewardPoolOngoing_ETH;  //  ETH only
+  //  staking (ETH only)
+  uint256 public stakeRewardPoolOngoing_ETH;
   
   
   /**
