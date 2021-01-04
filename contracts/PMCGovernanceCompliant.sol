@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
- * @notice Min bet, game duration.
- * @dev Smart Contract used to handle Gocernance.
+ * @notice Min bet (ETH only), game duration, add token to bet.
+ * @dev Smart Contract used to handle Governance.
  */
 abstract contract PMCGovernanceCompliant is Ownable {
   using SafeMath for uint256;
@@ -28,11 +28,6 @@ abstract contract PMCGovernanceCompliant is Ownable {
     require(_address == governance, "Not PMCGovernance");
     _;
   }
-  
-  modifier onlyAllowedTokens(address _token, uint256 _tokens) {
-    require(tokensAllowed(_token, _tokens), "Tokens not allowed");
-    _;
-  }
 
   constructor() {
     gameMinBet = 1e16; //  0.001 ETH
@@ -48,7 +43,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   } 
 
   /**
-   * @dev Governance calls when min bet update proposal accepted.
+   * @dev Governance calls it when min bet update proposal accepted.
    * @param _gameMinBet Bet value to be used.
    */
   function updateGameMinBet(uint256 _gameMinBet) external virtual;
@@ -59,13 +54,13 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _later Should be updated later.
    */
   function updateGameMinBetLater(uint256 _gameMinBet, bool _later) internal {
-    require(_gameMinBet != gameMinBet, "Same gameMinBet");
-
-    _later ? gameMinBetToUpdate = _gameMinBet : gameMinBet = _gameMinBet;
+    if (_gameMinBet != gameMinBet) {
+      _later ? gameMinBetToUpdate = _gameMinBet : gameMinBet = _gameMinBet;
+    }
   }
 
   /**
-   * @dev Checks if min bet should be updated.
+   * @dev Checks if min bet should be updated & updates.
    */
   function updateGameMinBetIfNeeded() internal {
     if (gameMinBetToUpdate > 0) {
@@ -75,8 +70,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
 
   /**
-   * @dev Updates game duration.
-   * @dev Governance calls when game duration update proposal accepted.
+   * @dev Governance calls it when game duration update proposal accepted.
    * @param _gameMaxDuration Duration value to be used.
    */
   function updateGameMaxDuration(uint16 _gameMaxDuration) external virtual;
@@ -87,13 +81,13 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _later Should be updated later.
    */
   function updateGameMaxDurationLater(uint16 _gameMaxDuration, bool _later) internal {
-    require(_gameMaxDuration != gameMaxDuration, "Same gameMaxDuration");
-
-    _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
+    if (_gameMaxDuration != gameMaxDuration) {
+      _later ? gameMaxDurationToUpdate = _gameMaxDuration : gameMaxDuration = _gameMaxDuration;
+    }
   }
 
   /**
-   * @dev Checks if game duration should be updated.
+   * @dev Checks if game duration should be updated & updates.
    */
   function updateGameMaxDurationIfNeeded() internal {
     if (gameMaxDurationToUpdate > 0) {
@@ -119,17 +113,5 @@ abstract contract PMCGovernanceCompliant is Ownable {
       tokensSupportedToBet.push(_token);
       isTokenSupportedToBet[_token] = true;
     }
-  }
-  
-  function tokensAllowed(address _token, uint256 _tokens) public view returns (bool) {
-    if (_token == address(0)) {
-      return false;
-    }
-
-    if (_tokens == 0) {
-      return false;
-    }
-
-    return ERC20(_token).allowance(msg.sender, address(this)) >= _tokens;
   }
 }
