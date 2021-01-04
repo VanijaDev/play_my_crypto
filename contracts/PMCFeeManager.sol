@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @notice Fee implementation:
- * partner, referral, dev - implemented
+ * partner, referral, dev - implemented here
  * raffle - inherited Smart Contract
  * staking - separate Smart Contract
  */
@@ -56,6 +56,7 @@ contract PMCFeeManager is Ownable {
    * @param _referralAddress Referral address.
    */
   function addFee(FeeType _type, address _token, uint256 _amount, address _referralAddress) internal {
+    require(_type <=  FeeType.stake, "No amount");
     require(_amount > 0, "No amount");
 
     if (_type == FeeType.partner) {
@@ -66,10 +67,8 @@ contract PMCFeeManager is Ownable {
       referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
     } else if (_type == FeeType.dev) {
       devFeePending[_token] = devFeePending[_token].add(_amount);
-    } else if (_type == FeeType.stake) {
-      stakeRewardPoolOngoing_ETH = stakeRewardPoolOngoing_ETH.add(_amount);
     } else {
-      revert("Wrong FeeType");
+      stakeRewardPoolOngoing_ETH = stakeRewardPoolOngoing_ETH.add(_amount);
     }
   }
 
@@ -117,6 +116,8 @@ contract PMCFeeManager is Ownable {
    * @param _token Token address. if 0x0 -> ETH
    */
   function withdrawDevFee(address _token) external {
+    require(msg.sender == owner(), "Not dev");
+
     uint256 feeTmp = devFeePending[_token];
     require(feeTmp > 0, "no fee");
 
