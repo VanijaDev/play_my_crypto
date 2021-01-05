@@ -41,7 +41,7 @@ contract PMCGovernance is Ownable {
   mapping(address => uint256) public proposalMinBetValueParticipated;
   mapping(uint256 => Proposal) public proposalsMinBet;
   
-  //    gameMaxDuration
+  //  gameMaxDuration
   uint256[] public proposalsGameMaxDurationValues;
   mapping(address => uint256) public proposalGameMaxDurationValueParticipated;
   mapping(uint256 => Proposal) public proposalsGameMaxDuration;
