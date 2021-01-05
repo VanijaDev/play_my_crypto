@@ -208,7 +208,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     require(gamesToCheck > 0, "No games to check");
 
-    uint256 loop = (_maxLoop < gamesToCheck) ? _maxLoop : gamesToCheck;
+    uint256 loop = ((_maxLoop > 0) && (_maxLoop < gamesToCheck)) ? _maxLoop : gamesToCheck;
 
     while (loop > 0) {
       Game storage game = games[_token][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
