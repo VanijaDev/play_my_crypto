@@ -25,17 +25,28 @@ contract PMCStaking {
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
   
-  
+  /**
+   * @dev Constructor.
+   * @param _pmct PMCt token address.
+   */
   constructor(address _pmct) {
     require(_pmct != address(0), "Wrong pmct");
     pmct = _pmct;
   }
 
+  /**
+   * @dev Adds ETH to reward pool.
+   * @param _amount ETH amount.
+   */
   function replenishRewardPool(uint256 _amount) internal {
     require(_amount > 0, "Wrong replenish amnt");
     incomes.push(StateForIncome(_amount, stakesTotal));
   }
 
+  /**
+   * @dev Stake PMCt tokens.
+   * @param _tokens Token amount.
+   */
   function stake(uint256 _tokens) external {
     require(_tokens > 0, "0 tokens");
     require(ERC20(pmct).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
@@ -62,6 +73,10 @@ contract PMCStaking {
     ERC20(pmct).transferFrom(msg.sender, address(this), _tokens);
   }
 
+  /**
+   * @dev Unstake PMCt tokens.
+   * @param _tokens Token amount.
+   */
   function unstake(uint256 _tokens) external {
     require(_tokens > 0, "Wrong tokens");
     require(_tokens <= stakeOf[msg.sender], "Not enough tokens");
@@ -73,6 +88,10 @@ contract PMCStaking {
     ERC20(pmct).transfer(msg.sender, _tokens);
   }
 
+  /**
+   * @dev Withdraw staking reward.
+   * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   */
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
     uint256 _incomeIdxToStartCalculatingRewardOf;
@@ -87,6 +106,10 @@ contract PMCStaking {
     msg.sender.transfer(reward);
   }
 
+  /**
+   * @dev Calculate staking reward.
+   * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   */
   function calculateReward(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
     require(stakeOf[msg.sender] > 0, "No stake");
 
