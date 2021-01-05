@@ -15,8 +15,8 @@ contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
   }
 
   /**
-    * @dev Adds address, that can mint tokens.
-    * @param _minter Minter address.
+   * @dev Adds address, that can mint tokens.
+   * @param _minter Minter address.
    */
   function addMinter(address _minter) external onlyOwner {
     require(_minter != address(0), "Wrong minter");
@@ -26,8 +26,8 @@ contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
   }
 
   /**
-    * @dev Removes address from minters array.
-    * @param _minter Minter address.
+   * @dev Removes address from minters array.
+   * @param _minter Minter address.
    */
   function removeMinter(address _minter) external onlyOwner {
     require(_minter != address(0), "Wrong minter");
