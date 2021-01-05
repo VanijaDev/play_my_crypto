@@ -70,11 +70,22 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   event GameFinished(address token, uint256 id, bool timeout);
   event PrizeWithdrawn(address token, address player, uint256 prize, uint256 pmct);
 
+  /**
+   * @dev Constructor.
+   * @param _pmct PMCt address.
+   */
   constructor(address _pmct) PMCStaking(_pmct) {
   }
 
 
   //  <-- GAMEPLAY
+  /**
+   * @dev Starts game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _tokens Token amount.
+   * @param _coinSideHash Hashed coin side.
+   * @param _referral Referral address.
+   */
   function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
     if (_token != address(0)) {
       require(isTokenSupportedToBet[_token], "Wrong token");
@@ -104,6 +115,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameStarted(_token, nextIdx);
   }
 
+  /**
+   * @dev Joins game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _tokens Token amount.
+   * @param _coinSide Coin side.
+   * @param _referral Referral address.
+   */
   function joinGame(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
@@ -131,6 +149,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameJoined(_token, gameIdx, msg.sender);
   }
   
+  /**
+   * @dev Plays game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _coinSide Coin side, that was used on game start.
+   * @param _seedHash Hash of the seed string, that was used to generate hashed coing side on game start.
+   */
   function playGame(address _token, CoinSide _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
@@ -170,6 +194,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameFinished(_token, gamesStarted(_token).sub(1), false);
   }
 
+  /**
+   * @dev Finishes game on timeout.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   */
   function finishTimeoutGame(address _token) external onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
@@ -190,6 +218,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameFinished(_token, gamesStarted(_token).sub(1), true);
   }
   
+  /**
+   * @dev Moves stake fee (ETH) to staking reward pool.
+   */
   function _moveOngoingRewardPoolToStakingRewards_ETH_ONLY() private {
     if (stakeRewardPoolOngoing_ETH > 0) {
       replenishRewardPool(stakeRewardPoolOngoing_ETH);
@@ -200,10 +231,26 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
 
   //  <-- PENDING WITHDRAWAL
+  /**
+   * @notice Referral fees not updated.
+   * @dev Calculates prize to withdraw for sender.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   * @return prize Prize amount.
+   * @return pmct_tokens PMCt amount.
+   */
   function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external returns(uint256 prize, uint256 pmct_tokens) {
     return _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
   }
 
+  /**
+   * @dev Calculates prize to withdraw for sender.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   * @param _updateReferralFees Boolean value whether to update referral fees.
+   * @return prize Prize amount.
+   * @return pmct_tokens PMCt amount.
+   */
   function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmct_tokens) {
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     require(gamesToCheck > 0, "No games to check");
@@ -245,6 +292,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     }
   }
 
+  /**
+   * @dev Withdraws prize for sender.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   */
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
     uint256 pendingPMCt;
@@ -297,11 +349,21 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   //  PENDING WITHDRAWAL -->
 
 
+  /**
+   * @dev Increases bets total & for sender.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _amount Bet value.
+   */
   function _increaseBets(address _token, uint256 _amount) private {
     playerBetTotal[_token][msg.sender] = playerBetTotal[_token][msg.sender].add(_amount);
     betsTotal[_token] = betsTotal[_token].add(_amount);
   }
 
+  /**
+   * @dev Gets last started game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Game obj.
+   */
   function _lastStartedGame(address _token) private view returns (Game storage) {
     require(isTokenSupportedToBet[_token], "Wrong token");
 
@@ -309,10 +371,20 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     return games[_token][ongoingGameIdx];
   }
 
+  /**
+   * @dev Gets number of started games.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Number of started games.
+   */
   function gamesStarted(address _token) public view returns (uint256) {
     return games[_token].length;
   }
 
+  /**
+   * @dev Gets number of finished games.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Number of finished games.
+   */
   function gamesFinished(address _token) public view returns (uint256) {
     uint256 startedGames = gamesStarted(_token);
     if (startedGames > 0) {
@@ -323,6 +395,24 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     return 0;
   }
 
+  /**
+   * @dev Gets number of finished games.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _idx Game index in games for token.
+   * @param _addr Player address to get info for.
+   * @return running is game running.
+   * @return creatorCoinSide Coin side of creator. Hash is set before creator played the game.
+   * @return creator Creator address.
+   * @return bet Bet value.
+   * @return startBlock Block, when game was started.
+   * @return heads Heads amount.
+   * @return tails Tails amount.
+   * @return creatorPrize Prize for creator.
+   * @return opponentPrize Prize for each opponent.
+   * @return opponentCoinSide Coin side for passed address.
+   * @return referral Referral address for passed address.
+   */
+
   function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
     bool running,
     bytes32 creatorCoinSide,
@@ -331,7 +421,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 startBlock,
     uint256 heads,
     uint256 tails,
-    uint256 prize,
+    uint256 creatorPrize,
+    uint256 opponentPrize,
     CoinSide opponentCoinSide,
     address referral) {
       require(_idx < gamesStarted(_token), "Wrong game idx");
@@ -343,11 +434,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       startBlock = games[_token][_idx].startBlock;
       heads = games[_token][_idx].heads;
       tails = games[_token][_idx].tails;
-      prize = games[_token][_idx].opponentPrize;
+      creatorPrize = games[_token][_idx].creatorPrize;
+      opponentPrize = games[_token][_idx].opponentPrize;
       if (_addr != address(0)) {
         opponentCoinSide = games[_token][_idx].opponentCoinSide[_addr];
+        referral = games[_token][_idx].referral[_addr];
       }
-      referral = games[_token][_idx].referral[_addr];
   }
 
   /**

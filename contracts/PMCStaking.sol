@@ -44,7 +44,7 @@ contract PMCStaking {
   }
 
   /**
-   * @dev Stake PMCt tokens.
+   * @dev Stakes PMCt tokens.
    * @param _tokens Token amount.
    */
   function stake(uint256 _tokens) external {
@@ -74,7 +74,7 @@ contract PMCStaking {
   }
 
   /**
-   * @dev Unstake PMCt tokens.
+   * @dev Unstakes PMCt tokens.
    * @param _tokens Token amount.
    */
   function unstake(uint256 _tokens) external {
@@ -89,7 +89,7 @@ contract PMCStaking {
   }
 
   /**
-   * @dev Withdraw staking reward.
+   * @dev Withdraws staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function withdrawReward(uint256 _maxLoop) public {
@@ -107,7 +107,7 @@ contract PMCStaking {
   }
 
   /**
-   * @dev Calculate staking reward.
+   * @dev Calculates staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function calculateReward(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
