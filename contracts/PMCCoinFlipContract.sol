@@ -33,9 +33,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     uint256 heads;
     uint256 tails;
     uint256 creatorPrize; 
-    uint256 opponentPrize; 
-    // mapping(address => CoinSide) opponentCoinSide;
-    // mapping(address => address) referral;
+    uint256 opponentPrize;
   }
 
   uint8 private constant FEE_NUMBER_ETH = 5;
@@ -55,8 +53,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   mapping(address => mapping(address => uint256[])) public gamesParticipatedToCheckPrize;    //  token => (player => game idxs)
 
   mapping(address => Game[]) private games; //  token => Game[], 0x0 - ETH
-  mapping(address => mapping(uint256 => mapping(address => CoinSide))) opponentCoinSideForGame; //  token => (gameId => (address => CoinSide))
-  mapping(address => mapping(uint256 => mapping(address => address))) referralForGame;          //  token => (gameId => (address => address))
+  mapping(address => mapping(uint256 => mapping(address => CoinSide))) opponentCoinSideInGame; //  token => (gameId => (address => CoinSide))
+  mapping(address => mapping(uint256 => mapping(address => address))) referralInGame;          //  token => (gameId => (address => address))
 
   modifier onlyCorrectCoinSide(CoinSide _coinSide) {
     require(_coinSide == CoinSide.heads || _coinSide == CoinSide.tails, "Wrong side");
@@ -105,28 +103,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
     
     uint256 nextIdx = gamesStarted(_token);
-    /*
-    running;
-    bytes32 creatorCoinSide;  //  startGame: hash(coinSide + saltStr), playGame: hash(coinSide)
-    address creator;
-    uint256 idx;
-    uint256 bet;
-    uint256 startBlock;
-    uint256 heads;
-    uint256 tails;
-    uint256 creatorPrize; 
-    uint256 opponentPrize
-    */
     Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, (_token != address(0)) ? _tokens : msg.value, block.number, 0, 0, 0, 0);
-    // games[_token][nextIdx].idx = nextIdx;
-    // games[_token][nextIdx].running = true;
-    // games[_token][nextIdx].creatorCoinSide = _coinSideHash;
-    // games[_token][nextIdx].creator = msg.sender;
-    // games[_token][nextIdx].bet = (_token != address(0)) ? _tokens : msg.value;
-    // games[_token][nextIdx].startBlock = block.number;
     games[_token].push(game);
     
-    referralForGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
+    referralInGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
     (_token != address(0)) ? _increaseBets(_token, _tokens) : _increaseBets(_token, msg.value);
@@ -155,11 +135,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     }
 
     require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
-    require(opponentCoinSideForGame[_token][gamesStarted(_token)][msg.sender] == CoinSide.none, "Already joined");
+    require(opponentCoinSideInGame[_token][gamesStarted(_token)][msg.sender] == CoinSide.none, "Already joined");
 
-    opponentCoinSideForGame[_token][gamesStarted(_token)][msg.sender] = _coinSide;
+    opponentCoinSideInGame[_token][gamesStarted(_token)][msg.sender] = _coinSide;
     (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
-    referralForGame[_token][gamesStarted(_token)][msg.sender] = (_referral != address(0)) ? _referral : owner();
+    referralInGame[_token][gamesStarted(_token)][msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     uint256 gameIdx = gamesStarted(_token).sub(1);
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
@@ -285,7 +265,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
           pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
 
           if (_updateReferralFees) {
-            address referral = referralForGame[_token][game.idx][msg.sender];
+            address referral = referralInGame[_token][game.idx][msg.sender];
             uint256 referralFee = game.creatorPrize.div(100);
             addFee(FeeType.referral, _token, referralFee, referral);
           }
@@ -300,7 +280,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
           }
 
           if (_updateReferralFees) {
-            address referral = referralForGame[_token][game.idx][msg.sender];
+            address referral = referralInGame[_token][game.idx][msg.sender];
             uint256 referralFee = game.opponentPrize.div(100);
             addFee(FeeType.referral, _token, referralFee, referral);
           }
@@ -432,7 +412,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @return referral Referral address for passed address.
    */
 
-  function gameInfoBasic(address _token, uint256 _idx, address _addr) external view returns(
+  function gameInfo(address _token, uint256 _idx, address _addr) external view returns(
     bool running,
     bytes32 creatorCoinSide,
     address creator,
@@ -456,8 +436,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       creatorPrize = games[_token][_idx].creatorPrize;
       opponentPrize = games[_token][_idx].opponentPrize;
       if (_addr != address(0)) {
-        opponentCoinSide = opponentCoinSideForGame[_token][_idx][_addr];
-        referral = referralForGame[_token][_idx][_addr];
+        opponentCoinSide = opponentCoinSideInGame[_token][_idx][_addr];
+        referral = referralInGame[_token][_idx][_addr];
       }
   }
 
