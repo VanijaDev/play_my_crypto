@@ -92,9 +92,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       require(isTokenSupportedToBet[_token], "Wrong token");
       require(msg.value == 0, "Wrong value");
       require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
-      require(ERC20(_token).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
-    
-      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
+      require(ERC20(_token).transferFrom(msg.sender, address(this), _tokens), "Tokens not allowed");
     } else {
       require(msg.value > gameMinBet, "Wrong ETH bet");
     }
@@ -127,9 +125,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     if (_token != address(0)) {
       require(msg.value == 0, "Wrong value");
       require(_tokens == game.bet, "Wrong bet");
-      require(ERC20(_token).allowance(msg.sender, address(this)) >= _tokens, "Tokens not allowed");
-    
-      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
+      require(ERC20(_token).transferFrom(msg.sender, address(this), _tokens), "Tokens not allowed");
     } else {
       require(msg.value == game.bet, "Wrong bet");
     }
@@ -364,7 +360,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @return Game obj.
    */
   function _lastStartedGame(address _token) private view returns (Game storage) {
-    require(isTokenSupportedToBet[_token], "Wrong token");
+    if (_token != address(0)) {
+      require(isTokenSupportedToBet[_token], "Wrong token");
+    }
 
     uint256 ongoingGameIdx = gamesStarted(_token).sub(1);
     return games[_token][ongoingGameIdx];
