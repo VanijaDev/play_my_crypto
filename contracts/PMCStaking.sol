@@ -49,7 +49,7 @@ contract PMCStaking {
    */
   function stake(uint256 _tokens) external {
     require(_tokens > 0, "0 tokens");
-    require(ERC20(pmct).transferFrom(msg.sender, address(this), _tokens), "Tokens not allowed");
+    ERC20(pmct).transferFrom(msg.sender, address(this), _tokens);
     
     if (stakeOf[msg.sender] == 0) {
       if (!stakesStarted) {
