@@ -75,7 +75,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @dev Constructor.
    * @param _pmct PMCt address.
    */
-  constructor(address _pmct) PMCStaking(_pmct) {
+  constructor(address _pmct) PMCStaking(_pmct) PMCGovernanceCompliant(_pmct) {
   }
 
 
@@ -91,10 +91,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     if (_token != address(0)) {
       require(isTokenSupportedToBet[_token], "Wrong token");
       require(msg.value == 0, "Wrong value");
-      require(_tokens > MIN_TOKENS_TO_BET, "Wrong tokens bet");
-      require(ERC20(_token).transferFrom(msg.sender, address(this), _tokens), "Tokens not allowed");
+      require(_tokens >= MIN_TOKENS_TO_BET, "Wrong tokens bet");
+      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
-      require(msg.value > gameMinBet, "Wrong ETH bet");
+      require(msg.value >= gameMinBet, "Wrong ETH bet");
     }
 
     require(_coinSideHash[0] != 0, "Empty hash");
@@ -125,7 +125,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     if (_token != address(0)) {
       require(msg.value == 0, "Wrong value");
       require(_tokens == game.bet, "Wrong bet");
-      require(ERC20(_token).transferFrom(msg.sender, address(this), _tokens), "Tokens not allowed");
+      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     } else {
       require(msg.value == game.bet, "Wrong bet");
     }
@@ -393,50 +393,61 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   }
 
   /**
-   * @dev Gets number of finished games.
+   * @dev Gets game info.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _idx Game index in games for token.
-   * @param _addr Player address to get info for.
    * @return running is game running.
    * @return creatorCoinSide Coin side of creator. Hash is set before creator played the game.
    * @return creator Creator address.
+   * @return idx Game index.
    * @return bet Bet value.
    * @return startBlock Block, when game was started.
    * @return heads Heads amount.
    * @return tails Tails amount.
    * @return creatorPrize Prize for creator.
    * @return opponentPrize Prize for each opponent.
-   * @return opponentCoinSide Coin side for passed address.
-   * @return referral Referral address for passed address.
    */
 
-  function gameInfo(address _token, uint256 _idx, address _addr) external view returns(
+  function gameInfo(address _token, uint256 _idx) external view returns(
     bool running,
     bytes32 creatorCoinSide,
     address creator,
+    uint256 idx,
     uint256 bet,
     uint256 startBlock,
     uint256 heads,
     uint256 tails,
     uint256 creatorPrize,
-    uint256 opponentPrize,
-    CoinSide opponentCoinSide,
-    address referral) {
+    uint256 opponentPrize) {
       require(_idx < gamesStarted(_token), "Wrong game idx");
 
       running = games[_token][_idx].running;
       creatorCoinSide = games[_token][_idx].creatorCoinSide;
       creator = games[_token][_idx].creator;
+      idx = games[_token][_idx].idx;
       bet = games[_token][_idx].bet;
       startBlock = games[_token][_idx].startBlock;
       heads = games[_token][_idx].heads;
       tails = games[_token][_idx].tails;
       creatorPrize = games[_token][_idx].creatorPrize;
       opponentPrize = games[_token][_idx].opponentPrize;
-      if (_addr != address(0)) {
-        opponentCoinSide = opponentCoinSideInGame[_token][_idx][_addr];
-        referral = referralInGame[_token][_idx][_addr];
-      }
+  }
+  
+  /**
+   * @dev Gets opponent info for game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _idx Game index in games for token.
+   * @return opponentCoinSide Coin side for passed address.
+   * @return referral Referral address for passed address.
+   */
+
+  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(
+    CoinSide opponentCoinSide,
+    address referral) {
+      require(_idx < gamesStarted(_token), "Wrong game idx");
+
+      opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
+      referral = referralInGame[_token][_idx][msg.sender];
   }
 
   /**
