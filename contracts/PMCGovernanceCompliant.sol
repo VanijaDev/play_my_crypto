@@ -29,9 +29,10 @@ abstract contract PMCGovernanceCompliant is Ownable {
     _;
   }
 
-  constructor() {
-    gameMinBet = 1e16; //  0.001 ETH
+  constructor(address _address) {
+    gameMinBet = 1e15; //  0.01 ETH
     gameMaxDuration = 5760;  // 24 hours == 5,760 blocks
+    isTokenSupportedToBet[_address] = true;
   }
 
   /**
