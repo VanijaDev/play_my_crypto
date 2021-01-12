@@ -50,11 +50,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   mapping(address => mapping(address => uint256)) public playerWithdrawTotal;   //  token => (player => amount)
   mapping(address => uint256) public playerWithdrawPMCtTotal;
 
-  mapping(address => mapping(address => uint256[])) public gamesParticipatedToCheckPrize;    //  token => (player => game idxs)
+  mapping(address => mapping(address => uint256[])) private gamesParticipatedToCheckPrize;    //  token => (player => game idxs)
 
   mapping(address => Game[]) private games; //  token => Game[], 0x0 - ETH
-  mapping(address => mapping(uint256 => mapping(address => CoinSide))) opponentCoinSideInGame; //  token => (gameId => (address => CoinSide))
-  mapping(address => mapping(uint256 => mapping(address => address))) referralInGame;          //  token => (gameId => (address => address))
+  mapping(address => mapping(uint256 => mapping(address => CoinSide))) private opponentCoinSideInGame; //  token => (gameId => (address => CoinSide))
+  mapping(address => mapping(uint256 => mapping(address => address))) private referralInGame;          //  token => (gameId => (address => address))
 
   modifier onlyCorrectCoinSide(CoinSide _coinSide) {
     require(_coinSide == CoinSide.heads || _coinSide == CoinSide.tails, "Wrong side");
@@ -437,17 +437,35 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @dev Gets opponent info for game.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _idx Game index in games for token.
-   * @return opponentCoinSide Coin side for passed address.
-   * @return referral Referral address for passed address.
+   * @return opponentCoinSide Coin side for sender.
+   * @return referral Referral address for sender.
    */
 
-  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(
-    CoinSide opponentCoinSide,
-    address referral) {
-      require(_idx < gamesStarted(_token), "Wrong game idx");
+  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(CoinSide opponentCoinSide, address referral) {
+    require(_idx < gamesStarted(_token), "Wrong game idx");
 
-      opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
-      referral = referralInGame[_token][_idx][msg.sender];
+    opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
+    referral = referralInGame[_token][_idx][msg.sender];
+  }
+
+  /**
+   * @dev Gets referral for sender for game.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _idx Game index in games for token.
+   * @return Referral address for sender.
+   */
+  function getReferralInGame(address _token, uint256 _idx) external view returns(address) {
+    require(_idx < gamesStarted(_token), "Wrong game idx");
+    return referralInGame[_token][_idx][msg.sender];
+  }
+
+  /**
+   * @dev Gets games participated to check prize for sender.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Games number.
+   */
+  function getGamesParticipatedToCheckPrize(address _token) external view returns(uint256[] memory) {
+    return gamesParticipatedToCheckPrize[_token][msg.sender];
   }
 
   /**

@@ -31,7 +31,7 @@ contract PMCGovernance is Ownable {
   }
 
   uint256 constant private MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL = 10;   //  amount of tokens for the proposal to be accepted
-  uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 500;   //  amount of voters for the proposal to be accepted
+  uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 2; // TODO: 500;   //  amount of voters for the proposal to be accepted
 
   address pmct;
   address[] games;  //  game Smart Contracts to be governed
