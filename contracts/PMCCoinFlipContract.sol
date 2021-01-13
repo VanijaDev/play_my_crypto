@@ -46,8 +46,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   uint8 private constant PMCT_TOKEN_PERCENTAGE = 5;
 
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH
-  mapping(address => mapping(address => uint256)) public playerBetTotal;    //  token => (player => amount)
-  mapping(address => mapping(address => uint256)) public playerWithdrawTotal;   //  token => (player => amount)
+  mapping(address => mapping(address => uint256)) private playerBetTotal;    //  token => (player => amount)
+  mapping(address => mapping(address => uint256)) private playerWithdrawTotal;   //  token => (player => amount)
   mapping(address => uint256) public playerWithdrawPMCtTotal;
 
   mapping(address => mapping(address => uint256[])) private gamesParticipatedToCheckPrize;    //  token => (player => game idxs)
@@ -80,7 +80,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
 
   //  <-- GAMEPLAY
-  /**
+  /***
    * @dev Starts game.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _tokens Token amount.
@@ -344,7 +344,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   //  PENDING WITHDRAWAL -->
 
 
-  /**
+  /***
    * @dev Increases bets total & for sender.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _amount Bet value.
@@ -466,6 +466,24 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    */
   function getGamesParticipatedToCheckPrize(address _token) external view returns(uint256[] memory) {
     return gamesParticipatedToCheckPrize[_token][msg.sender];
+  }
+  
+  /**
+   * @dev Gets player bet total amount.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Bets total amount.
+   */
+  function getPlayerBetTotal(address _token) external view returns(uint256) {
+    return playerBetTotal[_token][msg.sender];
+  }
+
+  /**
+   * @dev Gets player withdraw total amount.
+   * @param _token ERC-20 token address. 0x0 - ETH
+   * @return Withdrawals total amount.
+   */
+  function getPlayerWithdrawTotal(address _token) external view returns(uint256) {
+    return playerWithdrawTotal[_token][msg.sender];
   }
 
   /**

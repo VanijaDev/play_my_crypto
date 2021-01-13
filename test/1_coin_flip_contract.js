@@ -93,6 +93,7 @@ contract("CoinFlipContract", function (accounts) {
     assert.equal(0, (await pmct.balanceOf(CREATOR)).cmp(ether("0.006")), "Wrong pmct balane for CREATOR after transfer");
     assert.equal(0, (await pmct.balanceOf(OPPONENT)).cmp(ether("0.005")), "Wrong pmct balane for OPPONENT after transfer");
 
+    //  add testToken for betting
     await pmct.approve(governance.address, ether("0.1"), {
       from: CREATOR
     });
@@ -364,31 +365,285 @@ contract("CoinFlipContract", function (accounts) {
       }))[1].cmp(new BN("2")), "Wrong gamesParticipatedToCheckPrize idx for 1");
     });
 
-    it.only("should add game to gamesParticipatedToCheckPrize for Token", async function () {
+    it("should add game to gamesParticipatedToCheckPrize for Token", async function () {
+      //  approve TestToken
+      await testToken.approve(game.address, ether("0.1"), {
+        from: CREATOR
+      });
+      await testToken.approve(game.address, ether("0.1"), {
+        from: OPPONENT
+      });
 
+      // 0
+      await time.advanceBlock();
+      await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR
+      });
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: CREATOR
+      })).length, 0, "Wrong gamesParticipatedToCheckPrize length for 0 for ETH");
+
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: CREATOR
+      })).length, 1, "Wrong gamesParticipatedToCheckPrize length for 0 for Token");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: CREATOR
+      }))[0].cmp(new BN("0")), "Wrong gamesParticipatedToCheckPrize idx for 0 Token");
+
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+
+      // 1
+      await time.advanceBlock();
+      await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR
+      });
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: CREATOR
+      })).length, 0, "Wrong gamesParticipatedToCheckPrize length for 1 for ETH");
+
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: CREATOR
+      })).length, 2, "Wrong gamesParticipatedToCheckPrize length for 1 for Token");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: CREATOR
+      }))[0].cmp(new BN("0")), "Wrong gamesParticipatedToCheckPrize idx[0] for 1 for Token");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: CREATOR
+      }))[1].cmp(new BN("1")), "Wrong gamesParticipatedToCheckPrize idx[1] for 1 for Token");
     });
 
-    it("should increase playerBetTotal for ETH", async function () {
+    it("should increase playerBetTotal (_increaseBets) for ETH", async function () {
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR
+      })).cmp(BET_ETH), "wrong value before for CREATOR");
 
+      // 0
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(new BN("0")), "should be 0 before");
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(BET_ETH_1), "wrong value before for 0 for CREATOR_1");
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(new BN("0")), "should be 0 before");
+
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR_1
+      });
+
+      // 1
+      await time.advanceBlock();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(BET_ETH_1.add(BET_ETH_2)), "wrong value before for 1 for CREATOR_1");
     });
 
     it("should increase playerBetTotal for Token", async function () {
+      //  approve TestToken
+      await testToken.approve(game.address, ether("0.1"), {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, ether("0.1"), {
+        from: OPPONENT_1
+      });
 
+      // 0
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(new BN("0")), "should be 0 before");
+
+      await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(new BN("0")), "wrong value after for 0 for CREATOR_1 for ETH");
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(BET_TOKEN), "should be 0 after for CREATOR_1 for Token");
+
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR_1
+      });
+
+      // 1
+      await time.advanceBlock();
+      await time.increase(time.duration.minutes(1));
+
+      await game.startGame(testToken.address, BET_TOKEN_1, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(new BN("0")), "wrong value after for 1 for CREATOR_1 for ETH");
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(BET_TOKEN.add(BET_TOKEN_1)), "should be 1 after for CREATOR_1 for Token");
     });
 
     it("should increase betsTotal for ETH", async function () {
+      assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH)), "wrong value before");
 
+      // 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+      assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH).add(BET_ETH_1)), "wrong value after 0");
+
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR_1
+      });
+
+      // 1
+      await time.advanceBlock();
+      await time.increase(time.duration.minutes(1));
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+      assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH).add(BET_ETH_1).add(BET_ETH_2)), "wrong value after 1");
     });
 
     it("should increase betsTotal for Token", async function () {
+      //  approve TestToken
+      await testToken.approve(game.address, ether("0.1"), {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await game.betsTotal.call(testToken.address)).cmp(new BN("0")), "wrong value before");
 
+      // 0
+      await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await game.betsTotal.call(testToken.address)).cmp(BET_TOKEN), "wrong value after 0");
+
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR_1
+      });
+
+      // 1
+      await time.advanceBlock();
+      await time.increase(time.duration.minutes(1));
+      await game.startGame(testToken.address, BET_TOKEN_1, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await game.betsTotal.call(testToken.address)).cmp(BET_TOKEN.add(BET_TOKEN_1)), "wrong value after 1");
     });
 
     it("should emit GameStarted with correct params for ETH", async function () {
-
+      const {
+        logs
+      } = await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+      await expectEvent.inLogs(logs, 'GameStarted', {
+        token: constants.ZERO_ADDRESS,
+        id: new BN("1")
+      });
     });
 
     it("should emit GameStarted with correct params for ETH", async function () {
+      //  approve TestToken
+      await testToken.approve(game.address, ether("0.1"), {
+        from: CREATOR_1
+      });
+
+      //  0
+      const {
+        logs
+      } = await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      await expectEvent.inLogs(logs, 'GameStarted', {
+        token: testToken.address,
+        id: new BN("0")
+      });
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR_1
+      });
+
+      // 1
+      await time.advanceBlock();
+      await time.increase(time.duration.minutes(1));
+
+      let tx = await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_1_REFERRAL, {
+        from: CREATOR_1
+      });
+      await expectEvent.inLogs(tx.logs, 'GameStarted', {
+        token: testToken.address,
+        id: new BN("1")
+      });
+    });
+  });
+
+  describe.only("joinGame", function () {
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
 
     });
   });
