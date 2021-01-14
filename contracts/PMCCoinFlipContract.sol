@@ -56,12 +56,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
   mapping(address => mapping(uint256 => mapping(address => CoinSide))) private opponentCoinSideInGame; //  token => (gameId => (address => CoinSide))
   mapping(address => mapping(uint256 => mapping(address => address))) private referralInGame;          //  token => (gameId => (address => address))
 
-  modifier onlyCorrectCoinSide(CoinSide _coinSide) {
-    require(_coinSide == CoinSide.heads || _coinSide == CoinSide.tails, "Wrong side");
+  modifier onlyCorrectCoinSide(uint8 _coinSide) {
+    require(_coinSide == uint8(CoinSide.heads) || _coinSide == uint8(CoinSide.tails), "Wrong side");
     _;
   }
   
   modifier onlyWhileRunningGame(address _token) {
+    require(games[_token].length > 0, "No games");
     require(_lastStartedGame(_token).running, "No running games");
     _;
   }
@@ -119,7 +120,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @param _coinSide Coin side.
    * @param _referral Referral address.
    */
-  function joinGame(address _token, uint256 _tokens, CoinSide _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
+  function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
     if (_token != address(0)) {
@@ -130,14 +131,16 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
       require(msg.value == game.bet, "Wrong bet");
     }
 
-    require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
-    require(opponentCoinSideInGame[_token][gamesStarted(_token)][msg.sender] == CoinSide.none, "Already joined");
-
-    opponentCoinSideInGame[_token][gamesStarted(_token)][msg.sender] = _coinSide;
-    (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
-    referralInGame[_token][gamesStarted(_token)][msg.sender] = (_referral != address(0)) ? _referral : owner();
-
     uint256 gameIdx = gamesStarted(_token).sub(1);
+
+    require(game.startBlock.add(gameMaxDuration) >= block.number, "Game time out");
+    require(opponentCoinSideInGame[_token][gameIdx][msg.sender] == CoinSide.none, "Already joined");
+
+
+    opponentCoinSideInGame[_token][gameIdx][msg.sender] = CoinSide(_coinSide);
+    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
+    referralInGame[_token][gameIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
+
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
     (_token != address(0)) ? _increaseBets(_token, _tokens) : _increaseBets(_token, msg.value);
 
@@ -150,7 +153,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
    * @param _coinSide Coin side, that was used on game start.
    * @param _seedHash Hash of the seed string, that was used to generate hashed coing side on game start.
    */
-  function playGame(address _token, CoinSide _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
+  function playGame(address _token, uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
     require(game.creator == msg.sender, "Not creator");
@@ -159,11 +162,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
 
     delete game.running;
     game.creatorCoinSide = bytes32(uint256(_coinSide));
-    (_coinSide == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
+    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
     uint256 opponentsReward;
     if ((game.heads > 0) && (game.tails > 0)) {
-      opponentsReward = (_coinSide == CoinSide.heads) ? game.bet.mul(game.tails).div(game.heads) : game.bet.mul(game.heads).div(game.tails);
+      opponentsReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.bet.mul(game.tails).div(game.heads) : game.bet.mul(game.heads).div(game.tails);
       game.creatorPrize = game.bet.add(opponentsReward);
     } else {
       uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);

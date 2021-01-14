@@ -112,7 +112,7 @@ contract("CoinFlipContract", function (accounts) {
     await time.advanceBlock();
   });
 
-  describe.only("startGame", function () {
+  describe("startGame", function () {
     it("should fail if Wrong Token address", async function () {
       await expectRevert(game.startGame(OTHER, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
         from: CREATOR
@@ -493,7 +493,7 @@ contract("CoinFlipContract", function (accounts) {
       })).cmp(BET_TOKEN.add(BET_TOKEN_1)), "should be 1 after for CREATOR_1 for Token");
     });
 
-    it("should increase betsTotal for ETH", async function () {
+    it("should increase betsTotal (_increaseBets) for ETH", async function () {
       assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH)), "wrong value before");
 
       // 0
@@ -517,7 +517,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH).add(BET_ETH_1).add(BET_ETH_2)), "wrong value after 1");
     });
 
-    it("should increase betsTotal for Token", async function () {
+    it("should increase betsTotal (_increaseBets) for Token", async function () {
       //  approve TestToken
       await testToken.approve(game.address, ether("0.1"), {
         from: CREATOR_1
@@ -590,61 +590,440 @@ contract("CoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("joinGame", function () {
-    it("should ", async function () {
+  describe("joinGame", function () {
+    beforeEach("start game", async function () {
+      //  approve TestToken
+      await testToken.approve(game.address, ether("0.1"), {
+        from: CREATOR
+      });
+      await testToken.approve(game.address, ether("0.1"), {
+        from: OPPONENT
+      });
 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR,
+        value: BET_ETH
+      });
+
+      await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR
+      });
     });
 
-    it("should ", async function () {
-
+    it("should fail if wrong coin side", async function () {
+      await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 0, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "Wrong side");
     });
 
-    it("should ", async function () {
+    it("should fail if no running game", async function () {
+      //  play ETH
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
 
+      //  join
+      await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "No running games");
+
+      //  play Token
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+
+      //  join
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "No running games");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Wrong token", async function () {
+      await expectRevert(game.joinGame(OTHER, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "No games");
     });
 
-    it("should ", async function () {
-
+    it("should fail if msg.value > 0 for Token", async function () {
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      }), "Wrong value");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Wrong bet for Token", async function () {
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN_2, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "Wrong bet");
     });
 
-    it("should ", async function () {
-
+    it("should fail if cannot transferFrom for Token", async function () {
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT_1
+      }), "ERC20: transfer amount exceeds allowance");
     });
 
-    it("should ", async function () {
+    it("should transferFrom for Token", async function () {
+      let OPPONENT_before = await testToken.balanceOf.call(OPPONENT);
+      let game_before = await testToken.balanceOf.call(game.address);
 
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+
+      let OPPONENT_after = await testToken.balanceOf.call(OPPONENT);
+      let game_after = await testToken.balanceOf.call(game.address);
+
+      assert.equal(0, OPPONENT_before.sub(BET_TOKEN).cmp(OPPONENT_after), "wrong OPPONENT_after");
+      assert.equal(0, game_before.add(BET_TOKEN).cmp(game_after), "wrong game_after");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Wrong bet for ETH", async function () {
+      await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: ether("1")
+      }), "Wrong bet");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Already joined for ETH", async function () {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      }), "Already joined");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Already joined for Token", async function () {
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "Already joined");
     });
 
-    it("should ", async function () {
-
+    it("should set correct opponentCoinSideInGame for ETH", async function () {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      assert.equal(0, (await game.gameInfoForOpponent.call(constants.ZERO_ADDRESS, 1, {
+        from: OPPONENT
+      })).opponentCoinSide.cmp(new BN("1")), "Wrong opponentCoinSide");
     });
 
-    it("should ", async function () {
-
+    it("should set correct opponentCoinSideInGame for Token", async function () {
+      await game.joinGame(testToken.address, BET_TOKEN, 1, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(0, (await game.gameInfoForOpponent.call(testToken.address, 0, {
+        from: OPPONENT
+      })).opponentCoinSide.cmp(new BN("1")), "Wrong opponentCoinSide");
     });
 
-    it("should ", async function () {
+    it("should increase heads for ETH", async function () {
+      let heads_before = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).heads;
+      let tails_before = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).tails;
 
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+
+      let heads_after = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).heads;
+      let tails_after = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).tails;
+
+      assert.equal(0, heads_before.add(new BN("1")).cmp(heads_after), "Wrong heads_after");
+      assert.equal(0, tails_before.cmp(tails_after), "Wrong tails_after");
+    });
+
+    it("should increase tails for ETH", async function () {
+      let heads_before = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).heads;
+      let tails_before = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).tails;
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+
+      let heads_after = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).heads;
+      let tails_after = (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).tails;
+
+      assert.equal(0, heads_before.cmp(heads_after), "Wrong heads_after");
+      assert.equal(0, tails_before.add(new BN("1")).cmp(tails_after), "Wrong tails_after");
+    });
+
+    it("should increase heads for Token", async function () {
+      let heads_before = (await game.gameInfo.call(testToken.address, 0)).heads;
+      let tails_before = (await game.gameInfo.call(testToken.address, 0)).tails;
+
+      await game.joinGame(testToken.address, BET_TOKEN, 1, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+
+      let heads_after = (await game.gameInfo.call(testToken.address, 0)).heads;
+      let tails_after = (await game.gameInfo.call(testToken.address, 0)).tails;
+
+      assert.equal(0, heads_before.add(new BN("1")).cmp(heads_after), "Wrong heads_after");
+      assert.equal(0, tails_before.cmp(tails_after), "Wrong tails_after");
+    });
+
+    it("should increase tails for Token", async function () {
+      let heads_before = (await game.gameInfo.call(testToken.address, 0)).heads;
+      let tails_before = (await game.gameInfo.call(testToken.address, 0)).tails;
+
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+
+      let heads_after = (await game.gameInfo.call(testToken.address, 0)).heads;
+      let tails_after = (await game.gameInfo.call(testToken.address, 0)).tails;
+
+      assert.equal(0, heads_before.cmp(heads_after), "Wrong heads_after");
+      assert.equal(0, tails_before.add(new BN("1")).cmp(tails_after), "Wrong tails_after");
+    });
+
+    it("should set correct referralInGame for ETH", async function () {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_1_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      assert.equal(await game.getReferralInGame.call(constants.ZERO_ADDRESS, 1, {
+        from: OPPONENT
+      }), OPPONENT_1_REFERRAL, "Wrong referralInGame");
+    });
+
+    it("should set OWNER as referralInGame for ETH", async function () {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, constants.ZERO_ADDRESS, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      assert.equal(await game.getReferralInGame.call(constants.ZERO_ADDRESS, 1, {
+        from: OPPONENT
+      }), OWNER, "Wrong referralInGame");
+    });
+
+    it("should set correct referralInGame for Token", async function () {
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_1_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(await game.getReferralInGame.call(testToken.address, 0, {
+        from: OPPONENT
+      }), OPPONENT_1_REFERRAL, "Wrong referralInGame");
+    });
+
+    it("should set OWNER as referralInGame for Token", async function () {
+      await game.joinGame(testToken.address, BET_TOKEN, 2, constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      });
+      assert.equal(await game.getReferralInGame.call(testToken.address, 0, {
+        from: OPPONENT
+      }), OWNER, "Wrong referralInGame");
+    });
+
+    it("should add game idx to gamesParticipatedToCheckPrize for ETH", async function () {
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      })).length, 1, "Wrong length before");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      }))[0].cmp(new BN("0")), "Wrong [0] before");
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, constants.ZERO_ADDRESS, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      })).length, 2, "Wrong length after");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      }))[0].cmp(new BN("0")), "Wrong [0] after");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      }))[1].cmp(new BN("1")), "Wrong [1] after");
+    });
+
+    it("should add game idx to gamesParticipatedToCheckPrize for Token", async function () {
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: OPPONENT
+      })).length, 0, "Wrong length before");
+
+      await game.joinGame(testToken.address, BET_TOKEN, 2, constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      });
+
+      assert.equal((await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: OPPONENT
+      })).length, 1, "Wrong length after");
+      assert.equal(0, (await game.getGamesParticipatedToCheckPrize.call(testToken.address, {
+        from: OPPONENT
+      }))[0].cmp(new BN("0")), "Wrong [0] after");
+    });
+
+    it("should increase playerBetTotal (_increaseBets) for ETH", async function () {
+      //  0
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      })).cmp(BET_ETH), "wrong value before");
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      })).cmp(BET_ETH.mul(new BN("2"))), "wrong value after 0");
+
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      //  1
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH_1
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT
+      })).cmp(BET_ETH.mul(new BN("2")).add(BET_ETH_1)), "wrong value after 1");
+    });
+
+    it("should increase playerBetTotal (_increaseBets) for Token", async function () {
+      //  0
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: OPPONENT
+      })).cmp(new BN("0")), "wrong value before");
+
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: OPPONENT
+      })).cmp(BET_TOKEN), "wrong value after 0");
+
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+      await game.startGame(testToken.address, BET_TOKEN_1, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR
+      });
+
+      //  1
+      await game.joinGame(testToken.address, BET_TOKEN_1, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+        from: OPPONENT
+      })).cmp(BET_TOKEN.add(BET_TOKEN_1)), "wrong value after 1");
+    });
+
+    it("should increase betsTotal (_increaseBets) for ETH", async function () {
+      //  0
+      let betsTotal_before = await game.betsTotal.call(constants.ZERO_ADDRESS);
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(betsTotal_before.add(BET_ETH)), "wrong betsTotal after 0");
+
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      //  1
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH_1
+      });
+      assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(betsTotal_before.add(BET_ETH).add(BET_ETH_1.mul(new BN("2")))), "wrong betsTotal after 1");
+    });
+
+    it("should increase betsTotal (_increaseBets) for Token", async function () {
+      //  0
+      let betsTotal_before = await game.betsTotal.call(testToken.address);
+
+      await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(0, (await game.betsTotal.call(testToken.address)).cmp(betsTotal_before.add(BET_TOKEN)), "wrong betsTotal after 0");
+
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, web3.utils.soliditySha3(CREATOR_SEED), {
+        from: CREATOR
+      });
+      await game.startGame(testToken.address, BET_TOKEN_1, creatorHash, CREATOR_REFERRAL, {
+        from: CREATOR
+      });
+
+      //  1
+      await game.joinGame(testToken.address, BET_TOKEN_1, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      assert.equal(0, (await game.betsTotal.call(testToken.address)).cmp(betsTotal_before.add(BET_TOKEN).add(BET_TOKEN_1.mul(new BN("2")))), "wrong betsTotal after 1");
+    });
+
+    it("should emit GameJoined for ETH", async function () {
+      const {
+        logs
+      } = await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      });
+      await expectEvent.inLogs(logs, 'GameJoined', {
+        token: constants.ZERO_ADDRESS,
+        id: new BN("1"),
+        opponent: OPPONENT
+      });
+    });
+
+    it("should emit GameJoined for Token", async function () {
+      const {
+        logs
+      } = await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      });
+      await expectEvent.inLogs(logs, 'GameJoined', {
+        token: testToken.address,
+        id: new BN("0"),
+        opponent: OPPONENT
+      });
+    });
+
+    it("should fail if Game time out for ETH", async function () {
+      await time.increase(time.duration.minutes(1));
+      await time.advanceBlockTo((await time.latestBlock()).add(new BN("13")));
+      await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT,
+        value: BET_ETH
+      }), "Game time out");
+    });
+
+    it("should fail if Game time out for Token", async function () {
+      await time.increase(time.duration.minutes(1));
+      await time.advanceBlockTo((await time.latestBlock()).add(new BN("13")));
+      await expectRevert(game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
+        from: OPPONENT
+      }), "Game time out");
     });
   });
 });
