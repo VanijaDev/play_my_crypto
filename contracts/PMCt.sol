@@ -8,10 +8,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
   mapping(address => bool) minters;
 
-  function mint(address account, uint256 amount) public {
+  /**
+   * @dev Mints tokens to account.
+   * @param _receiver Receiver address.
+   * @param _amount Token amount to be minted.
+   */
+  function mint(address _receiver, uint256 _amount) public {
     require(minters[msg.sender], "Not minter");
 
-    super._mint(account, amount);
+    super._mint(_receiver, amount);
   }
 
   /**
