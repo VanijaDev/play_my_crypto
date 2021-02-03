@@ -113,7 +113,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCStakin
     emit GameStarted(_token, nextIdx);
   }
 
-  /**
+  /***
    * @dev Joins game.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _tokens Token amount.

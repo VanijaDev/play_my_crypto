@@ -1026,4 +1026,182 @@ contract("CoinFlipContract", function (accounts) {
       }), "Game time out");
     });
   });
+
+  describe("playGame", function () {
+    it.only("should fail if Wrong side", async function () {
+
+    });
+
+    it("should fail if no running games for ETH", async function () {
+
+    });
+
+    it("should fail if no running games for Token", async function () {
+
+    });
+
+    it("should fail if Not creator for ETH", async function () {
+
+    });
+
+    it("should fail if Not creator for Token", async function () {
+
+    });
+
+    it("should fail if Time out for ETH", async function () {
+
+    });
+
+    it("should fail if Time out for Token", async function () {
+
+    });
+
+    it("should fail if Wrong hash value for ETH", async function () {
+
+    });
+
+    it("should fail if Wrong hash value for Token", async function () {
+
+    });
+
+    it("should delete game.running for ETH", async function () {
+
+    });
+
+    it("should delete game.running for Token", async function () {
+
+    });
+
+    it("should increase game.heads for ETH", async function () {
+
+    });
+
+    it("should increase game.tails for ETH", async function () {
+
+    });
+
+    it("should increase game.heads for Token", async function () {
+
+    });
+
+    it("should increase game.tails for Token", async function () {
+
+    });
+
+    it("should set correct creatorPrize if CREATOR there were opponents, who lost for ETH", async function () {
+
+    });
+
+    it("should set creatorPrize == 0 if CREATOR there were no opponents, who lost for ETH", async function () {
+
+    });
+
+    it("should set creatorPrize == 0 if CREATOR there were no opponents at all for ETH", async function () {
+
+    });
+
+    it("should set correct creatorPrize if CREATOR there were opponents, who lost for Token", async function () {
+
+    });
+
+    it("should set creatorPrize == 0 if CREATOR there were no opponents, who lost for Token", async function () {
+
+    });
+
+    it("should set creatorPrize == 0 if CREATOR there were no opponents at all for Token", async function () {
+
+    });
+
+    it("should set correct opponentPrize if won for ETH", async function () {
+
+    });
+
+    it("should set opponentPrize == 0 if lost for ETH", async function () {
+
+    });
+
+    it("should set correct opponentPrize if won for Token", async function () {
+
+    });
+
+    it("should set opponentPrize == 0 if lost for Token", async function () {
+
+    });
+
+    it("should runRaffle for ETH", async function () {
+
+    });
+
+    it("should not runRaffle, if no opponents joined for ETH", async function () {
+
+    });
+
+    it("should runRaffle for Token", async function () {
+
+    });
+
+    it("should not runRaffle, if no opponents joined for Token", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+
+    it("should ", async function () {
+
+    });
+  });
 });
