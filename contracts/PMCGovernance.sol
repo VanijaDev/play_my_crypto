@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./PMCGovernanceCompliant.sol";
 
 /**
- * @notice Min bet, game duration, add token.
+ * @notice Min prediction, game duration, add token.
  * @notice User can participate in single proposal of the type.
  * @dev Common Governance for all games.
  */
@@ -14,7 +14,7 @@ contract PMCGovernance is Ownable {
   using SafeMath for uint256;
 
   enum ProposalType {
-    minBet,
+    minPrediction,
     gameMaxDuration,
     addToken
   }
@@ -25,7 +25,7 @@ contract PMCGovernance is Ownable {
     mapping(address => uint256) tokensOfVoter;
   }
   
-  struct MinBetVote {
+  struct MinPredictionVote {
     address token;
     uint256 value;
   }
@@ -36,10 +36,10 @@ contract PMCGovernance is Ownable {
   address pmct;
   address[] games;  //  game Smart Contracts to be governed
 
-    //  minBet
-  uint256[] public proposalsMinBetValues;
-  mapping(address => uint256) public proposalMinBetValueParticipated;
-  mapping(uint256 => Proposal) public proposalsMinBet;
+    //  minPrediction
+  uint256[] public proposalsMinPredictionValues;
+  mapping(address => uint256) public proposalMinPredictionValueParticipated;
+  mapping(uint256 => Proposal) public proposalsMinPrediction;
   
   //  gameMaxDuration
   uint256[] public proposalsGameMaxDurationValues;
@@ -94,9 +94,9 @@ contract PMCGovernance is Ownable {
   function addProposal(ProposalType _proposalType, address _token, uint256 _value, uint256 _pmctTokens) external onlyValidProposal(_proposalType) {
     require(_pmctTokens > 0, "Wrong _pmctTokens");
 
-    if (_proposalType == ProposalType.minBet) {
+    if (_proposalType == ProposalType.minPrediction) {
       require(_value > 0, "Wrong value");
-      _addProposalMinBet(_value, _pmctTokens);
+      _addProposalMinPrediction(_value, _pmctTokens);
     } else if (_proposalType == ProposalType.gameMaxDuration) {
       _addProposalGameMaxDuration(_value, _pmctTokens);
     } else {
@@ -104,76 +104,76 @@ contract PMCGovernance is Ownable {
     }
   }
 
-  //  <-- ADD, VOTE MIN BET
+  //  <-- ADD, VOTE MIN PREDICTION
   /**
-   * @dev Adds proposal minBet.
-   * @param _minBet minBet value.
+   * @dev Adds proposal minPrediction.
+   * @param _minPrediction minPrediction value.
    * @param _pmctTokens PMCt amount to vote.
    * 
    */
-  function _addProposalMinBet(uint256 _minBet, uint256 _pmctTokens) private {
-    require(proposalMinBetValueParticipated[msg.sender] == 0 || proposalMinBetValueParticipated[msg.sender] == _minBet, "Already voted");
+  function _addProposalMinPrediction(uint256 _minPrediction, uint256 _pmctTokens) private {
+    require(proposalMinPredictionValueParticipated[msg.sender] == 0 || proposalMinPredictionValueParticipated[msg.sender] == _minPrediction, "Already voted");
 
-    (proposalsMinBet[_minBet].votersTotal == 0) ? _createProposalMinBet(_minBet, _pmctTokens) : voteProposalMinBet(_minBet, _pmctTokens);
+    (proposalsMinPrediction[_minPrediction].votersTotal == 0) ? _createProposalMinPrediction(_minPrediction, _pmctTokens) : voteProposalMinPrediction(_minPrediction, _pmctTokens);
   }
 
   /**
-   * @dev Creates proposal minBet.
-   * @param _minBet minBet value.
+   * @dev Creates proposal minPrediction.
+   * @param _minPrediction minPrediction value.
    * @param _pmctTokens PMCt amount to vote.
    */
-  function _createProposalMinBet(uint256 _minBet, uint256 _pmctTokens) private {
-    require(proposalsMinBet[_minBet].votersTotal == 0, "Already exists");
+  function _createProposalMinPrediction(uint256 _minPrediction, uint256 _pmctTokens) private {
+    require(proposalsMinPrediction[_minPrediction].votersTotal == 0, "Already exists");
     ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
     
-    proposalsMinBetValues.push(_minBet);
-    proposalMinBetValueParticipated[msg.sender] = _minBet;
+    proposalsMinPredictionValues.push(_minPrediction);
+    proposalMinPredictionValueParticipated[msg.sender] = _minPrediction;
 
-    proposalsMinBet[_minBet].votersTotal = 1;
-    proposalsMinBet[_minBet].tokensTotal = _pmctTokens;
-    proposalsMinBet[_minBet].tokensOfVoter[msg.sender] = _pmctTokens;
+    proposalsMinPrediction[_minPrediction].votersTotal = 1;
+    proposalsMinPrediction[_minPrediction].tokensTotal = _pmctTokens;
+    proposalsMinPrediction[_minPrediction].tokensOfVoter[msg.sender] = _pmctTokens;
 
-    emit ProposalAdded(msg.sender, ProposalType.minBet, address(0));
+    emit ProposalAdded(msg.sender, ProposalType.minPrediction, address(0));
   }
 
   /**
-   * @dev Votes proposal minBet.
-   * @param _minBet minBet value.
+   * @dev Votes proposal minPrediction.
+   * @param _minPrediction minPrediction value.
    * @param _pmctTokens PMCt amount to vote.
    */
-  function voteProposalMinBet(uint256 _minBet, uint256 _pmctTokens) public {
-    require(proposalsMinBet[_minBet].votersTotal > 0, "No proposal");
-    require(_minBet > 0, "Wrong minBet");
+  function voteProposalMinPrediction(uint256 _minPrediction, uint256 _pmctTokens) public {
+    require(proposalsMinPrediction[_minPrediction].votersTotal > 0, "No proposal");
+    require(_minPrediction > 0, "Wrong minPrediction");
     ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
   
-    proposalsMinBet[_minBet].votersTotal = proposalsMinBet[_minBet].votersTotal.add(1);
-    proposalsMinBet[_minBet].tokensTotal = proposalsMinBet[_minBet].tokensTotal.add(_pmctTokens);
-    proposalsMinBet[_minBet].tokensOfVoter[msg.sender] = proposalsMinBet[_minBet].tokensOfVoter[msg.sender].add(_pmctTokens);
+    proposalsMinPrediction[_minPrediction].votersTotal = proposalsMinPrediction[_minPrediction].votersTotal.add(1);
+    proposalsMinPrediction[_minPrediction].tokensTotal = proposalsMinPrediction[_minPrediction].tokensTotal.add(_pmctTokens);
+    proposalsMinPrediction[_minPrediction].tokensOfVoter[msg.sender] = proposalsMinPrediction[_minPrediction].tokensOfVoter[msg.sender].add(_pmctTokens);
   
-    emit ProposalVoted(msg.sender, ProposalType.minBet, address(0));
+    emit ProposalVoted(msg.sender, ProposalType.minPrediction, address(0));
     
-    _checkAndAcceptProposaMinBet(_minBet);
+    _checkAndAcceptProposaMinPrediction(_minPrediction);
   }
 
   /**
-   * @dev Checks if proposal minBet should be accepted and accepts if needed.
-   * @param _minBet minBet value.
+   * @dev Checks if proposal minPrediction should be accepted and accepts if needed.
+   * @param _minPrediction minPrediction value.
    */
-  function _checkAndAcceptProposaMinBet(uint256 _minBet) private {
-    if (proposalsMinBet[_minBet].votersTotal < MIN_VOTERS_TO_ACCEPT_PROPOSAL) {
+  function _checkAndAcceptProposaMinPrediction(uint256 _minPrediction) private {
+    if (proposalsMinPrediction[_minPrediction].votersTotal < MIN_VOTERS_TO_ACCEPT_PROPOSAL) {
       return;
     }
 
     uint256 tokensToAccept = ERC20(pmct).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
-    if (proposalsMinBet[_minBet].tokensTotal < tokensToAccept) {
+    if (proposalsMinPrediction[_minPrediction].tokensTotal < tokensToAccept) {
       return;
     }
 
     for (uint8 i = 0; i < games.length; i++) {
-      PMCGovernanceCompliant(games[i]).updateGameMinBet(_minBet);
+      PMCGovernanceCompliant(games[i]).updateGameMinPrediction(_minPrediction);
     }
   }
-  //  ADD, VOTE MIN BET -->
+  //  ADD, VOTE MIN PREDICTION -->
 
 
   //  <-- ADD, VOTE GAME DURATION
@@ -327,8 +327,8 @@ contract PMCGovernance is Ownable {
    * @param _proposalType Proposal type.
    */
   function quitProposal(ProposalType _proposalType) external onlyValidProposal(_proposalType) {
-    if (_proposalType == ProposalType.minBet) {
-      _quitProposalMinBet();
+    if (_proposalType == ProposalType.minPrediction) {
+      _quitProposalMinPrediction();
     } else if (_proposalType == ProposalType.gameMaxDuration) {
       _quitProposalGameMaxDuration();
     } else {
@@ -337,21 +337,21 @@ contract PMCGovernance is Ownable {
   }
 
   /**
-   * @dev Quits proposal minBet.
+   * @dev Quits proposal minPrediction.
    */
-  function _quitProposalMinBet() private {
-    uint256 votedValue = proposalMinBetValueParticipated[msg.sender];
+  function _quitProposalMinPrediction() private {
+    uint256 votedValue = proposalMinPredictionValueParticipated[msg.sender];
     require(votedValue > 0, "No votes");
     
-    proposalsMinBet[votedValue].votersTotal = proposalsMinBet[votedValue].votersTotal.sub(1);
-    uint256 tokensVoted = proposalsMinBet[votedValue].tokensOfVoter[msg.sender];
-    proposalsMinBet[votedValue].tokensTotal = proposalsMinBet[votedValue].tokensTotal.sub(tokensVoted);
-    delete proposalsMinBet[votedValue].tokensOfVoter[msg.sender];
-    delete proposalMinBetValueParticipated[msg.sender];
+    proposalsMinPrediction[votedValue].votersTotal = proposalsMinPrediction[votedValue].votersTotal.sub(1);
+    uint256 tokensVoted = proposalsMinPrediction[votedValue].tokensOfVoter[msg.sender];
+    proposalsMinPrediction[votedValue].tokensTotal = proposalsMinPrediction[votedValue].tokensTotal.sub(tokensVoted);
+    delete proposalsMinPrediction[votedValue].tokensOfVoter[msg.sender];
+    delete proposalMinPredictionValueParticipated[msg.sender];
 
     ERC20(pmct).transfer(msg.sender, tokensVoted);
 
-    emit ProposalQuitted(msg.sender, ProposalType.minBet);
+    emit ProposalQuitted(msg.sender, ProposalType.minPrediction);
   }
 
   /**
@@ -398,8 +398,8 @@ contract PMCGovernance is Ownable {
    * @return Count of proposals.
    */
   function getProposalsCount(ProposalType _proposalType) external view onlyValidProposal(_proposalType) returns(uint256) {
-    if (_proposalType == ProposalType.minBet) {
-      return proposalsMinBetValues.length;
+    if (_proposalType == ProposalType.minPrediction) {
+      return proposalsMinPredictionValues.length;
     } else if (_proposalType == ProposalType.gameMaxDuration) {
       return proposalsGameMaxDurationValues.length;
     } else {
@@ -416,12 +416,12 @@ contract PMCGovernance is Ownable {
    * @return tokensOfVoter PMCt of sender for proposal.
    */
   function getProposalInfo(ProposalType _proposalType, address _token, uint256 _value) external view onlyValidProposal(_proposalType) returns (uint256 votersTotal, uint256 tokensTotal, uint256 tokensOfVoter) {
-    if (_proposalType == ProposalType.minBet) {
-      require(proposalsMinBet[_value].votersTotal > 0, "No proposal");
+    if (_proposalType == ProposalType.minPrediction) {
+      require(proposalsMinPrediction[_value].votersTotal > 0, "No proposal");
       
-      votersTotal = proposalsMinBet[_value].votersTotal;
-      tokensTotal = proposalsMinBet[_value].tokensTotal;
-      tokensOfVoter = proposalsMinBet[_value].tokensOfVoter[msg.sender];
+      votersTotal = proposalsMinPrediction[_value].votersTotal;
+      tokensTotal = proposalsMinPrediction[_value].tokensTotal;
+      tokensOfVoter = proposalsMinPrediction[_value].tokensOfVoter[msg.sender];
     } else if (_proposalType == ProposalType.gameMaxDuration) {
       require(proposalsGameMaxDuration[_value].votersTotal > 0, "No value");
       

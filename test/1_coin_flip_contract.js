@@ -107,7 +107,7 @@ contract("CoinFlipContract", function (accounts) {
     await governance.addProposal(2, testToken.address, 0, ether("0.002"), {
       from: OPPONENT
     });
-    assert.isTrue(await game.isTokenSupportedToBet.call(testToken.address), "TestToken should be supported to bet");
+    assert.isTrue(await game.isTokenSupportedToPrediction.call(testToken.address), "TestToken should be supported to prediction");
 
     await time.advanceBlock();
   });
@@ -130,7 +130,7 @@ contract("CoinFlipContract", function (accounts) {
       let tokens = BET_TOKEN_MIN.sub(new BN("10"));
       await expectRevert(game.startGame(pmct.address, tokens, creatorHash, CREATOR_REFERRAL, {
         from: CREATOR,
-      }), "Wrong tokens bet");
+      }), "Wrong tokens prediction");
     });
 
     it("should fail if Token & failed to transferFrom", async function () {
@@ -139,15 +139,15 @@ contract("CoinFlipContract", function (accounts) {
       }), "ERC20: transfer amount exceeds allowance");
     });
 
-    it("should fail if ETH & msg.value < gameMinBet", async function () {
+    it("should fail if ETH & msg.value < gameMinPrediction", async function () {
       await expectRevert(game.startGame(constants.ZERO_ADDRESS, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
         from: CREATOR
-      }), "Wrong ETH bet");
+      }), "Wrong ETH prediction");
 
-      let wrongEthBet = BET_ETH_MIN.div(new BN("2"));
-      await expectRevert(game.startGame(constants.ZERO_ADDRESS, wrongEthBet, creatorHash, CREATOR_REFERRAL, {
+      let wrongEthPrediction = BET_ETH_MIN.div(new BN("2"));
+      await expectRevert(game.startGame(constants.ZERO_ADDRESS, wrongEthPrediction, creatorHash, CREATOR_REFERRAL, {
         from: CREATOR
-      }), "Wrong ETH bet");
+      }), "Wrong ETH prediction");
     });
 
     it("should fail if Empty hash", async function () {
@@ -182,7 +182,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(game_0.creatorCoinSide, "0x0000000000000000000000000000000000000000000000000000000000000001", "Wrong creatorHash");
       assert.equal(game_0.creator, CREATOR, "wrong creator");
       assert.equal(0, game_0.idx.cmp(new BN("0")), "wrong idx for 0");
-      assert.equal(0, game_0.bet.cmp(BET_ETH), "wrong bet for 0");
+      assert.equal(0, game_0.prediction.cmp(BET_ETH), "wrong prediction for 0");
       assert.equal(0, game_0.startBlock.cmp(initialGameStartBlock), "wrong startBlock for 0");
       assert.equal(0, game_0.heads.cmp(new BN("1")), "wrong heads for 0");
       assert.equal(0, game_0.tails.cmp(new BN("1")), "wrong tails for 0");
@@ -211,7 +211,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(game_1.creatorCoinSide, creatorHash, "Wrong creatorHash for 1");
       assert.equal(game_1.creator, CREATOR_1, "wrong creator for 1");
       assert.equal(0, game_1.idx.cmp(new BN("1")), "wrong idx for 1");
-      assert.equal(0, game_1.bet.cmp(BET_ETH_1), "wrong bet for 1");
+      assert.equal(0, game_1.prediction.cmp(BET_ETH_1), "wrong prediction for 1");
       assert.equal(0, game_1.startBlock.cmp(await time.latestBlock()), "wrong startBlock for 1");
       assert.equal(0, game_1.heads.cmp(new BN("0")), "wrong heads for 1");
       assert.equal(0, game_1.tails.cmp(new BN("0")), "wrong tails for 1");
@@ -237,7 +237,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(game_0.creatorCoinSide, creatorHash, "Wrong creatorHash for 1");
       assert.equal(game_0.creator, CREATOR, "wrong creator for 0");
       assert.equal(0, game_0.idx.cmp(new BN("0")), "wrong idx for 0");
-      assert.equal(0, game_0.bet.cmp(BET_TOKEN), "wrong bet for 0");
+      assert.equal(0, game_0.prediction.cmp(BET_TOKEN), "wrong prediction for 0");
       assert.equal(0, game_0.startBlock.cmp(await time.latestBlock()), "wrong startBlock for 0");
       assert.equal(0, game_0.heads.cmp(new BN("0")), "wrong heads for 0");
       assert.equal(0, game_0.tails.cmp(new BN("0")), "wrong tails for 0");
@@ -266,7 +266,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(game_1.creatorCoinSide, creatorHash, "Wrong creatorHash for 1");
       assert.equal(game_1.creator, CREATOR_1, "wrong creator for 1");
       assert.equal(0, game_1.idx.cmp(new BN("1")), "wrong idx for 1");
-      assert.equal(0, game_1.bet.cmp(BET_TOKEN_1), "wrong bet for 1");
+      assert.equal(0, game_1.prediction.cmp(BET_TOKEN_1), "wrong prediction for 1");
       assert.equal(0, game_1.startBlock.cmp(await time.latestBlock()), "wrong startBlock for 1");
       assert.equal(0, game_1.heads.cmp(new BN("0")), "wrong heads for 1");
       assert.equal(0, game_1.tails.cmp(new BN("0")), "wrong tails for 1");
@@ -414,13 +414,13 @@ contract("CoinFlipContract", function (accounts) {
       }))[1].cmp(new BN("1")), "Wrong gamesParticipatedToCheckPrize idx[1] for 1 for Token");
     });
 
-    it("should increase playerBetTotal (_increaseBets) for ETH", async function () {
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+    it("should increase playerPredictionTotal (_increasePredictions) for ETH", async function () {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR
       })).cmp(BET_ETH), "wrong value before for CREATOR");
 
       // 0
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_1
       })).cmp(new BN("0")), "should be 0 before");
 
@@ -428,10 +428,10 @@ contract("CoinFlipContract", function (accounts) {
         from: CREATOR_1,
         value: BET_ETH_1
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_1
       })).cmp(BET_ETH_1), "wrong value before for 0 for CREATOR_1");
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: CREATOR_1
       })).cmp(new BN("0")), "should be 0 before");
 
@@ -445,12 +445,12 @@ contract("CoinFlipContract", function (accounts) {
         from: CREATOR_1,
         value: BET_ETH_2
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_1
       })).cmp(BET_ETH_1.add(BET_ETH_2)), "wrong value before for 1 for CREATOR_1");
     });
 
-    it("should increase playerBetTotal for Token", async function () {
+    it("should increase playerPredictionTotal for Token", async function () {
       //  approve TestToken
       await testToken.approve(game.address, ether("0.1"), {
         from: CREATOR_1
@@ -460,17 +460,17 @@ contract("CoinFlipContract", function (accounts) {
       });
 
       // 0
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: CREATOR_1
       })).cmp(new BN("0")), "should be 0 before");
 
       await game.startGame(testToken.address, BET_TOKEN, creatorHash, CREATOR_1_REFERRAL, {
         from: CREATOR_1
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_1
       })).cmp(new BN("0")), "wrong value after for 0 for CREATOR_1 for ETH");
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: CREATOR_1
       })).cmp(BET_TOKEN), "should be 0 after for CREATOR_1 for Token");
 
@@ -485,15 +485,15 @@ contract("CoinFlipContract", function (accounts) {
       await game.startGame(testToken.address, BET_TOKEN_1, creatorHash, CREATOR_1_REFERRAL, {
         from: CREATOR_1
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_1
       })).cmp(new BN("0")), "wrong value after for 1 for CREATOR_1 for ETH");
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: CREATOR_1
       })).cmp(BET_TOKEN.add(BET_TOKEN_1)), "should be 1 after for CREATOR_1 for Token");
     });
 
-    it("should increase betsTotal (_increaseBets) for ETH", async function () {
+    it("should increase betsTotal (_increasePredictions) for ETH", async function () {
       assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH)), "wrong value before");
 
       // 0
@@ -517,7 +517,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(BET_ETH.add(BET_ETH).add(BET_ETH_1).add(BET_ETH_2)), "wrong value after 1");
     });
 
-    it("should increase betsTotal (_increaseBets) for Token", async function () {
+    it("should increase betsTotal (_increasePredictions) for Token", async function () {
       //  approve TestToken
       await testToken.approve(game.address, ether("0.1"), {
         from: CREATOR_1
@@ -658,10 +658,10 @@ contract("CoinFlipContract", function (accounts) {
       }), "Wrong value");
     });
 
-    it("should fail if Wrong bet for Token", async function () {
+    it("should fail if Wrong prediction for Token", async function () {
       await expectRevert(game.joinGame(testToken.address, BET_TOKEN_2, 2, OPPONENT_REFERRAL, {
         from: OPPONENT
-      }), "Wrong bet");
+      }), "Wrong prediction");
     });
 
     it("should fail if cannot transferFrom for Token", async function () {
@@ -685,11 +685,11 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(0, game_before.add(BET_TOKEN).cmp(game_after), "wrong game_after");
     });
 
-    it("should fail if Wrong bet for ETH", async function () {
+    it("should fail if Wrong prediction for ETH", async function () {
       await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL, {
         from: OPPONENT,
         value: ether("1")
-      }), "Wrong bet");
+      }), "Wrong prediction");
     });
 
     it("should fail if Already joined for ETH", async function () {
@@ -872,9 +872,9 @@ contract("CoinFlipContract", function (accounts) {
       }))[0].cmp(new BN("0")), "Wrong [0] after");
     });
 
-    it("should increase playerBetTotal (_increaseBets) for ETH", async function () {
+    it("should increase playerPredictionTotal (_increasePredictions) for ETH", async function () {
       //  0
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: OPPONENT
       })).cmp(BET_ETH), "wrong value before");
 
@@ -882,7 +882,7 @@ contract("CoinFlipContract", function (accounts) {
         from: OPPONENT,
         value: BET_ETH
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: OPPONENT
       })).cmp(BET_ETH.mul(new BN("2"))), "wrong value after 0");
 
@@ -899,21 +899,21 @@ contract("CoinFlipContract", function (accounts) {
         from: OPPONENT,
         value: BET_ETH_1
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(constants.ZERO_ADDRESS, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(constants.ZERO_ADDRESS, {
         from: OPPONENT
       })).cmp(BET_ETH.mul(new BN("2")).add(BET_ETH_1)), "wrong value after 1");
     });
 
-    it("should increase playerBetTotal (_increaseBets) for Token", async function () {
+    it("should increase playerPredictionTotal (_increasePredictions) for Token", async function () {
       //  0
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: OPPONENT
       })).cmp(new BN("0")), "wrong value before");
 
       await game.joinGame(testToken.address, BET_TOKEN, 2, OPPONENT_REFERRAL, {
         from: OPPONENT
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: OPPONENT
       })).cmp(BET_TOKEN), "wrong value after 0");
 
@@ -928,12 +928,12 @@ contract("CoinFlipContract", function (accounts) {
       await game.joinGame(testToken.address, BET_TOKEN_1, 2, OPPONENT_REFERRAL, {
         from: OPPONENT
       });
-      assert.equal(0, (await game.getPlayerBetTotal.call(testToken.address, {
+      assert.equal(0, (await game.getPlayerPredictionTotal.call(testToken.address, {
         from: OPPONENT
       })).cmp(BET_TOKEN.add(BET_TOKEN_1)), "wrong value after 1");
     });
 
-    it("should increase betsTotal (_increaseBets) for ETH", async function () {
+    it("should increase betsTotal (_increasePredictions) for ETH", async function () {
       //  0
       let betsTotal_before = await game.betsTotal.call(constants.ZERO_ADDRESS);
 
@@ -959,7 +959,7 @@ contract("CoinFlipContract", function (accounts) {
       assert.equal(0, (await game.betsTotal.call(constants.ZERO_ADDRESS)).cmp(betsTotal_before.add(BET_ETH).add(BET_ETH_1.mul(new BN("2")))), "wrong betsTotal after 1");
     });
 
-    it("should increase betsTotal (_increaseBets) for Token", async function () {
+    it("should increase betsTotal (_increasePredictions) for Token", async function () {
       //  0
       let betsTotal_before = await game.betsTotal.call(testToken.address);
 

@@ -16,7 +16,7 @@ contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
   function mint(address _receiver, uint256 _amount) public {
     require(minters[msg.sender], "Not minter");
 
-    super._mint(_receiver, amount);
+    super._mint(_receiver, _amount);
   }
 
   /**
