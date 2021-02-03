@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
- * @notice Min prediction (ETH only), game duration, add token to prediction.
+ * @notice Min stake (ETH only), game duration, add token to stake.
  * @dev Smart Contract used to handle Governance.
  */
 abstract contract PMCGovernanceCompliant is Ownable {
@@ -14,14 +14,14 @@ abstract contract PMCGovernanceCompliant is Ownable {
   
   address governance;
 
-  uint256 public gameMinPrediction;
-  uint256 public gameMinPredictionToUpdate;
+  uint256 public gameMinStake;
+  uint256 public gameMinStakeToUpdate;
   
   uint16 public gameMaxDuration;
   uint16 public gameMaxDurationToUpdate;
   
-  address[] private tokensSupportedToPrediction;
-  mapping(address => bool) public isTokenSupportedToPrediction;
+  address[] private tokensSupportedToStake;
+  mapping(address => bool) public isTokenSupportedToStake;
   
 
   modifier onlyGovernance(address _address) {
@@ -30,9 +30,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
 
   constructor(address _address) {
-    gameMinPrediction = 1e15; //  0.01 ETH
+    gameMinStake = 1e15; //  0.01 ETH
     gameMaxDuration = 12;  //  TODO: 5760;  // 24 hours == 5,760 blocks
-    isTokenSupportedToPrediction[_address] = true;
+    isTokenSupportedToStake[_address] = true;
   }
 
   /**
@@ -44,29 +44,29 @@ abstract contract PMCGovernanceCompliant is Ownable {
   } 
 
   /**
-   * @dev Governance calls it when min prediction update proposal accepted.
-   * @param _gameMinPrediction Prediction value to be used.
+   * @dev Governance calls it when min stake update proposal accepted.
+   * @param _gameMinStake Stake value to be used.
    */
-  function updateGameMinPrediction(uint256 _gameMinPrediction) external virtual;
+  function updateGameMinStake(uint256 _gameMinStake) external virtual;
 
   /**
-   * @dev Updates min prediction.
-   * @param _gameMinPrediction Prediction value to be used.
+   * @dev Updates min stake.
+   * @param _gameMinStake Stake value to be used.
    * @param _later Should be updated later.
    */
-  function updateGameMinPredictionLater(uint256 _gameMinPrediction, bool _later) internal {
-    if (_gameMinPrediction != gameMinPrediction) {
-      _later ? gameMinPredictionToUpdate = _gameMinPrediction : gameMinPrediction = _gameMinPrediction;
+  function updateGameMinStakeLater(uint256 _gameMinStake, bool _later) internal {
+    if (_gameMinStake != gameMinStake) {
+      _later ? gameMinStakeToUpdate = _gameMinStake : gameMinStake = _gameMinStake;
     }
   }
 
   /**
-   * @dev Checks if min prediction should be updated & updates.
+   * @dev Checks if min stake should be updated & updates.
    */
-  function updateGameMinPredictionIfNeeded() internal {
-    if (gameMinPredictionToUpdate > 0) {
-      gameMinPrediction = gameMinPredictionToUpdate;
-      delete gameMinPredictionToUpdate;
+  function updateGameMinStakeIfNeeded() internal {
+    if (gameMinStakeToUpdate > 0) {
+      gameMinStake = gameMinStakeToUpdate;
+      delete gameMinStakeToUpdate;
     }
   }
 
@@ -98,11 +98,11 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
   
   /**
-   * @dev Returns tokens, that can be used for prediction.
+   * @dev Returns tokens, that can be used for stake.
    * @return Token address list.
    */
-  function gettokensSupportedToPrediction() external view returns(address[] memory) {
-    return tokensSupportedToPrediction;
+  function gettokensSupportedToStake() external view returns(address[] memory) {
+    return tokensSupportedToStake;
   }
   
   /**
@@ -110,9 +110,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _token Token address to be added.
    */
   function updateGameAddToken(address _token) external onlyGovernance(msg.sender) {
-    if (_token != address(0) && !isTokenSupportedToPrediction[_token]) {
-      tokensSupportedToPrediction.push(_token);
-      isTokenSupportedToPrediction[_token] = true;
+    if (_token != address(0) && !isTokenSupportedToStake[_token]) {
+      tokensSupportedToStake.push(_token);
+      isTokenSupportedToStake[_token] = true;
     }
   }
 }
