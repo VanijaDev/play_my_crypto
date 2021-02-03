@@ -14,14 +14,14 @@ abstract contract PMCGovernanceCompliant is Ownable {
   
   address governance;
 
-  uint256 public gameMinStake;
-  uint256 public gameMinStakeToUpdate;
+  uint256 public gameMinStakeETH;
+  uint256 public gameMinStakeETHToUpdate;
   
-  uint16 public gameMaxDuration;
-  uint16 public gameMaxDurationToUpdate;
+  uint256 public gameMaxDuration;
+  uint256 public gameMaxDurationToUpdate;
   
   address[] private tokensSupportedToStake;
-  mapping(address => bool) public isTokenSupportedToStake;
+  mapping(address => bool) public isTokenSupported;
   
 
   modifier onlyGovernance(address _address) {
@@ -30,9 +30,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
 
   constructor(address _address) {
-    gameMinStake = 1e15; //  0.01 ETH
-    gameMaxDuration = 12;  //  TODO: 5760;  // 24 hours == 5,760 blocks
-    isTokenSupportedToStake[_address] = true;
+    gameMinStakeETH = 1e15; //  0.01 ETH
+    gameMaxDuration = 24 hours;
+    isTokenSupported[_address] = true;
   }
 
   /**
@@ -45,28 +45,28 @@ abstract contract PMCGovernanceCompliant is Ownable {
 
   /**
    * @dev Governance calls it when min stake update proposal accepted.
-   * @param _gameMinStake Stake value to be used.
+   * @param _gameMinStakeETH Stake value to be used.
    */
-  function updateGameMinStake(uint256 _gameMinStake) external virtual;
+  function updateGameMinStakeETH(uint256 _gameMinStakeETH) external virtual;
 
   /**
    * @dev Updates min stake.
-   * @param _gameMinStake Stake value to be used.
+   * @param _gameMinStakeETH Stake value to be used.
    * @param _later Should be updated later.
    */
-  function updateGameMinStakeLater(uint256 _gameMinStake, bool _later) internal {
-    if (_gameMinStake != gameMinStake) {
-      _later ? gameMinStakeToUpdate = _gameMinStake : gameMinStake = _gameMinStake;
+  function updateGameMinStakeETHLater(uint256 _gameMinStakeETH, bool _later) internal {
+    if (_gameMinStakeETH != gameMinStakeETH) {
+      _later ? gameMinStakeETHToUpdate = _gameMinStakeETH : gameMinStakeETH = gameMinStakeETH;
     }
   }
 
   /**
    * @dev Checks if min stake should be updated & updates.
    */
-  function updateGameMinStakeIfNeeded() internal {
-    if (gameMinStakeToUpdate > 0) {
-      gameMinStake = gameMinStakeToUpdate;
-      delete gameMinStakeToUpdate;
+  function updateGameMinStakeETHIfNeeded() internal {
+    if (gameMinStakeETHToUpdate > 0) {
+      gameMinStakeETH = gameMinStakeETHToUpdate;
+      delete gameMinStakeETHToUpdate;
     }
   }
 
@@ -110,9 +110,9 @@ abstract contract PMCGovernanceCompliant is Ownable {
    * @param _token Token address to be added.
    */
   function updateGameAddToken(address _token) external onlyGovernance(msg.sender) {
-    if (_token != address(0) && !isTokenSupportedToStake[_token]) {
+    if (_token != address(0) && !isTokenSupported[_token]) {
       tokensSupportedToStake.push(_token);
-      isTokenSupportedToStake[_token] = true;
+      isTokenSupported[_token] = true;
     }
   }
 }

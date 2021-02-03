@@ -170,7 +170,7 @@ contract PMCGovernance is Ownable {
     }
 
     for (uint8 i = 0; i < games.length; i++) {
-      PMCGovernanceCompliant(games[i]).updateGameMinStake(_minStake);
+      PMCGovernanceCompliant(games[i]).updateGameMinStakeETH(_minStake);
     }
   }
   //  ADD, VOTE MIN STAKE -->

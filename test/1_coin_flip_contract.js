@@ -107,7 +107,7 @@ contract("CoinFlipContract", function (accounts) {
     await governance.addProposal(2, testToken.address, 0, ether("0.002"), {
       from: OPPONENT
     });
-    assert.isTrue(await game.isTokenSupportedToStake.call(testToken.address), "TestToken should be supported to stake");
+    assert.isTrue(await game.isTokenSupported.call(testToken.address), "TestToken should be supported to stake");
 
     await time.advanceBlock();
   });
@@ -139,7 +139,7 @@ contract("CoinFlipContract", function (accounts) {
       }), "ERC20: transfer amount exceeds allowance");
     });
 
-    it("should fail if ETH & msg.value < gameMinStake", async function () {
+    it("should fail if ETH & msg.value < gameMinStakeETH", async function () {
       await expectRevert(game.startGame(constants.ZERO_ADDRESS, BET_TOKEN, creatorHash, CREATOR_REFERRAL, {
         from: CREATOR
       }), "Wrong ETH stake");
