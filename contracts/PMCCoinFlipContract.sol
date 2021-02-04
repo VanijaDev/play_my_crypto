@@ -90,25 +90,25 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _referral Referral address.
    */
   function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
-    if (_token != address(0)) {
+    if (_isEth(_token)) {
+      require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
+    } else {
       require(isTokenSupported[_token], "Wrong token");
       require(_tokens > 0, "Wrong tokens");
       require(msg.value == 0, "Wrong value");
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
-    } else {
-      require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
     }
 
     require(_coinSideHash[0] != 0, "Empty hash");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
     
     uint256 nextIdx = gamesStarted(_token);
-    Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, (_token != address(0)) ? _tokens : msg.value, block.timestamp, 0, 0, 0, 0);
+    Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, (_isEth(_token)) ? msg.value : _tokens, block.timestamp, 0, 0, 0, 0);
     games[_token].push(game);
     
     referralInGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
-    _increaseStakes(_token, (_token != address(0)) ? _tokens : msg.value);
+    _increaseStakes(_token, (_isEth(_token)) ? msg.value : _tokens);
 
     emit GameStarted(_token, nextIdx);
   }
@@ -123,12 +123,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
 
-    if (_token != address(0)) {
+    if (_isEth(_token)) {
+      require(msg.value == game.stake, "Wrong stake");
+    } else {
       require(msg.value == 0, "Wrong value");
       require(_tokens == game.stake, "Wrong stake");
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
-    } else {
-      require(msg.value == game.stake, "Wrong stake");
     }
 
     uint256 gameIdx = gamesStarted(_token).sub(1);
@@ -141,7 +141,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     referralInGame[_token][gameIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
-    _increaseStakes(_token, (_token != address(0)) ? _tokens : msg.value);
+    _increaseStakes(_token, (_isEth(_token)) ? msg.value : _tokens);
 
     emit GameJoined(_token, gameIdx, msg.sender);
   }
@@ -178,7 +178,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       game.opponentPrize = game.stake.add(opponentsReward);
 
       runRaffle(_token);
-      if (_token == address(0)) {
+      if (_isEth(_token))) {
         if (stakingAddress != address(0)) {
           if (stakeRewardPoolOngoing_ETH > 0) {
             PMC_IStaking(stakingAddress).replenishRewardPool(stakeRewardPoolOngoing_ETH);
@@ -305,17 +305,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
     //  ETH / token
     uint256 transferAmount;
-    if (_token != address(0)) {
-      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100);
-      ERC20(_token).transfer(msg.sender, transferAmount);
-    } else {
+    if (_isEth(_token)) {
       transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_ETH).div(100);
       msg.sender.transfer(transferAmount);
+    } else {
+      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100);
+      ERC20(_token).transfer(msg.sender, transferAmount);
     }
     
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
-    uint256 singleFee = (_token != address(0)) ? feeTotal.div(FEE_NUMBER_TOKEN) : feeTotal.div(FEE_NUMBER_ETH);
+    uint256 singleFee = (_isEth(_token)) ? feeTotal.div(FEE_NUMBER_ETH) : feeTotal.div(FEE_NUMBER_TOKEN);
     uint256 raffleFee = singleFee;
 
     //  partner fee
@@ -329,12 +329,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     addToRaffle(_token, raffleFee, msg.sender);
 
     //  staking
-    if (_token == address(0)) {
+    if (_isEth(_token)) {
       addFee(FeeType.stake, _token, singleFee, address(0));
     }
     
     //  dev fee
-    uint256 usedFee = (_token != address(0)) ? singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1));
+    uint256 usedFee = (_isEth(_token)) ? singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1));
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
 
     emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingPMCt);
@@ -343,8 +343,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Checks if address used corresponds to ETH or token.
-   * @param _token Token address.
-   * @return Is ETH used.
+   * @param _token Token address or 0 adress.
+   * @return Address corresponds to ETH or Token.
    */
   function _isEth(address _token) private returns (bool) {
     return _token == address(0);
@@ -376,7 +376,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @return Game obj.
    */
   function _lastStartedGame(address _token) private view returns (Game storage) {
-    if (_token != address(0)) {
+    if (!_isEth(_token)) {
       require(isTokenSupported[_token], "Wrong token");
     }
 
