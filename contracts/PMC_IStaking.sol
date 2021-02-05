@@ -11,5 +11,5 @@ interface PMC_IStaking {
      * @dev Replenishes Staking Smart Contract with ETH amount.
      * @param _amount ETH amount that must be tracked as staking reward.
      */
-    function replenishRewardPool(uint256 _amount) public returns (bool);
+    function replenishRewardPool(uint256 _amount) external returns (bool);
 }

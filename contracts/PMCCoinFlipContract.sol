@@ -93,9 +93,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     if (_isEth(_token)) {
       require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
     } else {
+      require(msg.value == 0, "Wrong value");
       require(isTokenSupported[_token], "Wrong token");
       require(_tokens > 0, "Wrong tokens");
-      require(msg.value == 0, "Wrong value");
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
     }
 
@@ -153,6 +153,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _seedHash Hash of the seed string, that was used to generate hashed coin side on game start.
    */
   function playGame(address _token, uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
+    //  TODO: no fee if no opponents
+
     Game storage game = _lastStartedGame(_token);
 
     require(game.creator == msg.sender, "Not creator");
@@ -178,7 +180,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       game.opponentPrize = game.stake.add(opponentsReward);
 
       runRaffle(_token);
-      if (_isEth(_token))) {
+      if (_isEth(_token)) {
         if (stakingAddress != address(0)) {
           if (stakeRewardPoolOngoing_ETH > 0) {
             PMC_IStaking(stakingAddress).replenishRewardPool(stakeRewardPoolOngoing_ETH);
@@ -346,7 +348,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _token Token address or 0 adress.
    * @return Address corresponds to ETH or Token.
    */
-  function _isEth(address _token) private returns (bool) {
+  function _isEth(address _token) private pure returns (bool) {
     return _token == address(0);
   }
 
