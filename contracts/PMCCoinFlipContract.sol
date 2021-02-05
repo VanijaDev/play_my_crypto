@@ -41,8 +41,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   uint8 private constant PRIZE_PERCENTAGE_ETH = 95;
   uint8 private constant FEE_NUMBER_TOKEN = 4;
   uint8 private constant PRIZE_PERCENTAGE_TOKEN = 96;
-  
-  uint8 private constant PMCT_TOKEN_PERCENTAGE = 1; //  prize percentage as token bonus
 
   address public stakingAddress;  //  TODO: check if present for replenish
 
@@ -248,6 +246,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     require(gamesToCheck > 0, "No games to check");
 
+    address prevReferral;
+    uint256 prevReferralAmount;
+
     uint256 loop = ((_maxLoop > 0) && (_maxLoop < gamesToCheck)) ? _maxLoop : gamesToCheck;
 
     while (loop > 0) {
@@ -256,12 +257,23 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
           prize = prize.add(game.creatorPrize);
-          pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
+          pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100));  //  1%
 
           if (_updateReferralFees) {
             address referral = referralInGame[_token][game.idx][msg.sender];
-            uint256 referralFee = game.creatorPrize.div(100);
-            addFee(FeeType.referral, _token, referralFee, referral);
+            uint256 referralFee = game.creatorPrize.div(100);  //  1%
+
+            if (prevReferral != referral) {
+              if (prevReferralAmount > 0) {
+                addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
+                delete prevReferral;
+                delete prevReferralAmount;
+              }
+              
+              prevReferral = referral;
+            }
+            
+            prevReferralAmount = prevReferralAmount.add(referralFee);
           }
         }
       } else {
@@ -270,19 +282,32 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
           bool timeout = (game.creatorCoinSide != bytes32(uint256(CoinSide.heads)) && game.creatorCoinSide != bytes32(uint256(CoinSide.tails)));
           if (timeout) {
-            pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100).mul(PMCT_TOKEN_PERCENTAGE));
+            pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
           }
 
           if (_updateReferralFees) {
             address referral = referralInGame[_token][game.idx][msg.sender];
-            uint256 referralFee = game.opponentPrize.div(100);
-            addFee(FeeType.referral, _token, referralFee, referral);
+            uint256 referralFee = game.opponentPrize.div(100);  //  1%
+
+           if (prevReferral != referral) {
+              if (prevReferralAmount > 0) {
+                addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
+                delete prevReferral;
+                delete prevReferralAmount;
+              }
+              
+              prevReferral = referral;
+            }
+            
+            prevReferralAmount = prevReferralAmount.add(referralFee);
           }
         }
       }
       gamesParticipatedToCheckPrize[_token][msg.sender].pop();
       loop = loop.sub(1);
     }
+    
+    addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
   }
 
   /**
