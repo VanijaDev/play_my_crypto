@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
+import "./PMCt.sol";
 import "./PMCGovernanceCompliant.sol";
 import "./PMCFeeManager.sol";
 import "./PMCRaffle.sol";
@@ -40,7 +41,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   uint8 private constant FEE_NUMBER_ETH = 5;  //  1. referral; 2. partner (*) - TODO: check when calculating withdraw; 3. raffle; 4. staking (*); 5. dev. 95% - as a prize
   uint8 private constant FEE_NUMBER_TOKEN = 4;  //  1. referral; 2. partner (*) - TODO: check when calculating withdraw; 3. raffle; 4. dev. 96% - as a prize
 
-  address public stakingAddress;  //  TODO: check if present for replenish
+  address pmctAddr;
+  address public stakingAddr;  //  TODO: check if present for replenish
 
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
@@ -74,6 +76,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _pmct PMCt address.
    */
   constructor(address _pmct) PMCGovernanceCompliant(_pmct) {
+    require(_pmct != address(0), "Wrong token");
+
+    pmctAddr = _pmct;
   }
 
 
@@ -176,9 +181,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
       runRaffle(_token);
       if (_isEth(_token)) {
-        if (stakingAddress != address(0)) {
+        if (stakingAddr != address(0)) {
           if (stakeRewardPoolOngoing_ETH > 0) {
-            PMC_IStaking(stakingAddress).replenishRewardPool(stakeRewardPoolOngoing_ETH);
+            PMC_IStaking(stakingAddr).replenishRewardPool(stakeRewardPoolOngoing_ETH);
             delete stakeRewardPoolOngoing_ETH;
           }
         }
@@ -323,7 +328,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  PMCt
     if (pendingPMCt > 0) {
       playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
-      PMCt(pmct).mint(msg.sender, pendingPMCt);
+      PMCt(pmctAddr).mint(msg.sender, pendingPMCt);
     }
 
     //  ETH / token
@@ -331,7 +336,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 transferAmount;
 
     if (_isEth(_token)) {
-      feeNumber = (stakingAddress == address(0)) ? FEE_NUMBER_ETH - 1 : FEE_NUMBER_ETH;
+      feeNumber = (stakingAddr == address(0)) ? FEE_NUMBER_ETH - 1 : FEE_NUMBER_ETH;
 
       if (partner == address(0)) {
         feeNumber = feeNumber - 1;
@@ -340,7 +345,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       transferAmount = pendingPrize.div(100).mul((100 - feeNumber));
       msg.sender.transfer(transferAmount);
     } else {
-      feeNumber = (stakingAddress == address(0)) ? PRIZE_PERCENTAGE_TOKEN - 1 : PRIZE_PERCENTAGE_TOKEN;
+      feeNumber = (stakingAddr == address(0)) ? FEE_NUMBER_TOKEN - 1 : FEE_NUMBER_TOKEN;
 
       if (partner == address(0)) {
         feeNumber = feeNumber - 1;
@@ -365,7 +370,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     }
 
     //  staking
-    if (_isEth(_token) && (stakingAddress != address(0))) {
+    if ((stakingAddr != address(0)) && _isEth(_token)) {
       addFee(FeeType.stake, _token, singleFee, address(0));
       usedFee = usedFee.add(singleFee);
     }
@@ -378,27 +383,26 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   }
   //  PENDING WITHDRAWAL -->
 
+
   /**
-   * @dev Checks if address used corresponds to ETH or token.
-   * @param _token Token address or 0 adress.
-   * @return Address corresponds to ETH or Token.
+   * @dev Updates staking Smart Contract address.
+   * @param _address Staking Smart Contract address.
+   */
+  function updateStakingAddr(address _address) external onlyOwner {
+    stakingAddr = _address;
+  }
+
+  /**
+   * @dev Checks if address corresponds to ETH or token.
+   * @param _token Token address or 0 adsress.
+   * @return Whether address corresponds to ETH or Token.
    */
   function _isEth(address _token) private pure returns (bool) {
     return _token == address(0);
   }
 
   /**
-   * @dev Updates staking Smart Contract address.
-   * @param _address Staking Smart Contract address.
-   */
-  function updateStakingAddress(address _address) external onlyOwner {
-    require(_address != address(0), "Wrong address");
-
-    stakingAddress = _address;
-  }
-
-  /**
-   * @dev Increases bets total & for sender.
+   * @dev Increases player stake total & bets total for sender.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _amount Stake value.
    */
@@ -440,12 +444,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   function gamesFinished(address _token) public view returns (uint256) {
     uint256 startedGames = gamesStarted(_token);
-    if (startedGames == 0) {
-      return 0;
+    if (startedGames > 0) {
+      Game storage game = _lastStartedGame(_token);
+      return (game.running) ? game.idx : startedGames;
     }
     
-    Game storage game = _lastStartedGame(_token);
-    return (game.running) ? game.idx : startedGames;
+    return 0;
   }
 
   /**
@@ -477,41 +481,41 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 opponentPrize) {
       require(_idx < gamesStarted(_token), "Wrong game idx");
 
-      running = games[_token][_idx].running;
-      creatorCoinSide = games[_token][_idx].creatorCoinSide;
-      creator = games[_token][_idx].creator;
-      idx = games[_token][_idx].idx;
-      stake = games[_token][_idx].stake;
-      startTime = games[_token][_idx].startTime;
-      heads = games[_token][_idx].heads;
-      tails = games[_token][_idx].tails;
-      creatorPrize = games[_token][_idx].creatorPrize;
-      opponentPrize = games[_token][_idx].opponentPrize;
+      Game storage game = games[_token][_idx];
+      running = game.running;
+      creatorCoinSide = game.creatorCoinSide;
+      creator = game.creator;
+      idx = game.idx;
+      stake = game.stake;
+      startTime = game.startTime;
+      heads = game.heads;
+      tails = game.tails;
+      creatorPrize = game.creatorPrize;
+      opponentPrize = game.opponentPrize;
   }
   
   /**
-   * @dev Gets opponent info for game.
+   * @dev Gets opponentCoinSide for sender in game.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _idx Game index in games for token.
    * @return opponentCoinSide Coin side for sender.
-   * @return referral Referral address for sender.
    */
 
-  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(CoinSide opponentCoinSide, address referral) {
+  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(CoinSide opponentCoinSide) {
     require(_idx < gamesStarted(_token), "Wrong game idx");
 
     opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
-    referral = referralInGame[_token][_idx][msg.sender];
   }
 
   /**
-   * @dev Gets referral for sender for game.
+   * @dev Gets referral for sender in game.
    * @param _token ERC-20 token address. 0x0 - ETH
    * @param _idx Game index in games for token.
    * @return Referral address for sender.
    */
   function getReferralInGame(address _token, uint256 _idx) external view returns(address) {
     require(_idx < gamesStarted(_token), "Wrong game idx");
+    
     return referralInGame[_token][_idx][msg.sender];
   }
 
