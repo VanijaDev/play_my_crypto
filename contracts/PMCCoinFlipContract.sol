@@ -89,7 +89,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _coinSideHash Hashed coin side.
    * @param _referral Referral address.
    */
-  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
+  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) public payable {
     if (_isEth(_token)) {
       require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
     } else {
@@ -153,8 +153,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _seedHash Hash of the seed string, that was used to generate hashed coin side on game start.
    */
   function playGame(address _token, uint8 _coinSide, bytes32 _seedHash) external onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
-    //  TODO: no fee if no opponents
-
     Game storage game = _lastStartedGame(_token);
 
     require(game.creator == msg.sender, "Not creator");
@@ -165,19 +163,19 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     game.creatorCoinSide = bytes32(uint256(_coinSide));
     (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
-    uint256 opponentsReward;
+    uint256 singleOpponentReward;
     if ((game.heads > 0) && (game.tails > 0)) {
-      opponentsReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.stake.mul(game.tails).div(game.heads) : game.stake.mul(game.heads).div(game.tails);
-      game.creatorPrize = game.stake.add(opponentsReward);
+      singleOpponentReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.stake.mul(game.tails).div(game.heads) : game.stake.mul(game.heads).div(game.tails);
+      game.creatorPrize = game.stake.add(singleOpponentReward);
     } else {
       uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);
       if (opponentsOnly > 0) {
-        opponentsReward = game.stake.div(opponentsOnly);
+        singleOpponentReward = game.stake.div(opponentsOnly);
       }
     }
 
-    if (opponentsReward > 0) {
-      game.opponentPrize = game.stake.add(opponentsReward);
+    if (singleOpponentReward > 0) {
+      game.opponentPrize = game.stake.add(singleOpponentReward);
 
       runRaffle(_token);
       if (_isEth(_token)) {
@@ -213,7 +211,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       uint256 opponentReward = game.stake.div(opponents);
       game.opponentPrize = game.stake.add(opponentReward);
     } else {
-      addToRaffleNoPlayer(_token, game.stake); //  creator only in game
+      startGame(_token, game.stake, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
     }
 
     updateGameMinStakeETHIfNeeded();
@@ -331,6 +329,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     addToRaffle(_token, raffleFee, msg.sender);
 
     //  staking
+    //  TODO: calculate fee number if no staking address
     if (_isEth(_token)) {
       addFee(FeeType.stake, _token, singleFee, address(0));
     }
