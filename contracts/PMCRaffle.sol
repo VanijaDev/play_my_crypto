@@ -44,17 +44,6 @@ abstract contract PMCRaffle is Ownable {
   }
 
   /**
-   * @dev Adds to current raffle with no player.
-   * @param _token Token address.
-   * @param _amount Amount.
-   */
-  function addToRaffleNoPlayer(address _token, uint256 _amount) internal {
-    require(_amount > 0, "Wrong amount");
-
-    raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
-  }
-
-  /**
    * @dev Gets raffle participants.
    * @param _token Token address.
    * @return Participants list.

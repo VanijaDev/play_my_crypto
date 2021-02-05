@@ -37,10 +37,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 opponentPrize;
   }
 
-  uint8 private constant FEE_NUMBER_ETH = 5;  //  number of fees for ETH 
-  uint8 private constant PRIZE_PERCENTAGE_ETH = 95;
-  uint8 private constant FEE_NUMBER_TOKEN = 4;
-  uint8 private constant PRIZE_PERCENTAGE_TOKEN = 96;
+  uint8 private constant FEE_NUMBER_ETH = 5;  //  1. referral; 2. partner (*) - TODO: check when calculating withdraw; 3. raffle; 4. staking (*); 5. dev. 95% - as a prize
+  uint8 private constant FEE_NUMBER_TOKEN = 4;  //  1. referral; 2. partner (*) - TODO: check when calculating withdraw; 3. raffle; 4. dev. 96% - as a prize
 
   address public stakingAddress;  //  TODO: check if present for replenish
 
@@ -156,6 +154,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     require(game.creator == msg.sender, "Not creator");
     require(game.startTime.add(gameMaxDuration) >= block.timestamp, "Time out");
     require(keccak256(abi.encodePacked(uint256(_coinSide), _seedHash)) == game.creatorCoinSide, "Wrong hash value");
+    require(game.heads.add(game.tails) > 0, "No opponents");
 
     delete game.running;
     game.creatorCoinSide = bytes32(uint256(_coinSide));
@@ -184,8 +183,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
           }
         }
       }
-    } else {
-      addToRaffleNoPlayer(_token, game.stake); //  creator only in game
     }
 
     updateGameMinStakeETHIfNeeded();
@@ -322,8 +319,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 pendingPrize;
     uint256 pendingPMCt;
     (pendingPrize, pendingPMCt) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
-    
-    playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(pendingPrize);
 
     //  PMCt
     if (pendingPMCt > 0) {
@@ -332,41 +327,54 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     }
 
     //  ETH / token
+    uint8 feeNumber;  //  5 - ETH, 4 - Token
     uint256 transferAmount;
+
     if (_isEth(_token)) {
-      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_ETH).div(100);
+      feeNumber = (stakingAddress == address(0)) ? FEE_NUMBER_ETH - 1 : FEE_NUMBER_ETH;
+
+      if (partner == address(0)) {
+        feeNumber = feeNumber - 1;
+      }
+
+      transferAmount = pendingPrize.div(100).mul((100 - feeNumber));
       msg.sender.transfer(transferAmount);
     } else {
-      transferAmount = pendingPrize.mul(PRIZE_PERCENTAGE_TOKEN).div(100);
+      feeNumber = (stakingAddress == address(0)) ? PRIZE_PERCENTAGE_TOKEN - 1 : PRIZE_PERCENTAGE_TOKEN;
+
+      if (partner == address(0)) {
+        feeNumber = feeNumber - 1;
+      }
+
+      transferAmount = pendingPrize.div(100).mul((100 - feeNumber));
       ERC20(_token).transfer(msg.sender, transferAmount);
     }
     
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
-    uint256 singleFee = (_isEth(_token)) ? feeTotal.div(FEE_NUMBER_ETH) : feeTotal.div(FEE_NUMBER_TOKEN);
-    uint256 raffleFee = singleFee;
+    uint256 singleFee = feeTotal.div(feeNumber);
+    uint256 usedFee = singleFee;
+
+    //  raffle
+    addToRaffle(_token, singleFee, msg.sender);
 
     //  partner fee
     if (partner != address(0)) {
       addFee(FeeType.partner, _token, singleFee, partner);
-    } else {
-      raffleFee = raffleFee.add(singleFee);
+      usedFee = usedFee.add(singleFee);
     }
 
-    //  raffle
-    addToRaffle(_token, raffleFee, msg.sender);
-
     //  staking
-    //  TODO: calculate fee number if no staking address
-    if (_isEth(_token)) {
+    if (_isEth(_token) && (stakingAddress != address(0))) {
       addFee(FeeType.stake, _token, singleFee, address(0));
+      usedFee = usedFee.add(singleFee);
     }
     
     //  dev fee
-    uint256 usedFee = (_isEth(_token)) ? singleFee.mul(uint256(FEE_NUMBER_ETH).sub(1)) : singleFee.mul(uint256(FEE_NUMBER_TOKEN).sub(1));
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
-
-    emit PrizeWithdrawn(_token, msg.sender, pendingPrize, pendingPMCt);
+    
+    playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(transferAmount);
+    emit PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMCt);
   }
   //  PENDING WITHDRAWAL -->
 
