@@ -257,7 +257,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
           prize = prize.add(game.creatorPrize);
-          pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100));  //  1%
+
+          if(_isEth(_token)) {
+            pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100));  //  1%
+          }
 
           if (_updateReferralFees) {
             address referral = referralInGame[_token][game.idx][msg.sender];
@@ -281,7 +284,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
           prize = prize.add(game.opponentPrize);
 
           bool timeout = (game.creatorCoinSide != bytes32(uint256(CoinSide.heads)) && game.creatorCoinSide != bytes32(uint256(CoinSide.tails)));
-          if (timeout) {
+          if (timeout && _isEth(_token)) {
             pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
           }
 
@@ -325,7 +328,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  PMCt
     if (pendingPMCt > 0) {
       playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
-    //   PMCt(pmct).mint(msg.sender, pendingPMCt);  TODO
+      PMCt(pmct).mint(msg.sender, pendingPMCt);
     }
 
     //  ETH / token
