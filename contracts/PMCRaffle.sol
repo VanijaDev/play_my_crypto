@@ -88,11 +88,12 @@ abstract contract PMCRaffle is Ownable {
   function runRaffle(address _token) internal {
     if (raffleJackpot[_token] > 0 && raffleParticipants[_token].length > 0) {
       uint256 winnerIdx = _rand(_token);
-      raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]] = raffleJackpotWithdrawPending[_token][raffleParticipants[_token][winnerIdx]].add(raffleJackpot[_token]);
+      address winnerAddr = raffleParticipants[_token][winnerIdx];
+      raffleJackpotWithdrawPending[_token][winnerAddr] = raffleJackpotWithdrawPending[_token][winnerAddr].add(raffleJackpot[_token]);
       raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
-      raffleResults[_token].push(RaffleResult(raffleParticipants[_token][winnerIdx], raffleJackpot[_token]));
+      raffleResults[_token].push(RaffleResult(winnerAddr, raffleJackpot[_token]));
 
-      emit CF_RafflePlayed(_token, raffleParticipants[_token][winnerIdx], raffleJackpot[_token]);
+      emit CF_RafflePlayed(_token, winnerAddr, raffleJackpot[_token]);
 
       delete raffleJackpot[_token];
       delete raffleParticipants[_token];
