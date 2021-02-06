@@ -44,7 +44,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   address public pmctAddr;
   address public stakingAddr;
 
-  mapping(address => uint256) public public amountToAddToNextStake;  // token => amount, 0x0 - ETH. Previous game was timeout, no opponents joined, finished by not creator. Amount will be added to next stake for game.
+  mapping(address => uint256) public amountToAddToNextStake;  // token => amount, 0x0 - ETH. Previous game was timeout, no opponents joined, finished by not creator. Amount will be added to next stake for game.
 
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
@@ -192,7 +192,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     updateGameMinStakeETHIfNeeded();
     updateGameMaxDurationIfNeeded();
 
-    emit GameFinished(_token, games.idx, false);
+    emit GameFinished(_token, game.idx, false);
   }
 
   /**
@@ -220,7 +220,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     updateGameMinStakeETHIfNeeded();
     updateGameMaxDurationIfNeeded();
 
-    emit GameFinished(_token, games.idx, true);
+    emit GameFinished(_token, game.idx, true);
   }
 
   //  GAMEPLAY -->
