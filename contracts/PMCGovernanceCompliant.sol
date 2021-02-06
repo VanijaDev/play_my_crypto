@@ -28,10 +28,10 @@ abstract contract PMCGovernanceCompliant is Ownable {
     _;
   }
 
-  constructor(address _address) {
+  constructor(address _pmct) {
     gameMinStakeETH = 1e15; //  0.01 ETH
     gameMaxDuration = 24 hours;
-    isTokenSupported[_address] = true;
+    isTokenSupported[_pmct] = true;
   }
 
   /**
