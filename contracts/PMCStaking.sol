@@ -2,15 +2,17 @@
 pragma solidity ^0.7.6;
 
 import "./PMCt.sol";
+import "./PMC_IStaking.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @notice ETH only
  */
-contract PMCStaking {
+contract PMCStaking is PMC_IStaking {
   using SafeMath for uint256;
 
   address public pmct;
+  address public gameplay;
   
   struct StateForIncome {
     uint256 income;
@@ -29,18 +31,22 @@ contract PMCStaking {
    * @dev Constructor.
    * @param _pmct PMCt token address.
    */
-  constructor(address _pmct) {
-    require(_pmct != address(0), "Wrong pmct");
+  constructor(address _pmct, address _gameplay) {
+    require(_pmct != address(0), "Wrong _pmct");
+    require(_gameplay != address(0), "Wrong _gameplay");
+    
     pmct = _pmct;
+    gameplay = _gameplay;
   }
 
   /**
    * @dev Adds ETH to reward pool.
-   * @param _amount ETH amount.
    */
-  function replenishRewardPool(uint256 _amount) internal {
-    require(_amount > 0, "Wrong replenish amnt");
-    incomes.push(StateForIncome(_amount, stakesTotal));
+  function replenishRewardPool() override external payable {
+    require(msg.sender == gameplay, "Wrong sender");
+    require(msg.value > 0, "Wrong replenish amnt");
+    
+    incomes.push(StateForIncome(msg.value, stakesTotal));
   }
 
   /**
