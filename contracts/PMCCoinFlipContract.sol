@@ -257,7 +257,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 loop = ((_maxLoop > 0) && (_maxLoop < gamesToCheck)) ? _maxLoop : gamesToCheck;
 
     while (loop > 0) {
-      Game storage game = games[_token][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
+      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
+      Game storage game = games[_token][gameToCheckIdx];
 
       if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
