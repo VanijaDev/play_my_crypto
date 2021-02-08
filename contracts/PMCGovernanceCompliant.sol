@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 abstract contract PMCGovernanceCompliant is Ownable {
   using SafeMath for uint256;
   
-  address governance;
+  address public governance;
 
   uint256 public gameMinStakeETH;
   uint256 public gameMinStakeETHToUpdate;
@@ -19,7 +19,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   uint256 public gameMaxDuration;
   uint256 public gameMaxDurationToUpdate;
   
-  address[] private tokensSupportedToStake;
+  // address[] private tokensSupportedToStake;
   mapping(address => bool) public isTokenSupported;
   
 
@@ -28,14 +28,13 @@ abstract contract PMCGovernanceCompliant is Ownable {
     _;
   }
 
-  constructor(address _pmct) {
+  constructor() {
     gameMinStakeETH = 1e15; //  0.01 ETH
     gameMaxDuration = 24 hours;
-    isTokenSupported[_pmct] = true;
   }
 
   /**
-   * @dev Updates Governance Contract address.
+   * @dev Updates Governance Contract address. Can be 0x0.
    * @param _address Governance Contract address to be used.
    */
   function updateGovernanceContract(address _address) external onlyOwner {
@@ -55,7 +54,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
    */
   function updateGameMinStakeETHLater(uint256 _gameMinStakeETH, bool _later) internal {
     if (_gameMinStakeETH != gameMinStakeETH) {
-      _later ? gameMinStakeETHToUpdate = _gameMinStakeETH : gameMinStakeETH = gameMinStakeETH;
+      _later ? gameMinStakeETHToUpdate = _gameMinStakeETH : gameMinStakeETH = _gameMinStakeETH;
     }
   }
 
@@ -96,21 +95,21 @@ abstract contract PMCGovernanceCompliant is Ownable {
     }
   }
   
-  /**
-   * @dev Returns tokens, that can be used for stake.
-   * @return Token address list.
-   */
-  function gettokensSupportedToStake() external view returns(address[] memory) {
-    return tokensSupportedToStake;
-  }
+  // /**
+  //  * @dev Returns tokens, that can be used for stake.
+  //  * @return Token address list.
+  //  */
+  // function getTokensSupportedToStake() external view returns(address[] memory) {
+  //   return tokensSupportedToStake;
+  // }
   
   /**
-   * @dev Governance calls when add token proposal accepted.
+   * @dev Governance calls it when add token, that can be used for predictions proposal accepted.
    * @param _token Token address to be added.
    */
-  function updateGameAddToken(address _token) external onlyGovernance(msg.sender) {
+  function updateGameAddTokenSupported(address _token) external onlyGovernance(msg.sender) {
     if (_token != address(0) && !isTokenSupported[_token]) {
-      tokensSupportedToStake.push(_token);
+      // tokensSupportedToStake.push(_token);
       isTokenSupported[_token] = true;
     }
   }

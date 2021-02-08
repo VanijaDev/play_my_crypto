@@ -316,7 +316,7 @@ contract PMCGovernance is Ownable {
     }
 
     for (uint8 i = 0; i < games.length; i++) {
-      PMCGovernanceCompliant(games[i]).updateGameAddToken(_token);
+      PMCGovernanceCompliant(games[i]).updateGameAddTokenSupported(_token);
     }
   }
   //  ADD, VOTE ADD TOKEN -->

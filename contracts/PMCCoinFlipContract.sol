@@ -76,7 +76,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @dev Constructor.
    * @param _pmct PMCt address.
    */
-  constructor(address _pmct) PMCGovernanceCompliant(_pmct) {
+  constructor(address _pmct) PMCGovernanceCompliant() {
     require(_pmct != address(0), "Wrong token");
 
     pmctAddr = _pmct;
@@ -184,9 +184,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     runRaffle(_token);
 
     if ((_isEth(_token)) && (stakingAddr != address(0)) && (stakeRewardPoolOngoing_ETH > 0)) {
-      uint256 stakeETH = stakeRewardPoolOngoing_ETH;
+      PMC_IStaking(stakingAddr).replenishRewardPool{value: stakeRewardPoolOngoing_ETH}();
       delete stakeRewardPoolOngoing_ETH;
-      PMC_IStaking(stakingAddr).replenishRewardPool{value: stakeETH}();
     }
 
     updateGameMinStakeETHIfNeeded();
