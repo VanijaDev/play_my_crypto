@@ -312,6 +312,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
           }
         }
       }
+
       gamesParticipatedToCheckPrize[_token][msg.sender].pop();
       loop = loop.sub(1);
     }
@@ -505,7 +506,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @return opponentCoinSide Coin side for sender.
    */
 
-  function gameInfoForOpponent(address _token, uint256 _idx) external view returns(CoinSide opponentCoinSide) {
+  function opponentCoinSideForOpponent(address _token, uint256 _idx) external view returns(CoinSide opponentCoinSide) {
     require(_idx < gamesStarted(_token), "Wrong game idx");
 
     opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
