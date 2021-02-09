@@ -26,8 +26,8 @@ abstract contract PMCRaffle is Ownable {
   mapping(address => RaffleResult[]) public raffleResults;
 
 
-  event CF_RafflePlayed(address token, address indexed winner, uint256 indexed prize);
-  event CF_RaffleJackpotWithdrawn(address token, address indexed winner);
+  event CF_RafflePlayed(address indexed token, address indexed winner, uint256 indexed prize);
+  event CF_RaffleJackpotWithdrawn(address indexed token, address indexed winner);
 
   /**
    * @dev Adds to current raffle.

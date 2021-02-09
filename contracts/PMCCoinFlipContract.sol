@@ -67,10 +67,10 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     _;
   }
 
-  event GameStarted(address token, uint256 id);
-  event GameJoined(address token, uint256 id, address opponent);
-  event GameFinished(address token, uint256 id, bool timeout);
-  event PrizeWithdrawn(address token, address player, uint256 prize, uint256 pmct);
+  event GameStarted(address indexed token, uint256 indexed id);
+  event GameJoined(address indexed token, uint256 indexed id, address indexed opponent);
+  event GameFinished(address indexed token, uint256 indexed id, bool indexed timeout);
+  event PrizeWithdrawn(address indexed token, address indexed player, uint256 indexed prize, uint256 indexed pmct);
 
   /**
    * @dev Constructor.
