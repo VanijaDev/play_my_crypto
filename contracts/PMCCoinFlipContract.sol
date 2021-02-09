@@ -365,7 +365,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 usedFee = singleFee;
 
     //  raffle
-    addToRaffle(_token, singleFee, msg.sender);
+    addToRaffle(_token, singleFee);
 
     //  partner fee
     if (partner != address(0)) {

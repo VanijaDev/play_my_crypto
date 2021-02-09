@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
- * @dev Run when game is played by creator. Acumulates balances & participants of not played games.
+ * @dev Run when game is played by creator.
  */
 abstract contract PMCRaffle is Ownable {
   using SafeMath for uint256;
@@ -33,14 +33,12 @@ abstract contract PMCRaffle is Ownable {
    * @dev Adds to current raffle.
    * @param _token Token address.
    * @param _amount Amount.
-   * @param _player Player address.
    */
-  function addToRaffle(address _token, uint256 _amount, address _player) internal {
+  function addToRaffle(address _token, uint256 _amount) internal {
     require(_amount > 0, "Wrong amount");
-    require(_player != address(0), "Wrong player");
 
     raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
-    raffleParticipants[_token].push(_player);
+    raffleParticipants[_token].push(msg.sender);
   }
 
   /**
