@@ -19,7 +19,6 @@ abstract contract PMCGovernanceCompliant is Ownable {
   uint256 public gameMaxDuration;
   uint256 public gameMaxDurationToUpdate;
   
-  // address[] private tokensSupportedToStake;
   mapping(address => bool) public isTokenSupported;
   
 
@@ -94,14 +93,6 @@ abstract contract PMCGovernanceCompliant is Ownable {
       delete gameMaxDurationToUpdate;
     }
   }
-  
-  // /**
-  //  * @dev Returns tokens, that can be used for stake.
-  //  * @return Token address list.
-  //  */
-  // function getTokensSupportedToStake() external view returns(address[] memory) {
-  //   return tokensSupportedToStake;
-  // }
   
   /**
    * @dev Governance calls it when add token, that can be used for predictions proposal accepted.
