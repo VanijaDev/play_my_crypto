@@ -2,10 +2,10 @@
 pragma solidity ^0.7.6;
 
 import "./PMCt.sol";
-import "./PMCGovernanceCompliant.sol";
-import "./PMCFeeManager.sol";
 import "./PMCRaffle.sol";
 import "./PMC_IStaking.sol";
+import "./PMCFeeManager.sol";
+import "./PMCGovernanceCompliant.sol";
 
 /**
   * @notice Deplyment flow:
