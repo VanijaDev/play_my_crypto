@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @notice Min stake (ETH only), game duration, add token to stake.
+ * @notice Min stake (ETH only), game duration, add token to make prediction and stake it.
  * @dev Smart Contract used to handle Governance.
  */
 abstract contract PMCGovernanceCompliant is Ownable {
