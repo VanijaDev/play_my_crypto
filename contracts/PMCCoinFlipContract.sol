@@ -183,9 +183,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     game.opponentPrize = game.stake.add(singleOpponentReward);
     runRaffle(_token);
 
-    if ((_isEth(_token)) && (stakingAddr != address(0)) && (stakeRewardPoolOngoing_ETH > 0)) {
-      PMC_IStaking(stakingAddr).replenishRewardPool{value: stakeRewardPoolOngoing_ETH}();
-      delete stakeRewardPoolOngoing_ETH;
+    if ((_isEth(_token)) && (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH > 0)) {
+      PMC_IStaking(stakingAddr).replenishRewardPool{value: stakeRewardPoolPending_ETH}();
+      delete stakeRewardPoolPending_ETH;
     }
 
     updateGameMinStakeETHIfNeeded();

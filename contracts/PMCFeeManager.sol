@@ -36,7 +36,7 @@ contract PMCFeeManager is Ownable {
   mapping(address => uint256) public devFeeWithdrawn;
 
   //  staking (ETH only)
-  uint256 public stakeRewardPoolOngoing_ETH;
+  uint256 public stakeRewardPoolPending_ETH;
   
   
   /**
@@ -68,7 +68,7 @@ contract PMCFeeManager is Ownable {
     } else if (_type == FeeType.dev) {
       devFeePending[_token] = devFeePending[_token].add(_amount);
     } else {
-      stakeRewardPoolOngoing_ETH = stakeRewardPoolOngoing_ETH.add(_amount);
+      stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH.add(_amount);
     }
   }
 
@@ -115,9 +115,7 @@ contract PMCFeeManager is Ownable {
    * @dev Withdraws dev fee.
    * @param _token Token address. if 0x0 -> ETH
    */
-  function withdrawDevFee(address _token) external {
-    require(msg.sender == owner(), "Not dev");
-
+  function withdrawDevFee(address _token) external onlyOwner {
     uint256 feeTmp = devFeePending[_token];
     require(feeTmp > 0, "no fee");
 
