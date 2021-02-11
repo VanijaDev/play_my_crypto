@@ -19,9 +19,8 @@ contract PMCStaking is PMC_IStaking {
     uint256 tokensStaked;
   }
 
-  bool private isStakingStarted;
   uint256 public tokensStaked;
-  uint256 public incomeIdxToStartIfNoStakes;
+  uint256 public incomeIdxToStartCalculatingRewardIfNoStakes;
   StateForIncome[] private incomes;
 
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
@@ -60,9 +59,8 @@ contract PMCStaking is PMC_IStaking {
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _tokens);
     
     if (stakeOf[msg.sender] == 0) {
-      if (!isStakingStarted) {
-        isStakingStarted = true;
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartIfNoStakes;
+      if (tokensStaked == 0) {
+        incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes;
       } else {
         incomeIdxToStartCalculatingRewardOf[msg.sender] = incomes.length;
       }
@@ -85,18 +83,19 @@ contract PMCStaking is PMC_IStaking {
    * @dev Unstakes PMCt tokens.
    */
   function unstake() external {
-    require(stakeOf[msg.sender] > 0, "No stake");
+    uint256 tokens = stakeOf[msg.sender];
+    require(tokens > 0, "No stake");
+
     withdrawReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
 
     delete stakeOf[msg.sender];
-    tokensStaked = tokensStaked.sub(_tokens);
+    tokensStaked = tokensStaked.sub(tokens);
 
     if (tokensStaked == 0) {
-      delete isStakingStarted;
-      incomeIdxToStartIfNoStakes = incomes.length;
+      incomeIdxToStartCalculatingRewardIfNoStakes = incomes.length;
     }
     
-    ERC20(pmctAddr).transfer(msg.sender, _tokens);
+    ERC20(pmctAddr).transfer(msg.sender, tokens);
   }
 
   /**
@@ -108,17 +107,15 @@ contract PMCStaking is PMC_IStaking {
     uint256 _incomeIdxToStartCalculatingRewardOf;
     (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(_maxLoop);
 
-    if (reward == 0) {
-      return;
-    }
+    if (reward > 0) {
+      incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
+      if (pendingRewardOf[msg.sender] > 0) {
+        reward = reward.add(pendingRewardOf[msg.sender]);
+        delete pendingRewardOf[msg.sender];
+      }
 
-    incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
-    if (pendingRewardOf[msg.sender] > 0) {
-      reward = reward.add(pendingRewardOf[msg.sender]);
-      delete pendingRewardOf[msg.sender];
+      msg.sender.transfer(reward);
     }
-
-    msg.sender.transfer(reward);
   }
 
   /**
@@ -126,29 +123,24 @@ contract PMCStaking is PMC_IStaking {
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
-    if (stakeOf[msg.sender] == 0) {
-      return(0, 0);
+    if (stakeOf[msg.sender] > 0) {
+      uint256 incomesLength = incomes.length;
+      if (incomesLength > 0) {
+        uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
+        if (startIdx < incomesLength) {
+          
+          uint256 incomesToCalculate = incomesLength.sub(startIdx);
+          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
+      
+          for (uint256 i = startIdx; i <= stopIdx; i++) {
+            StateForIncome storage incomeTmp = incomes[i];
+            uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.tokensStaked) : incomeTmp.income;
+            reward = reward.add(incomeReward);
+          }
+      
+          _incomeIdxToStartCalculatingRewardOf = stopIdx.add(1);
+        }
+      }
     }
-
-    uint256 incomesLength = incomes.length;
-    if (incomesLength == 0) {
-      return(0, 0);
-    }
-
-    uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
-    if (startIdx >= incomesLength) {
-      return(0, startIdx);
-    }
-
-    uint256 incomesToCalculate = incomesLength.sub(startIdx);
-    uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
-
-    for (uint256 i = startIdx; i <= stopIdx; i++) {
-      StateForIncome storage incomeTmp = incomes[i];
-      uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.tokensStaked) : incomeTmp.income;
-      reward = reward.add(incomeReward);
-    }
-
-    _incomeIdxToStartCalculatingRewardOf = stopIdx.add(1);
   }
 }
