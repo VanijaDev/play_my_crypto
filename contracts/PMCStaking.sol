@@ -68,10 +68,12 @@ contract PMCStaking is PMC_IStaking {
     } else {
       uint256 reward;
       uint256 _incomeIdxToStartCalculatingRewardOf;
-      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
+      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncome(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
       
-      pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender].add(reward);
-      incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
+      if (reward > 0) {
+        pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender].add(reward);
+        incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
+      }
     }
 
     stakeOf[msg.sender] = stakeOf[msg.sender].add(_tokens);
@@ -106,7 +108,11 @@ contract PMCStaking is PMC_IStaking {
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
     uint256 _incomeIdxToStartCalculatingRewardOf;
-    (reward, _incomeIdxToStartCalculatingRewardOf) = calculateReward(_maxLoop);
+    (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncome(_maxLoop);
+
+    if (reward == 0) {
+      return;
+    }
 
     incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
     if (pendingRewardOf[msg.sender] > 0) {
@@ -121,21 +127,27 @@ contract PMCStaking is PMC_IStaking {
    * @dev Calculates staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
-  function calculateReward(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
-    require(stakeOf[msg.sender] > 0, "No stake");
+  function calculateRewardAndStartIncome(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
+    if (stakeOf[msg.sender] == 0) {
+      return(0, 0);
+    }
 
     uint256 incomesLength = incomes.length;
-    require(incomesLength > 0, "No incomes");
+    if (incomesLength == 0) {
+      return(0, 0);
+    }
 
     uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
-    require(startIdx < incomesLength, "Nothing to calculate");
+    if (startIdx >= incomesLength) {
+      return(0, startIdx);
+    }
 
     uint256 incomesToCalculate = incomesLength.sub(startIdx);
     uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
 
     for (uint256 i = startIdx; i <= stopIdx; i++) {
       StateForIncome storage incomeTmp = incomes[i];
-      uint256 incomeReward = incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.stakesTotal);
+      uint256 incomeReward = (incomeTmp.stakesTotal > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.stakesTotal) : incomeTmp.income;
       reward = reward.add(incomeReward);
     }
 
