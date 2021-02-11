@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /**
  * @notice Fee implementation:
  * partner, referral, dev - implemented here
- * raffle - inherited Smart Contract
+ * raffle - inherited Smart Contract (not here)
  * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
@@ -25,18 +25,19 @@ contract PMCFeeManager is Ownable {
   address partner;
   mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH
   mapping(address => mapping(address => uint256)) public partnerFeeWithdrawn;
+  mapping(address => uint256) public partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH
 
   //  referral
   mapping(address => mapping(address => uint256)) public referralFeePending;
   mapping(address => mapping(address => uint256)) public referralFeeWithdrawn;
-  mapping(address => uint256) public totalWithdrawnReferralFees; //  (token => amount), token 0x0 - ETH
+  mapping(address => uint256) public referralFeeWithdrawnTotal;
 
   //  dev
   mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH
   mapping(address => uint256) public devFeeWithdrawn;
+  mapping(address => uint256) public devFeeWithdrawnTotal;
 
-  //  staking (ETH only)
-  uint256 public stakeRewardPoolPending_ETH;
+  uint256 public stakeRewardPoolPending_ETH;  //  staking (ETH only)
   
   
   /**
@@ -51,12 +52,11 @@ contract PMCFeeManager is Ownable {
   /**
    * @dev Adds fee.
    * @param _type Fee type.
-   * @param _token Token address. if 0x0 -> ETH
+   * @param _token Token address. 0x0 - ETH
    * @param _amount Fee amount.
    * @param _referralAddress Referral address.
    */
   function addFee(FeeType _type, address _token, uint256 _amount, address _referralAddress) internal {
-    require(_type <=  FeeType.stake, "No amount");
     require(_amount > 0, "No amount");
 
     if (_type == FeeType.partner) {
@@ -67,14 +67,16 @@ contract PMCFeeManager is Ownable {
       referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
     } else if (_type == FeeType.dev) {
       devFeePending[_token] = devFeePending[_token].add(_amount);
-    } else {
+    } else if (_type == FeeType.stake) {
       stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH.add(_amount);
+    } else {
+      revert("Wrong fee type");
     }
   }
 
   /**
    * @dev Withdraws partner fee.
-   * @param _token Token address. if 0x0 -> ETH
+   * @param _token Token address. if 0x0 - ETH
    */
   function withdrawPartnerFee(address _token) external {
     uint256 feeTmp = partnerFeePending[_token][msg.sender];
@@ -82,6 +84,7 @@ contract PMCFeeManager is Ownable {
 
     delete partnerFeePending[_token][msg.sender];
     partnerFeeWithdrawn[_token][msg.sender] = partnerFeeWithdrawn[_token][msg.sender].add(feeTmp);
+    partnerFeeWithdrawnTotal[_token] = partnerFeeWithdrawnTotal[_token].add(feeTmp);
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
@@ -93,7 +96,7 @@ contract PMCFeeManager is Ownable {
   
   /**
    * @dev Withdraws referral fee.
-   * @param _token Token address. if 0x0 -> ETH
+   * @param _token Token address. if 0x0 - ETH
    */
   function withdrawReferralFee(address _token) external {
     uint256 feeTmp = referralFeePending[_token][msg.sender];
@@ -101,7 +104,7 @@ contract PMCFeeManager is Ownable {
 
     delete referralFeePending[_token][msg.sender];
     referralFeeWithdrawn[_token][msg.sender] = referralFeeWithdrawn[_token][msg.sender].add(feeTmp);
-    totalWithdrawnReferralFees[_token] = totalWithdrawnReferralFees[_token].add(feeTmp);
+    referralFeeWithdrawnTotal[_token] = referralFeeWithdrawnTotal[_token].add(feeTmp);
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
@@ -113,7 +116,7 @@ contract PMCFeeManager is Ownable {
   
   /**
    * @dev Withdraws dev fee.
-   * @param _token Token address. if 0x0 -> ETH
+   * @param _token Token address. if 0x0 - ETH
    */
   function withdrawDevFee(address _token) external onlyOwner {
     uint256 feeTmp = devFeePending[_token];
@@ -121,6 +124,7 @@ contract PMCFeeManager is Ownable {
 
     delete devFeePending[_token];
     devFeeWithdrawn[_token] = devFeeWithdrawn[_token].add(feeTmp);
+    devFeeWithdrawnTotal[_token] = devFeeWithdrawnTotal[_token].add(feeTmp);
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
