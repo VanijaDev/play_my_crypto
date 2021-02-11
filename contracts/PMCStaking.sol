@@ -21,6 +21,7 @@ contract PMCStaking is PMC_IStaking {
 
   bool private stakesStarted;
   uint256 public stakesTotal;
+  uint256 public stakeToStartIfNoStakes;
   StateForIncome[] private incomes;
 
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
@@ -60,7 +61,7 @@ contract PMCStaking is PMC_IStaking {
     if (stakeOf[msg.sender] == 0) {
       if (!stakesStarted) {
         stakesStarted = true;
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = 0;
+        incomeIdxToStartCalculatingRewardOf[msg.sender] = stakeToStartIfNoStakes;
       } else {
         incomeIdxToStartCalculatingRewardOf[msg.sender] = incomes.length;
       }
@@ -86,7 +87,14 @@ contract PMCStaking is PMC_IStaking {
     withdrawReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
 
     stakeOf[msg.sender] = stakeOf[msg.sender].sub(_tokens);
-    stakesTotal = stakesTotal.sub(_tokens);
+    if (stakeOf[msg.sender] == 0) {
+      stakesTotal = stakesTotal.sub(_tokens);
+    }
+
+    if (stakesTotal == 0) {
+      delete stakesStarted;
+      stakeToStartIfNoStakes = incomes.length;
+    }
     
     ERC20(pmctAddr).transfer(msg.sender, _tokens);
   }
