@@ -11,8 +11,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract PMCStaking is PMC_IStaking {
   using SafeMath for uint256;
 
-  address public pmct;
-  address public gameplay;
+  address public pmctAddr;
+  address public gameplayAddr;
   
   struct StateForIncome {
     uint256 income;
@@ -35,15 +35,15 @@ contract PMCStaking is PMC_IStaking {
     require(_pmct != address(0), "Wrong _pmct");
     require(_gameplay != address(0), "Wrong _gameplay");
     
-    pmct = _pmct;
-    gameplay = _gameplay;
+    pmctAddr = _pmct;
+    gameplayAddr = _gameplay;
   }
 
   /**
    * @dev Adds ETH to reward pool.
    */
   function replenishRewardPool() override external payable {
-    require(msg.sender == gameplay, "Wrong sender");
+    require(msg.sender == gameplayAddr, "Wrong sender");
     require(msg.value > 0, "Wrong replenish amnt");
     
     incomes.push(StateForIncome(msg.value, stakesTotal));
@@ -55,7 +55,7 @@ contract PMCStaking is PMC_IStaking {
    */
   function stake(uint256 _tokens) external {
     require(_tokens > 0, "0 tokens");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _tokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _tokens);
     
     if (stakeOf[msg.sender] == 0) {
       if (!stakesStarted) {
@@ -67,7 +67,7 @@ contract PMCStaking is PMC_IStaking {
     } else {
       uint256 reward;
       uint256 _incomeIdxToStartCalculatingRewardOf;
-      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateReward(0);
+      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
       
       pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender].add(reward);
       incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
@@ -82,14 +82,13 @@ contract PMCStaking is PMC_IStaking {
    * @param _tokens Token amount.
    */
   function unstake(uint256 _tokens) external {
-    require(_tokens > 0, "Wrong tokens");
-    require(_tokens <= stakeOf[msg.sender], "Not enough tokens");
-    withdrawReward(0);
+    require((_tokens > 0) && (_tokens <= stakeOf[msg.sender]), "Wrong tokens");
+    withdrawReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
 
     stakeOf[msg.sender] = stakeOf[msg.sender].sub(_tokens);
     stakesTotal = stakesTotal.sub(_tokens);
     
-    ERC20(pmct).transfer(msg.sender, _tokens);
+    ERC20(pmctAddr).transfer(msg.sender, _tokens);
   }
 
   /**
@@ -127,7 +126,7 @@ contract PMCStaking is PMC_IStaking {
     uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
 
     for (uint256 i = startIdx; i <= stopIdx; i++) {
-      StateForIncome memory incomeTmp = incomes[i];
+      StateForIncome storage incomeTmp = incomes[i];
       uint256 incomeReward = incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.stakesTotal);
       reward = reward.add(incomeReward);
     }

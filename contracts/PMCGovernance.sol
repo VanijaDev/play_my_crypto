@@ -31,7 +31,7 @@ contract PMCGovernance is Ownable {
   uint256 constant private MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL = 10;   //  amount of tokens for the proposal to be accepted
   uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 2; // TODO for Prod: 1000;   //  amount of voters for the proposal to be accepted
 
-  address pmct;
+  address pmctAddr;
   address[] games;  //  game Smart Contracts to be governed
 
     //  minStake
@@ -67,7 +67,7 @@ contract PMCGovernance is Ownable {
    */
   constructor(address _pmct, address _game) {
     require(_pmct != address(0), "Wrong _pmct");
-    pmct = _pmct;
+    pmctAddr = _pmct;
 
     require(_game != address(0), "Wrong _game");
     games.push(_game);
@@ -121,7 +121,7 @@ contract PMCGovernance is Ownable {
     require(proposalMinStakeValueParticipating[msg.sender] == 0, "Already voted");
     require(_minStake > 0, "Wrong minStake");
     require(proposalsMinStake[_minStake].votersTotal == 0, "Already exists");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
     
     if (proposalsMinStake[_minStake].startedAt == 0) {
       proposalsMinStakeValues.push(_minStake);
@@ -149,7 +149,7 @@ contract PMCGovernance is Ownable {
   function voteProposalMinStake(uint256 _minStake, uint256 _pmctTokens) public {
     require(proposalMinStakeValueParticipating[msg.sender] == 0 || proposalMinStakeValueParticipating[msg.sender] == _minStake, "Already voted");
     require(proposalsMinStake[_minStake].votersTotal > 0, "No proposal");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
     require((proposalsMinStake[_minStake].tokensOfVoter[msg.sender] == 0 && proposalsMinStake[_minStake].voterVotedAt[msg.sender] == 0 && proposalMinStakeValueParticipating[msg.sender] == 0) || (proposalsMinStake[_minStake].voterVotedAt[msg.sender] > proposalsMinStake[_minStake].startedAt), "Quit first");
   
@@ -176,7 +176,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmct).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmctAddr).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
     if (proposalsMinStake[_minStake].tokensTotal < tokensToAccept) {
       return;
     }
@@ -210,7 +210,7 @@ contract PMCGovernance is Ownable {
     require(proposalGameMaxDurationValueParticipating[msg.sender] == 0, "Already voted");
     require(_duration > 0, "Wrong duration");
     require(proposalsGameMaxDuration[_duration].votersTotal == 0, "Already exists");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
     if (proposalsGameMaxDuration[_duration].startedAt == 0) {
       proposalsGameMaxDurationValues.push(_duration);
@@ -238,7 +238,7 @@ contract PMCGovernance is Ownable {
   function voteProposalGameMaxDuration(uint256 _duration, uint256 _pmctTokens) public {
     require(proposalGameMaxDurationValueParticipating[msg.sender] == 0 || proposalGameMaxDurationValueParticipating[msg.sender] == _duration, "Already voted");
     require(proposalsGameMaxDuration[_duration].votersTotal > 0, "No proposal");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
     require((proposalsGameMaxDuration[_duration].tokensOfVoter[msg.sender] == 0 && proposalsGameMaxDuration[_duration].voterVotedAt[msg.sender] == 0 && proposalGameMaxDurationValueParticipating[msg.sender] == 0) || (proposalsGameMaxDuration[_duration].voterVotedAt[msg.sender] > proposalsGameMaxDuration[_duration].startedAt), "Quit first");
     
@@ -265,7 +265,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmct).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmctAddr).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
     if (proposalsGameMaxDuration[_duration].tokensTotal < tokensToAccept) {
       return;
     }
@@ -300,7 +300,7 @@ contract PMCGovernance is Ownable {
     require(proposalAddTokenValueParticipating[msg.sender] == address(0), "Already voted");
     require(_token != address(0), "Wrong token");
     require(proposalsAddToken[_token].votersTotal == 0, "Already exists");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
     if (proposalsAddToken[_token].startedAt == 0) {
       proposalsAddTokenValues.push(_token);
@@ -328,7 +328,7 @@ contract PMCGovernance is Ownable {
   function voteProposalAddToken(address _token, uint256 _pmctTokens) public {
     require(proposalAddTokenValueParticipating[msg.sender] == address(0) || proposalAddTokenValueParticipating[msg.sender] == _token, "Already voted");
     require(proposalsAddToken[_token].votersTotal > 0, "No proposal");
-    ERC20(pmct).transferFrom(msg.sender, address(this), _pmctTokens);
+    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
     require((proposalsAddToken[_token].tokensOfVoter[msg.sender] == 0 && proposalsAddToken[_token].voterVotedAt[msg.sender] == 0 && proposalAddTokenValueParticipating[msg.sender] == address(0)) || (proposalsAddToken[_token].voterVotedAt[msg.sender] > proposalsAddToken[_token].startedAt), "Quit first");
   
@@ -355,7 +355,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmct).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmctAddr).totalSupply().mul(MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
     if (proposalsAddToken[_token].tokensTotal < tokensToAccept) {
       return;
     }
@@ -401,7 +401,7 @@ contract PMCGovernance is Ownable {
     delete proposalsMinStake[votedValue].voterVotedAt[msg.sender];
     delete proposalMinStakeValueParticipating[msg.sender];
 
-    ERC20(pmct).transfer(msg.sender, tokensVoted);
+    ERC20(pmctAddr).transfer(msg.sender, tokensVoted);
 
     emit ProposalQuitted(msg.sender, ProposalType.minStake);
   }
@@ -421,7 +421,7 @@ contract PMCGovernance is Ownable {
     delete proposalsGameMaxDuration[votedValue].voterVotedAt[msg.sender];
     delete proposalGameMaxDurationValueParticipating[msg.sender];
 
-    ERC20(pmct).transfer(msg.sender, tokensVoted);
+    ERC20(pmctAddr).transfer(msg.sender, tokensVoted);
 
     emit ProposalQuitted(msg.sender, ProposalType.gameMaxDuration);
   }
@@ -441,7 +441,7 @@ contract PMCGovernance is Ownable {
     delete proposalsAddToken[votedValue].voterVotedAt[msg.sender];
     delete proposalAddTokenValueParticipating[msg.sender];
 
-    ERC20(pmct).transfer(msg.sender, tokensVoted);
+    ERC20(pmctAddr).transfer(msg.sender, tokensVoted);
 
     emit ProposalQuitted(msg.sender, ProposalType.gameMaxDuration);
   }
