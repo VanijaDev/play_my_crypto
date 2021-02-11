@@ -16,12 +16,12 @@ contract PMCStaking is PMC_IStaking {
   
   struct StateForIncome {
     uint256 income;
-    uint256 stakesTotal;
+    uint256 tokensStaked;
   }
 
-  bool private stakesStarted;
-  uint256 public stakesTotal;
-  uint256 public stakeToStartIfNoStakes;
+  bool private isStakingStarted;
+  uint256 public tokensStaked;
+  uint256 public incomeIdxToStartIfNoStakes;
   StateForIncome[] private incomes;
 
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
@@ -31,6 +31,7 @@ contract PMCStaking is PMC_IStaking {
   /**
    * @dev Constructor.
    * @param _pmct PMCt token address.
+   * @param _gameplay Gameplay address.
    */
   constructor(address _pmct, address _gameplay) {
     require(_pmct != address(0), "Wrong _pmct");
@@ -45,9 +46,9 @@ contract PMCStaking is PMC_IStaking {
    */
   function replenishRewardPool() override external payable {
     require(msg.sender == gameplayAddr, "Wrong sender");
-    require(msg.value > 0, "Wrong replenish amnt");
+    require(msg.value > 0, "Wrong value");
     
-    incomes.push(StateForIncome(msg.value, stakesTotal));
+    incomes.push(StateForIncome(msg.value, tokensStaked));
   }
 
   /**
@@ -59,16 +60,16 @@ contract PMCStaking is PMC_IStaking {
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _tokens);
     
     if (stakeOf[msg.sender] == 0) {
-      if (!stakesStarted) {
-        stakesStarted = true;
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = stakeToStartIfNoStakes;
+      if (!isStakingStarted) {
+        isStakingStarted = true;
+        incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartIfNoStakes;
       } else {
         incomeIdxToStartCalculatingRewardOf[msg.sender] = incomes.length;
       }
     } else {
       uint256 reward;
       uint256 _incomeIdxToStartCalculatingRewardOf;
-      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncome(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
+      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
       
       if (reward > 0) {
         pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender].add(reward);
@@ -77,25 +78,22 @@ contract PMCStaking is PMC_IStaking {
     }
 
     stakeOf[msg.sender] = stakeOf[msg.sender].add(_tokens);
-    stakesTotal = stakesTotal.add(_tokens);
+    tokensStaked = tokensStaked.add(_tokens);
   }
 
   /**
    * @dev Unstakes PMCt tokens.
-   * @param _tokens Token amount.
    */
-  function unstake(uint256 _tokens) external {
-    require((_tokens > 0) && (_tokens <= stakeOf[msg.sender]), "Wrong tokens");
+  function unstake() external {
+    require(stakeOf[msg.sender] > 0, "No stake");
     withdrawReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
 
-    stakeOf[msg.sender] = stakeOf[msg.sender].sub(_tokens);
-    if (stakeOf[msg.sender] == 0) {
-      stakesTotal = stakesTotal.sub(_tokens);
-    }
+    delete stakeOf[msg.sender];
+    tokensStaked = tokensStaked.sub(_tokens);
 
-    if (stakesTotal == 0) {
-      delete stakesStarted;
-      stakeToStartIfNoStakes = incomes.length;
+    if (tokensStaked == 0) {
+      delete isStakingStarted;
+      incomeIdxToStartIfNoStakes = incomes.length;
     }
     
     ERC20(pmctAddr).transfer(msg.sender, _tokens);
@@ -108,7 +106,7 @@ contract PMCStaking is PMC_IStaking {
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
     uint256 _incomeIdxToStartCalculatingRewardOf;
-    (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncome(_maxLoop);
+    (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(_maxLoop);
 
     if (reward == 0) {
       return;
@@ -116,7 +114,7 @@ contract PMCStaking is PMC_IStaking {
 
     incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
     if (pendingRewardOf[msg.sender] > 0) {
-      reward.add(pendingRewardOf[msg.sender]);
+      reward = reward.add(pendingRewardOf[msg.sender]);
       delete pendingRewardOf[msg.sender];
     }
 
@@ -127,7 +125,7 @@ contract PMCStaking is PMC_IStaking {
    * @dev Calculates staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
-  function calculateRewardAndStartIncome(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
+  function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
     if (stakeOf[msg.sender] == 0) {
       return(0, 0);
     }
@@ -147,7 +145,7 @@ contract PMCStaking is PMC_IStaking {
 
     for (uint256 i = startIdx; i <= stopIdx; i++) {
       StateForIncome storage incomeTmp = incomes[i];
-      uint256 incomeReward = (incomeTmp.stakesTotal > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.stakesTotal) : incomeTmp.income;
+      uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.tokensStaked) : incomeTmp.income;
       reward = reward.add(incomeReward);
     }
 
