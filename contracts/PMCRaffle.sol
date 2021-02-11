@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
- * @dev Run when game is played by creator.
+ * @dev Runs automatically when game is played by creator.
  */
 abstract contract PMCRaffle is Ownable {
   using SafeMath for uint256;
@@ -60,7 +60,7 @@ abstract contract PMCRaffle is Ownable {
   }
 
   /**
-   * @dev Gets past raffle results number.
+   * @dev Gets raffle results number.
    * @param _token Token address.
    * @return Results number.
    */
