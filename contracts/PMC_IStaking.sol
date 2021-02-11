@@ -8,7 +8,7 @@ pragma solidity ^0.7.6;
 interface PMC_IStaking {
     /**
      * @notice Staking Smart Contract uses ETH only as staking reward.
-     * @dev Replenishes Staking Smart Contract with ETH amount.
+     * @dev Replenishes Staking Smart Contract with ETH value.
      */
     function replenishRewardPool() external payable;
 }
