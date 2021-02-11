@@ -129,15 +129,15 @@ contract PMCStaking is PMC_IStaking {
         uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
         if (startIdx < incomesLength) {
           uint256 incomesToCalculate = incomesLength.sub(startIdx);
-          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop).sub(1) : startIdx.add(incomesToCalculate).sub(1);
+          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop) : startIdx.add(incomesToCalculate);
       
-          for (uint256 i = startIdx; i <= stopIdx; i++) {
+          for (uint256 i = startIdx; i < stopIdx; i++) {
             StateForIncome storage incomeTmp = incomes[i];
             uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.tokensStaked) : incomeTmp.income;
             reward = reward.add(incomeReward);
           }
 
-          _incomeIdxToStartCalculatingRewardOf = stopIdx.add(1);
+          _incomeIdxToStartCalculatingRewardOf = stopIdx;
         }
       }
     }
