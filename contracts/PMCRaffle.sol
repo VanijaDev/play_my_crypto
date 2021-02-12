@@ -16,7 +16,7 @@ abstract contract PMCRaffle is Ownable {
     uint256 prize;
   }
   
-  mapping(address => mapping(address => uint256)) public raffleJackpotWithdrawPending;  //  token => (address => amount), 0x0 - ETH
+  mapping(address => mapping(address => uint256)) public raffleJackpotPending;  //  token => (address => amount), 0x0 - ETH
   mapping(address => mapping(address => uint256)) public raffleJackpotWithdrawn;
   
   mapping(address => uint256) public raffleJackpot; //  token => amount, 0x0 - ETH
@@ -27,7 +27,8 @@ abstract contract PMCRaffle is Ownable {
 
 
   event CF_RafflePlayed(address indexed token, address indexed winner, uint256 indexed prize);
-  event CF_RaffleJackpotWithdrawn(address indexed token, address indexed winner);
+  event CF_RaffleJackpotWithdrawn(address indexed token, uint256 indexed amount, address indexed winner);
+
 
   /**
    * @dev Adds to current raffle.
@@ -76,7 +77,7 @@ abstract contract PMCRaffle is Ownable {
     if (raffleJackpot[_token] > 0 && raffleParticipants[_token].length > 0) {
       uint256 winnerIdx = _rand(_token);
       address winnerAddr = raffleParticipants[_token][winnerIdx];
-      raffleJackpotWithdrawPending[_token][winnerAddr] = raffleJackpotWithdrawPending[_token][winnerAddr].add(raffleJackpot[_token]);
+      raffleJackpotPending[_token][winnerAddr] = raffleJackpotPending[_token][winnerAddr].add(raffleJackpot[_token]);
       raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
       raffleResults[_token].push(RaffleResult(winnerAddr, raffleJackpot[_token]));
 
@@ -100,20 +101,20 @@ abstract contract PMCRaffle is Ownable {
    * @dev Withdraw jackpots for all won raffles.
    * @param _token Token address.
    */
-  function withdrawRaffleJackpotsPending(address _token) external {
-    uint256 amountToSend = raffleJackpotWithdrawPending[_token][msg.sender];
+  function withdrawRaffleJackpots(address _token) external {
+    uint256 amountToSend = raffleJackpotPending[_token][msg.sender];
     require(amountToSend > 0, "No prize");
     
-    delete raffleJackpotWithdrawPending[_token][msg.sender];
+    delete raffleJackpotPending[_token][msg.sender];
 
     raffleJackpotWithdrawn[_token][msg.sender] = raffleJackpotWithdrawn[_token][msg.sender].add(amountToSend);
 
-    if (_token != address(0)) {
-      ERC20(_token).transfer(msg.sender, amountToSend);
-    } else {
+    if (_token == address(0)) {
       msg.sender.transfer(amountToSend);
+    } else {
+      ERC20(_token).transfer(msg.sender, amountToSend);
     }
     
-    CF_RaffleJackpotWithdrawn(_token, msg.sender);
+    CF_RaffleJackpotWithdrawn(_token, amountToSend, msg.sender);
   }
 }
