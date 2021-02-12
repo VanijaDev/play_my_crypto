@@ -19,7 +19,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   uint256 public gameMaxDuration;
   uint256 public gameMaxDurationToUpdate;
   
-  mapping(address => bool) public isTokenSupported;
+  mapping(address => bool) public isTokenSupported; //  can token be used for play & staking
   
 
   modifier onlyGovernance(address _address) {
@@ -100,7 +100,6 @@ abstract contract PMCGovernanceCompliant is Ownable {
    */
   function updateGameAddTokenSupported(address _token) external onlyGovernance(msg.sender) {
     if (_token != address(0) && !isTokenSupported[_token]) {
-      // tokensSupportedToStake.push(_token);
       isTokenSupported[_token] = true;
     }
   }
