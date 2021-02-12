@@ -28,7 +28,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
 
-  mapping(address => bool) public gameplaySupported;
+  mapping(address => bool) public gameplayAddrSupported;
   
   /**
    * @dev Constructor.
@@ -49,14 +49,23 @@ contract PMCStaking is Ownable, PMC_IStaking {
    */
   function addGame(address _game) external onlyOwner {
     require(_game != address(0), "Wrong _game");
-    gameplaySupported[_game] = true;
+    gameplayAddrSupported[_game] = true;
+  }
+
+  /**
+   * @dev Removes gameplay to accept replenish from.
+   * @param _game Gameplay address.
+   */
+  function removeGame(address _game) external onlyOwner {
+    require(_game != address(0), "Wrong _game");
+    delete gameplayAddrSupported[_game];
   }
 
   /**
    * @dev Adds ETH to reward pool.
    */
   function replenishRewardPool() override external payable {
-    require(gameplaySupported[msg.sender], "Wrong sender");
+    require(gameplayAddrSupported[msg.sender], "Wrong sender");
     require(msg.value > 0, "Wrong value");
     
     incomes.push(StateForIncome(msg.value, tokensStaked));
@@ -116,11 +125,10 @@ contract PMCStaking is Ownable, PMC_IStaking {
    */
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
-    uint256 _incomeIdxToStartCalculatingRewardOf;
-    (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(_maxLoop);
+    (reward, ) = calculateRewardAndStartIncomeIdx(_maxLoop);
 
     if (reward > 0) {
-      incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
+      delete incomeIdxToStartCalculatingRewardOf[msg.sender];
       if (pendingRewardOf[msg.sender] > 0) {
         reward = reward.add(pendingRewardOf[msg.sender]);
         delete pendingRewardOf[msg.sender];
@@ -135,9 +143,9 @@ contract PMCStaking is Ownable, PMC_IStaking {
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
-    if (stakeOf[msg.sender] > 0) {
-      uint256 incomesLength = incomes.length;
-      if (incomesLength > 0) {
+    uint256 incomesLength = incomes.length;
+    if (incomesLength > 0) {
+      if (stakeOf[msg.sender] > 0) {
         uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
         if (startIdx < incomesLength) {
           uint256 incomesToCalculate = incomesLength.sub(startIdx);
