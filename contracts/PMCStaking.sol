@@ -3,12 +3,13 @@ pragma solidity ^0.7.6;
 
 import "./PMCt.sol";
 import "./PMC_IStaking.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @notice ETH only
  */
-contract PMCStaking is PMC_IStaking {
+contract PMCStaking is Ownable, PMC_IStaking {
   using SafeMath for uint256;
 
   address public pmctAddr;
@@ -26,6 +27,8 @@ contract PMCStaking is PMC_IStaking {
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
+
+  mapping(address => bool) public gameplaySupported;
   
   /**
    * @dev Constructor.
@@ -41,10 +44,19 @@ contract PMCStaking is PMC_IStaking {
   }
 
   /**
+   * @dev Adds gameplay to accept replenish from.
+   * @param _game Gameplay address.
+   */
+  function addGame(address _game) external onlyOwner {
+    require(_game != address(0), "Wrong _game");
+    gameplaySupported[_game] = true;
+  }
+
+  /**
    * @dev Adds ETH to reward pool.
    */
   function replenishRewardPool() override external payable {
-    require(msg.sender == gameplayAddr, "Wrong sender");
+    require(gameplaySupported[msg.sender], "Wrong sender");
     require(msg.value > 0, "Wrong value");
     
     incomes.push(StateForIncome(msg.value, tokensStaked));
