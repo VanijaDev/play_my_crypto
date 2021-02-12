@@ -23,9 +23,9 @@ contract PMCFeeManager is Ownable {
 
   //  partner
   address partner;
-  mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH
+  mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH.
   mapping(address => mapping(address => uint256)) public partnerFeeWithdrawn;
-  mapping(address => uint256) public partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH
+  mapping(address => uint256) public partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH.
 
   //  referral
   mapping(address => mapping(address => uint256)) public referralFeePending;
@@ -33,7 +33,7 @@ contract PMCFeeManager is Ownable {
   mapping(address => uint256) public referralFeeWithdrawnTotal;
 
   //  dev
-  mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH
+  mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH.
   mapping(address => uint256) public devFeeWithdrawn;
   mapping(address => uint256) public devFeeWithdrawnTotal;
 
@@ -52,7 +52,7 @@ contract PMCFeeManager is Ownable {
   /**
    * @dev Adds fee.
    * @param _type Fee type.
-   * @param _token Token address. 0x0 - ETH
+   * @param _token Token address. 0x0 - ETH.
    * @param _amount Fee amount.
    * @param _referralAddress Referral address.
    */
@@ -76,7 +76,7 @@ contract PMCFeeManager is Ownable {
 
   /**
    * @dev Withdraws partner fee.
-   * @param _token Token address. if 0x0 - ETH
+   * @param _token Token address. if 0x0 - ETH.
    */
   function withdrawPartnerFee(address _token) external {
     uint256 feeTmp = partnerFeePending[_token][msg.sender];
@@ -92,11 +92,10 @@ contract PMCFeeManager is Ownable {
       msg.sender.transfer(feeTmp);
     }
   }
-
   
   /**
    * @dev Withdraws referral fee.
-   * @param _token Token address. if 0x0 - ETH
+   * @param _token Token address. if 0x0 - ETH.
    */
   function withdrawReferralFee(address _token) external {
     uint256 feeTmp = referralFeePending[_token][msg.sender];
@@ -113,10 +112,9 @@ contract PMCFeeManager is Ownable {
     }
   }
 
-  
   /**
    * @dev Withdraws dev fee.
-   * @param _token Token address. if 0x0 - ETH
+   * @param _token Token address. if 0x0 - ETH.
    */
   function withdrawDevFee(address _token) external onlyOwner {
     uint256 feeTmp = devFeePending[_token];
