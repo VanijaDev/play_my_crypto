@@ -28,11 +28,11 @@ contract PMCGovernance is Ownable {
     mapping(address => uint256) voterVotedAt;
   }
 
-  uint256 constant private MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL = 10;   //  amount of tokens for the proposal to be accepted
-  uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 2; // TODO for Prod: 1000;   //  amount of voters for the proposal to be accepted
+  uint256 constant private MIN_pmctTokens_MINTED_PERCENT_TO_ACCEPT_PROPOSAL = 10;   //  percentage of minted tokens for the proposal to be accepted
+  uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 2; // TODO: for Prod: 1000;   //  amount of voters for the proposal to be accepted
 
   address pmctAddr;
-  address[] games;  //  game Smart Contracts to be governed
+  address[] games;  //  gameplay Smart Contracts to be governed
 
     //  minStake
   uint256[] public proposalsMinStakeValues; // value
@@ -83,6 +83,22 @@ contract PMCGovernance is Ownable {
   }
 
   /**
+   * @dev Removes game to be governed.
+   * @param _game Game address.
+   */
+  function removeGame(address _game) external onlyOwner {
+    require(_game != address(0), "Wrong _game");
+
+    for (uint256 i = 0; i < games.length; i++) {
+      if (games[i] == _game) {
+        games[i] = games[games.length.sub(1)];
+        games.pop();
+        return;
+      }
+    }
+  }
+
+  /**
    * @dev Adds proposal.
    * @param _proposalType Proposal type.
    * @param _token Proposal token to be added.
@@ -93,11 +109,13 @@ contract PMCGovernance is Ownable {
     require(_pmctTokens > 0, "Wrong _pmctTokens");
 
     if (_proposalType == ProposalType.minStake) {
+      require(_value > 0, "Wrong value");
       _addProposalMinStake(_value, _pmctTokens);
     } else if (_proposalType == ProposalType.gameMaxDuration) {
       require(_value > 0, "Wrong value");
       _addProposalGameMaxDuration(_value, _pmctTokens);
     } else {
+      require(_token != address(0), "Wrong token");
       _addProposalAddToken(_token, _pmctTokens);
     }
   }
@@ -119,7 +137,6 @@ contract PMCGovernance is Ownable {
    */
   function _createProposalMinStake(uint256 _minStake, uint256 _pmctTokens) private {
     require(proposalMinStakeValueParticipating[msg.sender] == 0, "Already voted");
-    require(_minStake > 0, "Wrong minStake");
     require(proposalsMinStake[_minStake].votersTotal == 0, "Already exists");
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
     
@@ -208,7 +225,6 @@ contract PMCGovernance is Ownable {
    */
   function _createProposalGameMaxDuration(uint256 _duration, uint256 _pmctTokens) private {
     require(proposalGameMaxDurationValueParticipating[msg.sender] == 0, "Already voted");
-    require(_duration > 0, "Wrong duration");
     require(proposalsGameMaxDuration[_duration].votersTotal == 0, "Already exists");
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
@@ -298,7 +314,6 @@ contract PMCGovernance is Ownable {
    */
   function _createProposalAddToken(address _token, uint256 _pmctTokens) private {
     require(proposalAddTokenValueParticipating[msg.sender] == address(0), "Already voted");
-    require(_token != address(0), "Wrong token");
     require(proposalsAddToken[_token].votersTotal == 0, "Already exists");
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
 
@@ -363,7 +378,6 @@ contract PMCGovernance is Ownable {
     for (uint8 i = 0; i < games.length; i++) {
       PMCGovernanceCompliant(games[i]).updateGameAddTokenSupported(_token);
     }
-
 
     delete proposalsAddToken[_token].votersTotal;
     delete proposalsAddToken[_token].tokensTotal;
@@ -443,11 +457,12 @@ contract PMCGovernance is Ownable {
 
     ERC20(pmctAddr).transfer(msg.sender, tokensVoted);
 
-    emit ProposalQuitted(msg.sender, ProposalType.gameMaxDuration);
+    emit ProposalQuitted(msg.sender, ProposalType.addToken);
   }
   //  QUIT PROPOSAL -->
 
   /**
+   * @notice The proposal is active if votersTotal > 0.
    * @dev Gets proposals count.
    * @param _proposalType Proposal type.
    * @return Count of proposals.
@@ -465,6 +480,7 @@ contract PMCGovernance is Ownable {
   /**
    * @dev Gets proposal info.
    * @param _proposalType Proposal type.
+   * @param _token Token address.
    * @param _value Proposal value.
    * @return votersTotal Votes total for proposal.
    * @return tokensTotal PMCt total for proposal.
