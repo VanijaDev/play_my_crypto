@@ -69,7 +69,7 @@ contract("CoinFlipContract", function (accounts) {
 
     await time.advanceBlock();
 
-    //  play first game to get PMCt tokens to add new ERC-20 token
+    //  play first game to get PMCt tokens to add new ERC20 token
     await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL, {
       from: CREATOR,
       value: BET_ETH
