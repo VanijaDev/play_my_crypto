@@ -12,8 +12,8 @@ import "./PMCGovernanceCompliant.sol";
   * 1. Deploy PMCt;
   * 2. Deploy Game(PMCt);
   * 3. Add Game to minters for PMCt;
-  * 4. TODO: Deploy Staking(???);
-  * 5. TODO: Deploy Governance(PMCt, Game);
+  * 4. Deploy Staking(PMCt, PMCCoinFlipContract);
+  * 5. Deploy Governance(PMCt, PMCCoinFlipContract);
  */
 
 contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle {
@@ -46,14 +46,14 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   mapping(address => uint256) public amountToAddToNextStake;  // token => amount, 0x0 - ETH. Previous game was timeout, no opponents joined, finished by not creator. Amount will be added to next stake for game.
 
-  mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH
+  mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH.
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
-  mapping(address => mapping(address => uint256)) private playerWithdrawTotal;   //  token => (player => amount)
-  mapping(address => uint256) public playerWithdrawPMCtTotal;
+  mapping(address => mapping(address => uint256)) private playerWithdrawedTotal;   //  token => (player => amount)
+  mapping(address => uint256) public playerWithdrawedPMCtTotal;
 
   mapping(address => mapping(address => uint256[])) private gamesParticipatedToCheckPrize;    //  token => (player => idx[])
 
-  mapping(address => Game[]) private games; //  token => Game[], 0x0 - ETH
+  mapping(address => Game[]) private games; //  token => Game[], 0x0 - ETH.
   mapping(address => mapping(uint256 => mapping(address => CoinSide))) private opponentCoinSideInGame; //  token => (idx => (player => CoinSide))
   mapping(address => mapping(uint256 => mapping(address => address))) private referralInGame;          //  token => (idx => (player => referral))
 
@@ -78,7 +78,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   constructor(address _pmct) PMCGovernanceCompliant() {
     require(_pmct != address(0), "Wrong token");
-
     pmctAddr = _pmct;
   }
 
@@ -86,7 +85,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   //  <-- GAMEPLAY
   /**
    * @dev Starts game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _tokens Token amount.
    * @param _coinSideHash Hashed coin side.
    * @param _referral Referral address.
@@ -115,14 +114,14 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     
     referralInGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
-    _increaseStakes(_token, (_isEth(_token)) ? msg.value : _tokens);
+    _increaseStakes(_token, stakeAmount);
 
     emit GameStarted(_token, nextIdx);
   }
 
   /**
    * @dev Joins game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _tokens Token amount.
    * @param _coinSide Coin side.
    * @param _referral Referral address.
@@ -148,14 +147,14 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     referralInGame[_token][gameIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
-    _increaseStakes(_token, (_isEth(_token)) ? msg.value : _tokens);
+    _increaseStakes(_token, game.stake);
 
     emit GameJoined(_token, gameIdx, msg.sender);
   }
   
   /**
    * @dev Plays game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _coinSide Coin side, that was used on game start.
    * @param _seedHash Hash of the seed string, that was used to generate hashed coin side on game start.
    */
@@ -171,16 +170,16 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     game.creatorCoinSide = bytes32(uint256(_coinSide));
     (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
-    uint256 singleOpponentReward;
+    uint256 singlePlayerReward;
     if ((game.heads > 0) && (game.tails > 0)) {
-      singleOpponentReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.stake.mul(game.tails).div(game.heads) : game.stake.mul(game.heads).div(game.tails);
-      game.creatorPrize = game.stake.add(singleOpponentReward);
+      singlePlayerReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.stake.mul(game.tails).div(game.heads) : game.stake.mul(game.heads).div(game.tails);
+      game.creatorPrize = game.stake.add(singlePlayerReward);
     } else {
       uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);
-      singleOpponentReward = game.stake.div(opponentsOnly);
+      singlePlayerReward = game.stake.div(opponentsOnly);
     }
 
-    game.opponentPrize = game.stake.add(singleOpponentReward);
+    game.opponentPrize = game.stake.add(singlePlayerReward);
     runRaffle(_token);
 
     if ((_isEth(_token)) && (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH > 0)) {
@@ -196,7 +195,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Finishes game on timeout.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    */
   function finishTimeoutGame(address _token) external onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
@@ -229,7 +228,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   /**
    * @notice Referral fees not updated.
    * @dev Calculates prize to withdraw for sender.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @return prize Prize amount.
    * @return pmct_tokens PMCt amount.
@@ -240,7 +239,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Calculates prize to withdraw for sender.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @param _updateReferralFees Boolean value whether to update referral fees.
    * @return prize Prize amount.
@@ -303,7 +302,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
                 delete prevReferral;
                 delete prevReferralAmount;
               }
-              
+
               prevReferral = referral;
             }
             
@@ -321,7 +320,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Withdraws prize for sender.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
@@ -331,7 +330,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
     //  PMCt
     if (pendingPMCt > 0) {
-      playerWithdrawPMCtTotal[msg.sender] = playerWithdrawPMCtTotal[msg.sender].add(pendingPMCt);
+      playerWithdrawedPMCtTotal[msg.sender] = playerWithdrawedPMCtTotal[msg.sender].add(pendingPMCt);
       PMCt(pmctAddr).mint(msg.sender, pendingPMCt);
     }
 
@@ -374,7 +373,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     }
 
     //  staking
-    if ((stakingAddr != address(0)) && _isEth(_token)) {
+    if (_isEth(_token) && (stakingAddr != address(0))) {
       addFee(FeeType.stake, _token, singleFee, address(0));
       usedFee = usedFee.add(singleFee);
     }
@@ -382,14 +381,14 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  dev fee
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
     
-    playerWithdrawTotal[_token][msg.sender] = playerWithdrawTotal[_token][msg.sender].add(transferAmount);
+    playerWithdrawedTotal[_token][msg.sender] = playerWithdrawedTotal[_token][msg.sender].add(transferAmount);
     emit PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMCt);
   }
   //  PENDING WITHDRAWAL -->
 
 
   /**
-   * @dev Updates staking Smart Contract address.
+   * @dev Updates staking Smart Contract address. Can be 0x0.
    * @param _address Staking Smart Contract address.
    */
   function updateStakingAddr(address _address) external onlyOwner {
@@ -398,7 +397,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Checks if address corresponds to ETH or token.
-   * @param _token Token address or 0 adsress.
+   * @param _token Token address or 0x0 adsress.
    * @return Whether address corresponds to ETH or Token.
    */
   function _isEth(address _token) private pure returns (bool) {
@@ -406,8 +405,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   }
 
   /**
-   * @dev Increases player stake total & bets total for sender.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @dev Increases player stake total & bets total.
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _amount Stake value.
    */
   function _increaseStakes(address _token, uint256 _amount) private {
@@ -417,7 +416,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets last started game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @return Game obj.
    */
   function _lastStartedGame(address _token) private view returns (Game storage) {
@@ -434,7 +433,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets number of started games.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @return Number of started games.
    */
   function gamesStarted(address _token) public view returns (uint256) {
@@ -443,7 +442,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets number of finished games.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @return Number of finished games.
    */
   function gamesFinished(address _token) public view returns (uint256) {
@@ -458,7 +457,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets game info.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
    * @return running is game running.
    * @return creatorCoinSide Coin side of creator. Hash is set before creator played the game.
@@ -486,6 +485,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       require(_idx < gamesStarted(_token), "Wrong game idx");
 
       Game storage game = games[_token][_idx];
+
       running = game.running;
       creatorCoinSide = game.creatorCoinSide;
       creator = game.creator;
@@ -500,7 +500,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   
   /**
    * @dev Gets opponentCoinSide for sender in game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
    * @return opponentCoinSide Coin side for sender.
    */
@@ -513,7 +513,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets referral for sender in game.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
    * @return Referral address for sender.
    */
@@ -525,7 +525,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets games participated to check prize for sender.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @return Games number.
    */
   function getGamesParticipatedToCheckPrize(address _token) external view returns(uint256[] memory) {
@@ -534,7 +534,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   
   /**
    * @dev Gets player stake total amount.
-   * @param _token ERC-20 token address. 0x0 - ETH
+   * @param _token ERC20 token address. 0x0 - ETH.
    * @return Stakes total amount.
    */
   function getPlayerStakeTotal(address _token) external view returns(uint256) {
@@ -543,11 +543,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   /**
    * @dev Gets player withdraw total amount.
-   * @param _token ERC-20 token address. 0x0 - ETH
-   * @return Withdrawals total amount.
+   * @param _token ERC20 token address. 0x0 - ETH.
+   * @return Withdrawed total amount.
    */
-  function getPlayerWithdrawTotal(address _token) external view returns(uint256) {
-    return playerWithdrawTotal[_token][msg.sender];
+  function getPlayerWithdrawedTotal(address _token) external view returns(uint256) {
+    return playerWithdrawedTotal[_token][msg.sender];
   }
 
   /**
