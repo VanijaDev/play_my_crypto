@@ -13,7 +13,6 @@ contract PMCStaking is Ownable, PMC_IStaking {
   using SafeMath for uint256;
 
   address public pmctAddr;
-  address public gameplayAddr;
   
   struct StateForIncome {
     uint256 income;
@@ -40,25 +39,27 @@ contract PMCStaking is Ownable, PMC_IStaking {
     require(_gameplay != address(0), "Wrong _gameplay");
     
     pmctAddr = _pmct;
-    gameplayAddr = _gameplay;
+    gameplayAddrSupported[_gameplay] = true;
   }
 
   /**
    * @dev Adds gameplay to accept replenish from.
-   * @param _game Gameplay address.
+   * @param _gameplay Gameplay address.
    */
-  function addGame(address _game) external onlyOwner {
-    require(_game != address(0), "Wrong _game");
-    gameplayAddrSupported[_game] = true;
+  function addGame(address _gameplay) external onlyOwner {
+    require(_gameplay != address(0), "Wrong _gameplay");
+    
+    gameplayAddrSupported[_gameplay] = true;
   }
 
   /**
    * @dev Removes gameplay to accept replenish from.
-   * @param _game Gameplay address.
+   * @param _gameplay Gameplay address.
    */
-  function removeGame(address _game) external onlyOwner {
-    require(_game != address(0), "Wrong _game");
-    delete gameplayAddrSupported[_game];
+  function removeGame(address _gameplay) external onlyOwner {
+    require(_gameplay != address(0), "Wrong _gameplay");
+    
+    delete gameplayAddrSupported[_gameplay];
   }
 
   /**
