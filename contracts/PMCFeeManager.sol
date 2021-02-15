@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /**
  * @notice Fee implementation:
  * partner, referral, dev - implemented here
- * raffle - inherited Smart Contract (not here)
+ * raffle - inherited Smart Contract
  * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
@@ -37,7 +37,8 @@ contract PMCFeeManager is Ownable {
   mapping(address => uint256) public devFeeWithdrawn;
   mapping(address => uint256) public devFeeWithdrawnTotal;
 
-  uint256 public stakeRewardPoolPending_ETH;  //  staking (ETH only)
+  //  staking (ETH only)
+  uint256 public stakeRewardPoolPending_ETH;
   
   
   /**
@@ -57,20 +58,20 @@ contract PMCFeeManager is Ownable {
    * @param _referralAddress Referral address.
    */
   function addFee(FeeType _type, address _token, uint256 _amount, address _referralAddress) internal {
-    require(_amount > 0, "No amount");
-
-    if (_type == FeeType.partner) {
-      require(partner != address(0), "No partner");
-      partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
-    } else if (_type == FeeType.referral) {
-      require(_referralAddress != address(0), "No referral");
-      referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
-    } else if (_type == FeeType.dev) {
-      devFeePending[_token] = devFeePending[_token].add(_amount);
-    } else if (_type == FeeType.stake) {
-      stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH.add(_amount);
-    } else {
-      revert("Wrong fee type");
+    if (_amount > 0) {
+      if (_type == FeeType.partner) {
+        require(partner != address(0), "No partner");
+        partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
+      } else if (_type == FeeType.referral) {
+        require(_referralAddress != address(0), "No referral");
+        referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
+      } else if (_type == FeeType.dev) {
+        devFeePending[_token] = devFeePending[_token].add(_amount);
+      } else if (_type == FeeType.stake) {
+        stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH.add(_amount);
+      } else {
+        revert("Wrong fee type");
+      }
     }
   }
 

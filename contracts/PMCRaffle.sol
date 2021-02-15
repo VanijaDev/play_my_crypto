@@ -36,10 +36,10 @@ abstract contract PMCRaffle is Ownable {
    * @param _amount Amount.
    */
   function addToRaffle(address _token, uint256 _amount) internal {
-    require(_amount > 0, "Wrong amount");
-
-    raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
-    raffleParticipants[_token].push(msg.sender);
+    if (_amount > 0) {
+      raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
+      raffleParticipants[_token].push(msg.sender);
+    }
   }
 
   /**
@@ -93,8 +93,11 @@ abstract contract PMCRaffle is Ownable {
    * @param _token Token address.
    */
   function _rand(address _token) private view returns(uint256) {
-    require(raffleParticipants[_token].length > 0, "No participants");
-    return uint256(keccak256(abi.encodePacked(block.timestamp, raffleJackpot[_token], raffleParticipants[_token].length))) % raffleParticipants[_token].length;
+    if (raffleParticipants[_token].length > 0) {
+      return uint256(keccak256(abi.encodePacked(block.timestamp, raffleJackpot[_token], raffleParticipants[_token].length))) % raffleParticipants[_token].length;
+    }
+
+    return 0;
   }
 
   /**
