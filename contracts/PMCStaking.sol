@@ -27,7 +27,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
 
-  mapping(address => bool) public gameplayAddrSupported;
+  mapping(address => bool) public gameplaySupported;
   
   /**
    * @dev Constructor.
@@ -39,7 +39,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     require(_gameplay != address(0), "Wrong _gameplay");
     
     pmctAddr = _pmct;
-    gameplayAddrSupported[_gameplay] = true;
+    gameplaySupported[_gameplay] = true;
   }
 
   /**
@@ -49,7 +49,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   function addGame(address _gameplay) external onlyOwner {
     require(_gameplay != address(0), "Wrong _gameplay");
     
-    gameplayAddrSupported[_gameplay] = true;
+    gameplaySupported[_gameplay] = true;
   }
 
   /**
@@ -59,14 +59,14 @@ contract PMCStaking is Ownable, PMC_IStaking {
   function removeGame(address _gameplay) external onlyOwner {
     require(_gameplay != address(0), "Wrong _gameplay");
     
-    delete gameplayAddrSupported[_gameplay];
+    delete gameplaySupported[_gameplay];
   }
 
   /**
    * @dev Adds ETH to reward pool.
    */
   function replenishRewardPool() override external payable {
-    require(gameplayAddrSupported[msg.sender], "Wrong sender");
+    require(gameplaySupported[msg.sender], "Wrong sender");
     require(msg.value > 0, "Wrong value");
     
     incomes.push(StateForIncome(msg.value, tokensStaked));
