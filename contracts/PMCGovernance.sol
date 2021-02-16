@@ -313,6 +313,7 @@ contract PMCGovernance is Ownable {
    * @param _pmctTokens PMCt amount to vote.
    */
   function _createProposalAddToken(address _token, uint256 _pmctTokens) private {
+    require(_token != pmctAddr, "Cannt add PMC");
     require(proposalAddTokenValueParticipating[msg.sender] == address(0), "Already voted");
     require(proposalsAddToken[_token].votersTotal == 0, "Already exists");
     ERC20(pmctAddr).transferFrom(msg.sender, address(this), _pmctTokens);
