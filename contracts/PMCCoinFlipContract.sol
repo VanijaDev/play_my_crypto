@@ -410,7 +410,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return _token == address(0);
   }
 
-  /**
+  /***
    * @dev Increases player stake total & bets total.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _amount Stake value.
@@ -461,7 +461,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return 0;
   }
 
-  /**
+  /***
    * @dev Gets game info.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
@@ -529,7 +529,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return referralInGame[_token][_idx][msg.sender];
   }
 
-  /**
+  /***
    * @dev Gets games participated to check prize for sender.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Games number.

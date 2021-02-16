@@ -28,7 +28,7 @@ abstract contract PMCGovernanceCompliant is Ownable {
   }
 
   constructor() {
-    gameMinStakeETH = 1e15; //  0.01 ETH
+    gameMinStakeETH = 1e16; //  0.01 ETH
     gameMaxDuration = 24 hours;
   }
 
