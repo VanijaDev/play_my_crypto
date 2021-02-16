@@ -72,7 +72,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   event CF_GameFinished(address indexed token, uint256 indexed id, bool indexed timeout);
   event CF_PrizeWithdrawn(address indexed token, address indexed player, uint256 indexed prize, uint256 pmct);
 
-  /**
+  /***
    * @dev Constructor.
    * @param _pmct PMCt address.
    */
@@ -83,7 +83,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
 
   //  <-- GAMEPLAY
-  /**
+  /** START
    * @dev Starts game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _tokens Token amount.
