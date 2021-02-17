@@ -83,7 +83,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
 
   //  <-- GAMEPLAY
-  /** START
+  /***
    * @dev Starts game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _tokens Token amount.
@@ -106,6 +106,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     require(_coinSideHash[0] != 0, "Empty hash");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
 
+    _increaseStakes(_token, stakeAmount);
+
     uint256 nextIdx = gamesStarted(_token);
     if (amountToAddToNextStake[_token] > 0) {
       stakeAmount = stakeAmount.add(amountToAddToNextStake[_token]);
@@ -116,7 +118,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     
     referralInGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
     gamesParticipatedToCheckPrize[_token][msg.sender].push(nextIdx);
-    _increaseStakes(_token, stakeAmount);
 
     emit CF_GameStarted(_token, nextIdx);
   }
@@ -504,7 +505,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       opponentPrize = game.opponentPrize;
   }
   
-  /**
+  /***
    * @dev Gets opponentCoinSide for sender in game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
