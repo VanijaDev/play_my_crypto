@@ -122,7 +122,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     emit CF_GameStarted(_token, nextIdx);
   }
 
-  /**
+  /***
    * @dev Joins game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _tokens Token amount.
@@ -155,7 +155,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     emit CF_GameJoined(_token, gameIdx, msg.sender);
   }
   
-  /**
+  /***
    * @dev Plays game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _coinSide Coin side, that was used on game start.
@@ -170,7 +170,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     require(game.heads.add(game.tails) > 0, "No opponents");
 
     delete game.running;
-    game.creatorCoinSide = bytes32(uint256(_coinSide));
+    game.creatorCoinSide = keccak256(abi.encodePacked(uint256(_coinSide)));
     (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
     uint256 singlePlayerReward;
@@ -402,7 +402,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     stakingAddr = _address;
   }
 
-  /**
+  /***
    * @dev Checks if address corresponds to ETH or token.
    * @param _token Token address or 0x0 adsress.
    * @return Whether address corresponds to ETH or Token.
@@ -421,7 +421,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     betsTotal[_token] = betsTotal[_token].add(_amount);
   }
 
-  /**
+  /***
    * @dev Gets last started game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Game obj.
@@ -518,7 +518,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     opponentCoinSide = opponentCoinSideInGame[_token][_idx][msg.sender];
   }
 
-  /**
+  /***
    * @dev Gets referral for sender in game.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _idx Game index in games for token.
@@ -539,7 +539,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return gamesParticipatedToCheckPrize[_token][msg.sender];
   }
   
-  /**
+  /***
    * @dev Gets player stake total amount.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Stakes total amount.
@@ -568,7 +568,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     updateGameMinStakeETHLater(_gameMinStakeETH, later);
   }
 
-  function updateGameMaxDuration(uint16 _gameMaxDuration) external override onlyGovernance(msg.sender) {
+  function updateGameMaxDuration(uint256 _gameMaxDuration) external override onlyGovernance(msg.sender) {
     require(_gameMaxDuration > 0, "Wrong duration");
 
     Game storage game = _lastStartedGame(address(0));
