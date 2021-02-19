@@ -1838,77 +1838,419 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("finishTimeoutGame for ETH", function () {
-    it.only("should ", async function () {
+  describe("finishTimeoutGame for ETH", function () {
+    beforeEach("Start game", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
 
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
     });
 
-    it("should ", async function () {
+    it("should fail No running games", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
+      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      }), "No running games");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Still running", async function () {
+      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      }), "Still running");
     });
 
-    it("should ", async function () {
+    it("should delete game.running", async function () {
+      await time.increase(time.duration.days(2));
 
+      assert.isTrue((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be true before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      assert.isFalse((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be false after");
     });
 
-    it("should ", async function () {
+    it("should set correct opponentPrize if (opponents > 0) for single opponent", async function () {
+      await time.increase(time.duration.days(2));
 
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.22")), "should be BET_ETH_0 * 2 after");
     });
 
-    it("should ", async function () {
+    it("should set correct opponentPrize if (opponents > 0) for multiple opponents", async function () {
+      //  join more
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_0
+      });
 
+      await time.increase(time.duration.days(2));
+
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      //  ether("0.11") + ether("0.11") / 4 = 0.1375
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.1375")), "should be 0.1375 eth after");
     });
 
-    it("should ", async function () {
+    it("should set opponentPrize == 0 if (opponents == 0)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 after");
     });
 
-    it("should ", async function () {
+    it("should start new game with correct params if (opponents == 0) and (msg.sender == game.creator)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      assert.equal(0, (await game.gamesStarted.call(constants.ZERO_ADDRESS)).cmp(new BN("2")), "should be 2 before");
+      let startAt = await time.latest();
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      });
+      await time.increase(time.duration.minutes(2));
+
+      assert.equal(0, (await game.gamesStarted.call(constants.ZERO_ADDRESS)).cmp(new BN("3")), "should be 3 after");
+      let lastGameInfo = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      let newGameInfo = await game.gameInfo.call(constants.ZERO_ADDRESS, 2);
+
+      assert.equal(lastGameInfo.running, false, "Should be false for lastGameInfo");
+      assert.equal(newGameInfo.running, true, "Should be true for newGameInfo");
+      assert.equal(newGameInfo.creatorCoinSide, lastGameInfo.creatorCoinSide, "Wrong creatorCoinSide for newGameInfo");
+      assert.equal(newGameInfo.creator, lastGameInfo.creator, "Wrong creator for newGameInfo");
+      assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
+      assert.equal(0, newGameInfo.stake.cmp(lastGameInfo.stake), "Wrong stake for newGameInfo");
+      assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
+      assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
+      assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
+      assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
+      assert.equal(0, newGameInfo.opponentPrize.cmp(new BN("0")), "Wrong opponentPrize for newGameInfo");
     });
 
-    it("should ", async function () {
+    it("should increase amountToAddToNextStake if (opponents == 0) and (msg.sender != game.creator)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp((await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).stake), "should be BET_ETH_0 after");
     });
 
-    it("should ", async function () {
+    it("should updateGameMinStakeETHIfNeeded", async function () {
+      //  simulate governance
+      await game.updateGovernanceContract(OTHER);
+      await game.updateGameMinStakeETH(ether("0.15"), {
+        from: OTHER
+      });
 
+      assert.equal(0, (await game.gameMinStakeETH.call()).cmp(BET_ETH_MIN), "Wrong gameMinStakeETH before");
+      //  finish
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+      assert.equal(0, (await game.gameMinStakeETH.call()).cmp(ether("0.15")), "Wrong gameMinStakeETH after");
     });
 
-    it("should ", async function () {
+    it("should updateGameMaxDurationIfNeeded", async function () {
+      //  simulate governance
+      await game.updateGovernanceContract(OTHER);
+      await game.updateGameMaxDuration(time.duration.days(2), {
+        from: OTHER
+      });
 
+      assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(1)), "Wrong gameMaxDuration before");
+      //  finish
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OPPONENT_3
+      });
+      assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(2)), "Wrong gameMaxDuration after");
     });
 
-    it("should ", async function () {
+    it("should emit CF_GameFinished with correct params", async function () {
+      await time.increase(time.duration.days(2));
+      const {
+        logs
+      } = await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OPPONENT_3
+      });
+      await expectEvent.inLogs(logs, 'CF_GameFinished', {
+        token: constants.ZERO_ADDRESS,
+        id: new BN("0"),
+        timeout: true
+      });
+    });
+  });
 
+  describe.only("finishTimeoutGame for Token", function () {
+    let testToken;
+
+    beforeEach("Add token", async function () {
+      testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 1000);
+      testToken.transfer(CREATOR_1, 1000);
+      testToken.transfer(OPPONENT_0, 1000);
+      testToken.transfer(OPPONENT_1, 1000);
+      testToken.transfer(OPPONENT_2, 1000);
+      testToken.transfer(OPPONENT_3, 1000);
+
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_2
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_3
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address);
+
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+
+      //  ETH game
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
     });
 
-    it("should ", async function () {
+    it.only("should fail No running games", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address);
 
+      await expectRevert(game.finishTimeoutGame(testToken.address, {
+        from: CREATOR_0
+      }), "No running games");
     });
 
-    it("should ", async function () {
-
+    it("should fail if Still running", async function () {
+      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      }), "Still running");
     });
 
-    it("should ", async function () {
+    it("should delete game.running", async function () {
+      await time.increase(time.duration.days(2));
 
+      assert.isTrue((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be true before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      assert.isFalse((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be false after");
     });
 
-    it("should ", async function () {
+    it("should set correct opponentPrize if (opponents > 0) for single opponent", async function () {
+      await time.increase(time.duration.days(2));
 
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.22")), "should be BET_ETH_0 * 2 after");
     });
 
-    it("should ", async function () {
+    it("should set correct opponentPrize if (opponents > 0) for multiple opponents", async function () {
+      //  join more
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_0
+      });
 
+      await time.increase(time.duration.days(2));
+
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+      //  ether("0.11") + ether("0.11") / 4 = 0.1375
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.1375")), "should be 0.1375 eth after");
     });
 
-    it("should ", async function () {
+    it("should set opponentPrize == 0 if (opponents == 0)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 after");
+    });
+
+    it("should start new game with correct params if (opponents == 0) and (msg.sender == game.creator)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      assert.equal(0, (await game.gamesStarted.call(constants.ZERO_ADDRESS)).cmp(new BN("2")), "should be 2 before");
+      let startAt = await time.latest();
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      });
+      await time.increase(time.duration.minutes(2));
+
+      assert.equal(0, (await game.gamesStarted.call(constants.ZERO_ADDRESS)).cmp(new BN("3")), "should be 3 after");
+      let lastGameInfo = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      let newGameInfo = await game.gameInfo.call(constants.ZERO_ADDRESS, 2);
+
+      assert.equal(lastGameInfo.running, false, "Should be false for lastGameInfo");
+      assert.equal(newGameInfo.running, true, "Should be true for newGameInfo");
+      assert.equal(newGameInfo.creatorCoinSide, lastGameInfo.creatorCoinSide, "Wrong creatorCoinSide for newGameInfo");
+      assert.equal(newGameInfo.creator, lastGameInfo.creator, "Wrong creator for newGameInfo");
+      assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
+      assert.equal(0, newGameInfo.stake.cmp(lastGameInfo.stake), "Wrong stake for newGameInfo");
+      assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
+      assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
+      assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
+      assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
+      assert.equal(0, newGameInfo.opponentPrize.cmp(new BN("0")), "Wrong opponentPrize for newGameInfo");
+    });
+
+    it("should increase amountToAddToNextStake if (opponents == 0) and (msg.sender != game.creator)", async function () {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), "should be 0 before");
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp((await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).stake), "should be BET_ETH_0 after");
+    });
+
+    it("should updateGameMinStakeETHIfNeeded", async function () {
+      //  simulate governance
+      await game.updateGovernanceContract(OTHER);
+      await game.updateGameMinStakeETH(ether("0.15"), {
+        from: OTHER
+      });
+
+      assert.equal(0, (await game.gameMinStakeETH.call()).cmp(BET_ETH_MIN), "Wrong gameMinStakeETH before");
+      //  finish
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+      assert.equal(0, (await game.gameMinStakeETH.call()).cmp(ether("0.15")), "Wrong gameMinStakeETH after");
+    });
+
+    it("should updateGameMaxDurationIfNeeded", async function () {
+      //  simulate governance
+      await game.updateGovernanceContract(OTHER);
+      await game.updateGameMaxDuration(time.duration.days(2), {
+        from: OTHER
+      });
+
+      assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(1)), "Wrong gameMaxDuration before");
+      //  finish
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OPPONENT_3
+      });
+      assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(2)), "Wrong gameMaxDuration after");
+    });
+
+    it("should emit CF_GameFinished with correct params", async function () {
+      await time.increase(time.duration.days(2));
+      const {
+        logs
+      } = await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OPPONENT_3
+      });
+      await expectEvent.inLogs(logs, 'CF_GameFinished', {
+        token: constants.ZERO_ADDRESS,
+        id: new BN("0"),
+        timeout: true
+      });
     });
   });
 });

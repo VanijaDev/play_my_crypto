@@ -94,7 +94,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 stakeAmount = msg.value;
 
     if (_isEth(_token)) {
-      require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
+      if (msg.value == 0) {
+        Game storage lastGame = _lastStartedGame(_token);
+        require(lastGame.startTime.add(gameMaxDuration) < block.timestamp, "Last game running");
+        require(msg.sender == lastGame.creator, "Not last game creator");
+
+        stakeAmount = lastGame.stake;
+      } else {
+        require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
+      }
     } else {
       require(msg.value == 0, "Wrong value");
       require(isTokenSupported[_token], "Wrong token");
@@ -212,7 +220,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       game.opponentPrize = game.stake.add(opponentReward);
     } else {
       if (msg.sender == game.creator) {
-        startGame(_token, game.stake, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
+        startGame(_token, 0, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
       } else {
         amountToAddToNextStake[_token] = amountToAddToNextStake[_token].add(game.stake);
       }
