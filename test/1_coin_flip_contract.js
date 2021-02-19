@@ -2025,7 +2025,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("finishTimeoutGame for Token", function () {
+  describe("finishTimeoutGame for Token", function () {
     let testToken;
 
     beforeEach("Add token", async function () {
@@ -2248,4 +2248,1130 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
     });
   });
+
+  describe.only("pendingPrizeToWithdraw for ETH", function () {
+    it("should return 0 if no prize", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0)).prize.cmp(new BN("0")), "Should be 0");
+    });
+
+    it.only("should return correct prize & pmct_tokens for 5 prizes", async function () {
+      //  0
+      let startAt_0 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      // console.log((await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_0
+      // })).prize.toString());
+
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.165")), "Should be 0.165 eth for CREATOR_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0")), "Should be 0 eth for OPPONENT_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.165")), "Should be 0.165 eth for OPPONENT_1, for 0");
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
+
+
+      //  1
+      let startAt_1 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(constants.ZERO_ADDRESS, 2, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.165")), "Should be 0.165 eth for CREATOR_0, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 1"); //  0.12 + 0.12 / 4 = 0.15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_0, for 1"); //  0.12 + 0.12 / 4 = 0.15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.165")), "Should be 0.165 eth for OPPONENT_1, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 1"); //  0.12 + 0.12 / 4 = 0.15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 1"); //  0.12 + 0.12 / 4 = 0.15
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
+
+
+      //  2
+      let startAt_2 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(3));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.365
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 2"); //  0.15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_0, for 2"); //  0.15 
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for OPPONENT_1, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.265
+
+
+      // console.log("0:", (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_2
+      // })).prize.toString());
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.35")), "Should be 0.35 eth for OPPONENT_2, for 2"); //  0.15 + (0.12 + 0.12 * 2 / 3) = 0.35
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 2"); //  0.15
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 2");
+
+
+      //  3
+      let startAt_3 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  eth
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: CREATOR_0
+      // })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.365
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
+      //   from: CREATOR_1
+      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 2"); //  0.15
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_0
+      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_0, for 2"); //  0.15 
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_1
+      // })).prize.cmp(ether("0.365")), "Should be 0.365 eth for OPPONENT_1, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.265
+
+
+      // // console.log("0:", (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      // //   from: OPPONENT_2
+      // // })).prize.toString());
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_2
+      // })).prize.cmp(ether("0.35")), "Should be 0.35 eth for OPPONENT_2, for 2"); //  0.15 + (0.12 + 0.12 * 2 / 3) = 0.35
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_3
+      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 2"); //  0.15
+
+      // //  Token
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: CREATOR_0
+      // })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 2");
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: CREATOR_1
+      // })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 2");
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_0
+      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 2");
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_1
+      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 2");
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_2
+      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 2");
+
+      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+      //   from: OPPONENT_3
+      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 2");
+
+      return
+
+
+      //  4
+      let startAt_4 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.123")
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: ether("0.123")
+      });
+
+      await time.increase(time.duration.minutes(5));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_4 = await game.gameInfo.call(constants.ZERO_ADDRESS, 4);
+      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
+      assert.equal(gameObj_4.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_4");
+      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
+      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
+      assert.equal(gameObj_4.stake.cmp(ether("0.123")), 0, "Wrong stake for gameObj_4");
+      // assert.equal(gameObj_4.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_4");
+      assert.equal(gameObj_4.heads, 5, "Wrong heads for gameObj_4");
+      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
+      assert.equal(0, gameObj_4.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_4"); //  0
+      assert.equal(0, gameObj_4.opponentPrize.cmp(ether("0.15375")), "Wrong opponentPrize for gameObj_4"); //  0.123 + 0.123 / 4 = 0.15375
+
+      //  5
+      let startAt_5 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_5 = await game.gameInfo.call(constants.ZERO_ADDRESS, 5);
+      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
+      assert.equal(gameObj_5.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_5");
+      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
+      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
+      assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
+      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
+      assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0.55")), "Wrong creatorPrize for gameObj_5"); //  0.11 + 0.11 * 4 = 0.55
+      assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0")), "Wrong opponentPrize for 5"); //  0
+
+      //  6
+      //  TODO: check Tokens if timeout
+    });
+
+    it("should not increase referral fee", async function () {
+
+    });
+  });
+
+  describe("gameInfo after play for ETH", function () {
+    it("should set correct info", async function () {
+      //  0
+      let startAt_0 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      let gameObj_0 = await game.gameInfo.call(constants.ZERO_ADDRESS, 0);
+      assert.equal(gameObj_0.running, false, "Should be true for gameObj_0");
+      assert.equal(gameObj_0.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_0");
+      assert.equal(gameObj_0.creator, CREATOR_0, "Wrong creator for gameObj_0");
+      assert.equal(gameObj_0.idx, 0, "Wrong idx for gameObj_0");
+      assert.equal(gameObj_0.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_0");
+      // assert.equal(gameObj_0.startTime.cmp(startAt_0), 0, "Wrong startTime for gameObj_0");
+      assert.equal(gameObj_0.heads, 2, "Wrong heads for gameObj_0");
+      assert.equal(gameObj_0.tails, 1, "Wrong tails for gameObj_0");
+      assert.equal(0, gameObj_0.creatorPrize.cmp(ether("0.165")), "Wrong creatorPrize for gameObj_0"); //  0.11 + 0.11 / 2 = 0.165
+      assert.equal(0, gameObj_0.opponentPrize.cmp(ether("0.165")), "Wrong opponentPrize for gameObj_0"); //  0.11 + 0.11 / 2 = 0.165 
+
+      //  1
+      let startAt_1 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(constants.ZERO_ADDRESS, 2, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_1 = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      assert.equal(gameObj_1.running, false, "Should be true for gameObj_1");
+      assert.equal(gameObj_1.creatorCoinSide, web3.utils.soliditySha3(2), "Wrong creatorCoinSide for gameObj_1");
+      assert.equal(gameObj_1.creator, CREATOR_1, "Wrong creator for gameObj_1");
+      assert.equal(gameObj_1.idx, 1, "Wrong idx for gameObj_1");
+      assert.equal(gameObj_1.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_1");
+      // assert.equal(gameObj_1.startTime.cmp(startAt_1), 0, "Wrong startTime for gameObj_1");
+      assert.equal(gameObj_1.heads, 1, "Wrong heads for gameObj_1");
+      assert.equal(gameObj_1.tails, 4, "Wrong tails for gameObj_1");
+      assert.equal(0, gameObj_1.creatorPrize.cmp(ether("0.15")), "Wrong creatorPrize for gameObj_1"); //  0.12 + 0.12 / 4 = 0.15
+      assert.equal(0, gameObj_1.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_1"); //  0.12 + 0.12 / 4 = 0.15
+
+      //  2
+      let startAt_2 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(3));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      let gameObj_2 = await game.gameInfo.call(constants.ZERO_ADDRESS, 2);
+      assert.equal(gameObj_2.running, false, "Should be true for gameObj_2");
+      assert.equal(gameObj_2.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_2");
+      assert.equal(gameObj_2.creator, CREATOR_0, "Wrong creator for gameObj_2");
+      assert.equal(gameObj_2.idx, 2, "Wrong idx for gameObj_2");
+      assert.equal(gameObj_2.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_2");
+      // assert.equal(gameObj_2.startTime.cmp(startAt_2), 0, "Wrong startTime for gameObj_2");
+      assert.equal(gameObj_2.heads, 3, "Wrong heads for gameObj_2");
+      assert.equal(gameObj_2.tails, 2, "Wrong tails for gameObj_2");
+      assert.equal(0, gameObj_2.creatorPrize.cmp(ether("0.2")), "Wrong creatorPrize for gameObj_2"); //  0.12 + 0.12 * 2 / 3 = 0.2
+      assert.equal(0, gameObj_2.opponentPrize.cmp(ether("0.2")), "Wrong opponentPrize for gameObj_2"); //  0.12 + 0.12 * 2 / 3 = 0.2
+
+      //  3
+      let startAt_3 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_3 = await game.gameInfo.call(constants.ZERO_ADDRESS, 3);
+      assert.equal(gameObj_3.running, false, "Should be true for gameObj_3");
+      assert.equal(gameObj_3.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_3");
+      assert.equal(gameObj_3.creator, CREATOR_1, "Wrong creator for gameObj_3");
+      assert.equal(gameObj_3.idx, 3, "Wrong idx for gameObj_3");
+      assert.equal(gameObj_3.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_3");
+      // assert.equal(gameObj_3.startTime.cmp(startAt_3), 0, "Wrong startTime for gameObj_3");
+      assert.equal(gameObj_3.heads, 3, "Wrong heads for gameObj_3");
+      assert.equal(gameObj_3.tails, 1, "Wrong tails for gameObj_3");
+      assert.equal(0, gameObj_3.creatorPrize.cmp(ether("0.16")), "Wrong creatorPrize for gameObj_3"); //  0.12 + 0.12 / 3 = 0.16
+      assert.equal(0, gameObj_3.opponentPrize.cmp(ether("0.16")), "Wrong opponentPrize for gameObj_3"); //  0.12 + 0.12 / 3 = 0.16
+
+      //  4
+      let startAt_4 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.123")
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: ether("0.123")
+      });
+
+      await time.increase(time.duration.minutes(5));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_4 = await game.gameInfo.call(constants.ZERO_ADDRESS, 4);
+      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
+      assert.equal(gameObj_4.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_4");
+      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
+      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
+      assert.equal(gameObj_4.stake.cmp(ether("0.123")), 0, "Wrong stake for gameObj_4");
+      // assert.equal(gameObj_4.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_4");
+      assert.equal(gameObj_4.heads, 5, "Wrong heads for gameObj_4");
+      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
+      assert.equal(0, gameObj_4.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_4"); //  0
+      assert.equal(0, gameObj_4.opponentPrize.cmp(ether("0.15375")), "Wrong opponentPrize for gameObj_4"); //  0.123 + 0.123 / 4 = 0.15375
+
+      //  5
+      let startAt_5 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_5 = await game.gameInfo.call(constants.ZERO_ADDRESS, 5);
+      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
+      assert.equal(gameObj_5.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_5");
+      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
+      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
+      assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
+      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
+      assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0.55")), "Wrong creatorPrize for gameObj_5"); //  0.11 + 0.11 * 4 = 0.55
+      assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0")), "Wrong opponentPrize for 5"); //  0
+    });
+  });
+
+  describe("gameInfo after play for Token", function () {
+    it("should set correct info", async function () {
+      let testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 1000);
+      testToken.transfer(CREATOR_1, 1000);
+      testToken.transfer(OPPONENT_0, 1000);
+      testToken.transfer(OPPONENT_1, 1000);
+      testToken.transfer(OPPONENT_2, 1000);
+      testToken.transfer(OPPONENT_3, 1000);
+
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_2
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_3
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address);
+
+
+      //  0
+      let startAt_0 = await time.latest();
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      let gameObj_0 = await game.gameInfo.call(testToken.address, 0);
+      assert.equal(gameObj_0.running, false, "Should be true for gameObj_0");
+      assert.equal(gameObj_0.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_0");
+      assert.equal(gameObj_0.creator, CREATOR_0, "Wrong creator for gameObj_0");
+      assert.equal(gameObj_0.idx, 0, "Wrong idx for gameObj_0");
+      assert.equal(gameObj_0.stake.cmp(new BN("10")), 0, "Wrong stake for gameObj_0");
+      // assert.equal(gameObj_0.startTime.cmp(startAt_0), 0, "Wrong startTime for gameObj_0");
+      assert.equal(gameObj_0.heads, 2, "Wrong heads for gameObj_0");
+      assert.equal(gameObj_0.tails, 1, "Wrong tails for gameObj_0");
+      assert.equal(0, gameObj_0.creatorPrize.cmp(new BN("15")), "Wrong creatorPrize for gameObj_0"); //  10 + 10 / 2 = 15
+      assert.equal(0, gameObj_0.opponentPrize.cmp(new BN("15")), "Wrong opponentPrize for gameObj_0"); //  10 + 10 / 2 = 15
+
+      //  1
+      let startAt_1 = await time.latest();
+      await game.startGame(testToken.address, 20, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(testToken.address, 2, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_1 = await game.gameInfo.call(testToken.address, 1);
+      assert.equal(gameObj_1.running, false, "Should be true for gameObj_1");
+      assert.equal(gameObj_1.creatorCoinSide, web3.utils.soliditySha3(2), "Wrong creatorCoinSide for gameObj_1");
+      assert.equal(gameObj_1.creator, CREATOR_1, "Wrong creator for gameObj_1");
+      assert.equal(gameObj_1.idx, 1, "Wrong idx for gameObj_1");
+      assert.equal(gameObj_1.stake.cmp(new BN("20")), 0, "Wrong stake for gameObj_1");
+      // assert.equal(gameObj_1.startTime.cmp(startAt_1), 0, "Wrong startTime for gameObj_1");
+      assert.equal(gameObj_1.heads, 1, "Wrong heads for gameObj_1");
+      assert.equal(gameObj_1.tails, 4, "Wrong tails for gameObj_1");
+      assert.equal(0, gameObj_1.creatorPrize.cmp(new BN("25")), "Wrong creatorPrize for gameObj_1"); //  20 + 20 / 4 = 25
+      assert.equal(0, gameObj_1.opponentPrize.cmp(new BN("25")), "Wrong opponentPrize for gameObj_1"); //  20 + 20 / 4 = 25
+
+      //  2
+      let startAt_2 = await time.latest();
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(3));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      let gameObj_2 = await game.gameInfo.call(testToken.address, 2);
+      assert.equal(gameObj_2.running, false, "Should be true for gameObj_2");
+      assert.equal(gameObj_2.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_2");
+      assert.equal(gameObj_2.creator, CREATOR_0, "Wrong creator for gameObj_2");
+      assert.equal(gameObj_2.idx, 2, "Wrong idx for gameObj_2");
+      assert.equal(gameObj_2.stake.cmp(new BN("10")), 0, "Wrong stake for gameObj_2");
+      // assert.equal(gameObj_2.startTime.cmp(startAt_2), 0, "Wrong startTime for gameObj_2");
+      assert.equal(gameObj_2.heads, 3, "Wrong heads for gameObj_2");
+      assert.equal(gameObj_2.tails, 2, "Wrong tails for gameObj_2");
+      assert.equal(0, gameObj_2.creatorPrize.cmp(new BN("16")), "Wrong creatorPrize for gameObj_2"); //  10 + 10 * 2 / 3 = 16
+      assert.equal(0, gameObj_2.opponentPrize.cmp(new BN("16")), "Wrong opponentPrize for gameObj_2"); //  10 + 10 * 2 / 3 = 16
+
+      //  3
+      let startAt_3 = await time.latest();
+      await game.startGame(testToken.address, 31, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 31, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 31, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 31, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_3 = await game.gameInfo.call(testToken.address, 3);
+      assert.equal(gameObj_3.running, false, "Should be true for gameObj_3");
+      assert.equal(gameObj_3.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_3");
+      assert.equal(gameObj_3.creator, CREATOR_1, "Wrong creator for gameObj_3");
+      assert.equal(gameObj_3.idx, 3, "Wrong idx for gameObj_3");
+      assert.equal(gameObj_3.stake.cmp(new BN("31")), 0, "Wrong stake for gameObj_3");
+      // assert.equal(gameObj_3.startTime.cmp(startAt_3), 0, "Wrong startTime for gameObj_3");
+      assert.equal(gameObj_3.heads, 3, "Wrong heads for gameObj_3");
+      assert.equal(gameObj_3.tails, 1, "Wrong tails for gameObj_3");
+      assert.equal(0, gameObj_3.creatorPrize.cmp(new BN("41")), "Wrong creatorPrize for gameObj_3"); //  31 + 31 / 3 = 41
+      assert.equal(0, gameObj_3.opponentPrize.cmp(new BN("41")), "Wrong opponentPrize for gameObj_3"); //  31 + 31 / 3 = 41
+
+      //  4
+      let startAt_4 = await time.latest();
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(5));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_4 = await game.gameInfo.call(testToken.address, 4);
+      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
+      assert.equal(gameObj_4.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_4");
+      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
+      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
+      assert.equal(gameObj_4.stake.cmp(new BN("10")), 0, "Wrong stake for gameObj_4");
+      // assert.equal(gameObj_4.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_4");
+      assert.equal(gameObj_4.heads, 5, "Wrong heads for gameObj_4");
+      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
+      assert.equal(0, gameObj_4.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_4"); //  0
+      assert.equal(0, gameObj_4.opponentPrize.cmp(new BN("12")), "Wrong opponentPrize for gameObj_4"); //  10 + 10 / 4 = 12
+
+      //  5
+      let startAt_5 = await time.latest();
+      await game.startGame(testToken.address, 5, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 5, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 5, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 5, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 5, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      let gameObj_5 = await game.gameInfo.call(testToken.address, 5);
+      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
+      assert.equal(gameObj_5.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_5");
+      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
+      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
+      assert.equal(gameObj_5.stake.cmp(new BN("5")), 0, "Wrong stake for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
+      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
+      assert.equal(0, gameObj_5.creatorPrize.cmp(new BN("25")), "Wrong creatorPrize for gameObj_5"); //  5 + 5 * 4 = 25
+      assert.equal(0, gameObj_5.opponentPrize.cmp(new BN("0")), "Wrong opponentPrize for 5"); //  0
+    });
+  });
+
+  describe("gameInfo after finishTimeoutGame for ETH", function () {
+    it("should set correct info", async function () {
+      //  0
+      let startAt_0 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+
+      let gameObj_0 = await game.gameInfo.call(constants.ZERO_ADDRESS, 0);
+      assert.equal(gameObj_0.running, false, "Should be true for gameObj_0");
+      assert.equal(gameObj_0.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_0");
+      assert.equal(gameObj_0.creator, CREATOR_0, "Wrong creator for gameObj_0");
+      assert.equal(gameObj_0.idx, 0, "Wrong idx for gameObj_0");
+      assert.equal(gameObj_0.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_0");
+      // assert.equal(gameObj_0.startTime.cmp(startAt_0), 0, "Wrong startTime for gameObj_0");
+      assert.equal(gameObj_0.heads, 1, "Wrong heads for gameObj_0");
+      assert.equal(gameObj_0.tails, 1, "Wrong tails for gameObj_0");
+      assert.equal(0, gameObj_0.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_0"); //  0
+      assert.equal(0, gameObj_0.opponentPrize.cmp(ether("0.165")), "Wrong opponentPrize for gameObj_0"); //  0.11 + 0.11 / 2 = 0.165 
+
+      //  1
+      let startAt_1 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+
+      let gameObj_1 = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      assert.equal(gameObj_1.running, false, "Should be true for gameObj_1");
+      assert.equal(gameObj_1.creatorCoinSide, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), "Wrong creatorCoinSide for gameObj_1");
+      assert.equal(gameObj_1.creator, CREATOR_1, "Wrong creator for gameObj_1");
+      assert.equal(gameObj_1.idx, 1, "Wrong idx for gameObj_1");
+      assert.equal(gameObj_1.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_1");
+      // assert.equal(gameObj_1.startTime.cmp(startAt_1), 0, "Wrong startTime for gameObj_1");
+      assert.equal(gameObj_1.heads, 1, "Wrong heads for gameObj_1");
+      assert.equal(gameObj_1.tails, 3, "Wrong tails for gameObj_1");
+      assert.equal(0, gameObj_1.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_1"); //  0
+      assert.equal(0, gameObj_1.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_1"); //  0.12 + 0.12 / 4 = 0.15
+
+      //  2
+      let startAt_2 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+
+      let gameObj_2 = await game.gameInfo.call(constants.ZERO_ADDRESS, 2);
+      assert.equal(gameObj_2.running, false, "Should be true for gameObj_2");
+      assert.equal(gameObj_2.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_2");
+      assert.equal(gameObj_2.creator, CREATOR_0, "Wrong creator for gameObj_2");
+      assert.equal(gameObj_2.idx, 2, "Wrong idx for gameObj_2");
+      assert.equal(gameObj_2.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_2");
+      // assert.equal(gameObj_2.startTime.cmp(startAt_2), 0, "Wrong startTime for gameObj_2");
+      assert.equal(gameObj_2.heads, 2, "Wrong heads for gameObj_2");
+      assert.equal(gameObj_2.tails, 2, "Wrong tails for gameObj_2");
+      assert.equal(0, gameObj_2.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_2"); //  0
+      assert.equal(0, gameObj_2.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_2"); //  0.12 + 0.12 / 4 = 0.15
+
+      //  3
+      let startAt_3 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      });
+
+      let gameObj_3 = await game.gameInfo.call(constants.ZERO_ADDRESS, 3);
+      assert.equal(gameObj_3.running, false, "Should be true for gameObj_3");
+      assert.equal(gameObj_3.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_3");
+      assert.equal(gameObj_3.creator, CREATOR_1, "Wrong creator for gameObj_3");
+      assert.equal(gameObj_3.idx, 3, "Wrong idx for gameObj_3");
+      assert.equal(gameObj_3.stake.cmp(BET_ETH_1), 0, "Wrong stake for gameObj_3");
+      // assert.equal(gameObj_3.startTime.cmp(startAt_3), 0, "Wrong startTime for gameObj_3");
+      assert.equal(gameObj_3.heads, 2, "Wrong heads for gameObj_3");
+      assert.equal(gameObj_3.tails, 1, "Wrong tails for gameObj_3");
+      assert.equal(0, gameObj_3.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_3"); //  0
+      assert.equal(0, gameObj_3.opponentPrize.cmp(ether("0.16")), "Wrong opponentPrize for gameObj_3"); //  0.12 + 0.12 / 3 = 0.16
+
+      //  4
+      let startAt_4 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.123")
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: ether("0.123")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: ether("0.123")
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+
+      let gameObj_4 = await game.gameInfo.call(constants.ZERO_ADDRESS, 4);
+      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
+      assert.equal(gameObj_4.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_4");
+      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
+      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
+      assert.equal(gameObj_4.stake.cmp(ether("0.123")), 0, "Wrong stake for gameObj_4");
+      // assert.equal(gameObj_4.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_4");
+      assert.equal(gameObj_4.heads, 4, "Wrong heads for gameObj_4");
+      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
+      assert.equal(0, gameObj_4.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_4"); //  0
+      assert.equal(0, gameObj_4.opponentPrize.cmp(ether("0.15375")), "Wrong opponentPrize for gameObj_4"); //  0.123 + 0.123 / 4 = 0.15375
+
+      //  5
+      let startAt_5 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+
+      let gameObj_5 = await game.gameInfo.call(constants.ZERO_ADDRESS, 5);
+      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
+      assert.equal(gameObj_5.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_5");
+      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
+      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
+      assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      assert.equal(gameObj_5.heads, 0, "Wrong heads for gameObj_5");
+      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
+      assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_5"); //  0
+      assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0.1375")), "Wrong opponentPrize for 5"); //  0.11 + 0.11 / 4 = 0.1375
+    });
+  });
+
+  //  TODO: finish Token
 });

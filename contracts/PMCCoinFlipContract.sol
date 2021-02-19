@@ -181,16 +181,30 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     game.creatorCoinSide = keccak256(abi.encodePacked(uint256(_coinSide)));
     (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
   
-    uint256 singlePlayerReward;
+    uint256 opponentReward;
     if ((game.heads > 0) && (game.tails > 0)) {
-      singlePlayerReward = (CoinSide(_coinSide) == CoinSide.heads) ? game.stake.mul(game.tails).div(game.heads) : game.stake.mul(game.heads).div(game.tails);
+      uint256 singlePlayerReward;
+      if (CoinSide(_coinSide) == CoinSide.heads) {
+        singlePlayerReward = game.stake.mul(game.tails).div(game.heads);
+        if (game.heads > 1) {
+          opponentReward = singlePlayerReward;
+        }
+      } else {
+        singlePlayerReward = game.stake.mul(game.heads).div(game.tails);
+        if (game.tails > 1) {
+          opponentReward = singlePlayerReward;
+        }
+      }
+
       game.creatorPrize = game.stake.add(singlePlayerReward);
     } else {
       uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);
-      singlePlayerReward = game.stake.div(opponentsOnly);
+      opponentReward = game.stake.div(opponentsOnly);
     }
 
-    game.opponentPrize = game.stake.add(singlePlayerReward);
+    if (opponentReward > 0) {
+      game.opponentPrize = game.stake.add(opponentReward);
+    }
     runRaffle(_token);
 
     if ((_isEth(_token)) && (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH > 0)) {
@@ -204,7 +218,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     emit CF_GameFinished(_token, game.idx, false);
   }
 
-  /**
+  /***
    * @dev Finishes game on timeout.
    * @param _token ERC20 token address. 0x0 - ETH.
    */
@@ -248,7 +262,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
   }
 
-  /**
+  /***
    * @dev Calculates prize to withdraw for sender.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
@@ -298,28 +312,30 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
         }
       } else {
         if (game.opponentPrize > 0) {
-          prize = prize.add(game.opponentPrize);
+          if (keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
+            prize = prize.add(game.opponentPrize);
 
-          bool timeout = (game.creatorCoinSide != bytes32(uint256(CoinSide.heads)) && game.creatorCoinSide != bytes32(uint256(CoinSide.tails)));
-          if (timeout && _isEth(_token)) {
-            pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
-          }
-
-          if (_updateReferralFees) {
-            address referral = referralInGame[_token][game.idx][msg.sender];
-            uint256 referralFee = game.opponentPrize.div(100);  //  1%
-
-           if (prevReferral != referral) {
-              if (prevReferralAmount > 0) {
-                addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
-                delete prevReferral;
-                delete prevReferralAmount;
-              }
-
-              prevReferral = referral;
+            bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
+            if (timeout && _isEth(_token)) {
+              pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
             }
-            
-            prevReferralAmount = prevReferralAmount.add(referralFee);
+
+            if (_updateReferralFees) {
+              address referral = referralInGame[_token][game.idx][msg.sender];
+              uint256 referralFee = game.opponentPrize.div(100);  //  1%
+
+            if (prevReferral != referral) {
+                if (prevReferralAmount > 0) {
+                  addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
+                  delete prevReferral;
+                  delete prevReferralAmount;
+                }
+
+                prevReferral = referral;
+              }
+              
+              prevReferralAmount = prevReferralAmount.add(referralFee);
+            }
           }
         }
       }
