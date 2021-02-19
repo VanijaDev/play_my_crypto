@@ -220,7 +220,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       game.opponentPrize = game.stake.add(opponentReward);
     } else {
       if (msg.sender == game.creator) {
-        startGame(_token, 0, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
+        startGame(_token, game.stake, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
       } else {
         amountToAddToNextStake[_token] = amountToAddToNextStake[_token].add(game.stake);
       }
