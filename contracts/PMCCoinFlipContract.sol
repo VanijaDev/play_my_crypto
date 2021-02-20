@@ -250,7 +250,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
 
   //  <-- PENDING WITHDRAWAL
-  /**
+  /***
    * @notice Referral fees not updated.
    * @dev Calculates prize to withdraw for sender.
    * @param _token ERC20 token address. 0x0 - ETH.
@@ -312,10 +312,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
         }
       } else {
         if (game.opponentPrize > 0) {
-          if (keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
+          bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
+            
+          if (timeout || keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
             prize = prize.add(game.opponentPrize);
 
-            bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
             if (timeout && _isEth(_token)) {
               pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
             }

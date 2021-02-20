@@ -75,6 +75,90 @@ contract PMCFeeManager is Ownable {
     }
   }
 
+
+  /**
+   * @dev Gets partner fee pending of sender.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getPartnerFeePending(address _token) external view returns (uint256) {
+    return partnerFeePending[_token][msg.sender];
+  }
+  
+  /**
+   * @dev Gets partner fee withdrawn of sender.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getPartnerFeeWithdrawn(address _token) external view returns (uint256) {
+    return partnerFeeWithdrawn[_token][msg.sender];
+  }
+  
+  /**
+   * @dev Gets partner fee withdrawn total.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getPartnerFeeWithdrawnTotal(address _token) external view returns (uint256) {
+    return partnerFeeWithdrawnTotal[_token];
+  }
+
+
+  /**
+   * @dev Gets referral fee pending of sender.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getReferralFeePending(address _token) external view returns (uint256) {
+    return referralFeePending[_token][msg.sender];
+  }
+  
+  /**
+   * @dev Gets referral fee withdrawn of sender.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getReferralFeeWithdrawn(address _token) external view returns (uint256) {
+    return referralFeeWithdrawn[_token][msg.sender];
+  }
+  
+  /**
+   * @dev Gets referral fee withdrawn total.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getReferralFeeWithdrawnTotal(address _token) external view returns (uint256) {
+    return referralFeeWithdrawnTotal[_token];
+  }
+
+
+  /**
+   * @dev Gets dev fee pending.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getDevFeePending(address _token) external view onlyOwner returns (uint256) {
+    return devFeePending[_token];
+  }
+  
+  /**
+   * @dev Gets dev fee withdrawn.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getDevFeeWithdrawn(address _token) external view onlyOwner returns (uint256) {
+    return devFeeWithdrawn[_token];
+  }
+  
+  /**
+   * @dev Gets dev fee withdrawn total.
+   * @param _token Token address. if 0x0 - ETH.
+   * @return Fee amount.
+   */
+  function getDevFeeWithdrawnTotal(address _token) external view onlyOwner returns (uint256) {
+    return devFeeWithdrawnTotal[_token];
+  }
+
   /**
    * @dev Withdraws partner fee.
    * @param _token Token address. if 0x0 - ETH.

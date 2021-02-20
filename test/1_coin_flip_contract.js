@@ -2249,7 +2249,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("pendingPrizeToWithdraw for ETH", function () {
+  describe("pendingPrizeToWithdraw for ETH", function () {
     it("should return 0 if no prize", async function () {
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -2264,7 +2264,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0)).prize.cmp(new BN("0")), "Should be 0");
     });
 
-    it.only("should return correct prize & pmct_tokens for 5 prizes", async function () {
+    it("should return correct prize & pmct_tokens for multiple games", async function () {
       //  0
       let startAt_0 = await time.latest();
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
@@ -2285,10 +2285,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
       });
-
-      // console.log((await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_0
-      // })).prize.toString());
 
       //  eth
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
@@ -2351,7 +2347,7 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_0
       })).prize.cmp(ether("0.165")), "Should be 0.165 eth for CREATOR_0, for 1");
 
-      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
       })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 1"); //  0.12 + 0.12 / 4 = 0.15
 
@@ -2431,7 +2427,7 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_0
       })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.365
 
-      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
       })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 2"); //  0.15
 
@@ -2441,12 +2437,8 @@ contract("PMCCoinFlipContract", function (accounts) {
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for OPPONENT_1, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.265
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for OPPONENT_1, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.365
 
-
-      // console.log("0:", (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_2
-      // })).prize.toString());
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
       })).prize.cmp(ether("0.35")), "Should be 0.35 eth for OPPONENT_2, for 2"); //  0.15 + (0.12 + 0.12 * 2 / 3) = 0.35
@@ -2507,60 +2499,54 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       //  eth
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: CREATOR_0
-      // })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.365
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 3"); //  0.365
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 1, {
-      //   from: CREATOR_1
-      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for CREATOR_1, for 2"); //  0.15
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.31")), "Should be 0.31 eth for CREATOR_1, for 3"); //  0.15 + 0.12 + 0.12 / 3 = 0.31
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_0
-      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_0, for 2"); //  0.15 
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.31")), "Should be 0.31 eth for OPPONENT_0, for 3"); //  0.15 + 0.12 + 0.12 / 3 = 0.31
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_1
-      // })).prize.cmp(ether("0.365")), "Should be 0.365 eth for OPPONENT_1, for 2"); //  0.165 + (0.12 + 0.12 * 2 / 3) = 0.265
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.525")), "Should be 0.525 eth for OPPONENT_1, for 3"); //  0.365 + 0.12 + 0.12 / 3 = 0.525
 
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.35")), "Should be 0.35 eth for OPPONENT_2, for 3"); //  0.35
 
-      // // console.log("0:", (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      // //   from: OPPONENT_2
-      // // })).prize.toString());
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_2
-      // })).prize.cmp(ether("0.35")), "Should be 0.35 eth for OPPONENT_2, for 2"); //  0.15 + (0.12 + 0.12 * 2 / 3) = 0.35
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 3"); //  0.15
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_3
-      // })).prize.cmp(ether("0.15")), "Should be 0.15 eth for OPPONENT_2, for 2"); //  0.15
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 3");
 
-      // //  Token
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: CREATOR_0
-      // })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 2");
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 3");
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: CREATOR_1
-      // })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 2");
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_0
-      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 2");
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_1
-      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 2");
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
 
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_2
-      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 2");
-
-      // assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
-      //   from: OPPONENT_3
-      // })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 2");
-
-      return
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
 
 
       //  4
@@ -2592,17 +2578,56 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_1
       });
 
-      let gameObj_4 = await game.gameInfo.call(constants.ZERO_ADDRESS, 4);
-      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
-      assert.equal(gameObj_4.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_4");
-      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
-      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
-      assert.equal(gameObj_4.stake.cmp(ether("0.123")), 0, "Wrong stake for gameObj_4");
-      // assert.equal(gameObj_4.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_4");
-      assert.equal(gameObj_4.heads, 5, "Wrong heads for gameObj_4");
-      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
-      assert.equal(0, gameObj_4.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_4"); //  0
-      assert.equal(0, gameObj_4.opponentPrize.cmp(ether("0.15375")), "Wrong opponentPrize for gameObj_4"); //  0.123 + 0.123 / 4 = 0.15375
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 4"); //  0.365
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.31")), "Should be 0.31 eth for CREATOR_1, for 4"); //  0.31
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.46375")), "Should be 0.46375 eth for OPPONENT_0, for 4"); //  0.31 + 0.123 + 0.123 / 4 = 0.46375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.67875")), "Should be 0.67875 eth for OPPONENT_1, for 4"); //  0.525 + 0123 + 0.123 / 4 = 0.67875
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.50375")), "Should be 0.50375 eth for OPPONENT_2, for 4"); //  0.35 + 0.123 + 0.123 / 4 = 0.50375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.30375")), "Should be 0.30375 eth for OPPONENT_2, for 4"); //  0.15 + 0.123 + 0.123 / 4 = 0.30375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
+
 
       //  5
       let startAt_5 = await time.latest();
@@ -2633,24 +2658,887 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_1
       });
 
-      let gameObj_5 = await game.gameInfo.call(constants.ZERO_ADDRESS, 5);
-      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
-      assert.equal(gameObj_5.creatorCoinSide, web3.utils.soliditySha3(1), "Wrong creatorCoinSide for gameObj_5");
-      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
-      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
-      assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
-      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
-      assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
-      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
-      assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0.55")), "Wrong creatorPrize for gameObj_5"); //  0.11 + 0.11 * 4 = 0.55
-      assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0")), "Wrong opponentPrize for 5"); //  0
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 5"); //  0.365
 
-      //  6
-      //  TODO: check Tokens if timeout
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.86")), "Should be 0.86 eth for CREATOR_1, for 5"); //  0.31 + 0.11 + 0.11 * 4 = 0.86
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.46375")), "Should be 0.46375 eth for OPPONENT_0, for 5"); //  0.46375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.67875")), "Should be 0.67875 eth for OPPONENT_1, for 5"); //  0.67875
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.50375")), "Should be 0.50375 eth for OPPONENT_2, for 5"); //  0.50375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.30375")), "Should be 0.30375 eth for OPPONENT_2, for 5"); //  0.30375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
+
+
+      //  6 timeout
+      let startAt_6 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+        from: OTHER
+      });
+
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.365")), "Should be 0.365 eth for CREATOR_0, for 6"); //  0.365
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).prize.cmp(ether("0.86")), "Should be 0.86 eth for CREATOR_1, for 6"); //  0.86
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.62875")), "Should be 0.62875 eth for OPPONENT_0, for 6"); //  0.46375 + 0.11 + 0.11 / 2 = 0.62875
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.84375")), "Should be 0.84375 eth for OPPONENT_1, for 6"); //  0.67875 + 0.11 + 0.11 / 2 = 0.84375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.50375")), "Should be 0.50375 eth for OPPONENT_2, for 6"); //  0.50375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.30375")), "Should be 0.30375 eth for OPPONENT_2, for 6"); //  0.30375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
+
+
+      //  7 CREATOR_0 as opponent
+      let startAt_7 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.2")
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: CREATOR_0,
+        value: ether("0.2")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: ether("0.2")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: ether("0.2")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: ether("0.2")
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  eth
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).prize.cmp(ether("0.865")), "Should be 0.865 eth for CREATOR_0, for 7"); //  0.365 + 0.2 + 0.2 * 3 / 2 = 0.865
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).prize.cmp(ether("1.36")), "Should be 1.36 eth for CREATOR_1, for 7"); //  0.86 + 0.2 + 0.2 * 3 / 2 = 1.36
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(ether("0.62875")), "Should be 0.62875 eth for OPPONENT_0, for 7"); //  0.62875
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(ether("0.84375")), "Should be 0.84375 eth for OPPONENT_1, for 7"); //  0.84375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(ether("0.50375")), "Should be 0.50375 eth for OPPONENT_2, for 7"); //  0.50375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(ether("0.30375")), "Should be 0.30375 eth for OPPONENT_2, for 7"); //  0.30375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0.0136")), "Should be 0.0136 Token for CREATOR_1, for 7"); //  0.0086 + (0.2 + 0.2 * 3 / 2) / 100 = 0.0136
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 7"); //  0.00165
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 7"); //  0.00165
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
     });
 
     it("should not increase referral fee", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
 
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+
+      assert.equal(0, (await game.getReferralFeePending.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_REFERRAL_0
+      })).cmp(ether("0")), "Should be 0 for CREATOR_REFERRAL_0");
+      assert.equal(0, (await game.getReferralFeePending.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT_REFERRAL_0
+      })).cmp(ether("0")), "Should be 0 for OPPONENT_REFERRAL_0");
+      assert.equal(0, (await game.getReferralFeePending.call(constants.ZERO_ADDRESS, {
+        from: OPPONENT_REFERRAL_1
+      })).cmp(ether("0")), "Should be 0 for OPPONENT_REFERRAL_1");
+    });
+  });
+
+  describe("pendingPrizeToWithdraw for ETH", function () {
+    let testToken;
+
+    beforeEach("Add token", async function () {
+      testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 1000);
+      testToken.transfer(CREATOR_1, 1000);
+      testToken.transfer(OPPONENT_0, 1000);
+      testToken.transfer(OPPONENT_1, 1000);
+      testToken.transfer(OPPONENT_2, 1000);
+      testToken.transfer(OPPONENT_3, 1000);
+
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_2
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_3
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address);
+
+
+      //  ETH game
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+    });
+
+    it("should return 0 if no prize", async function () {
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0)).prize.cmp(new BN("0")), "Should be 0");
+    });
+
+    it("should return correct prize & pmct_tokens for multiple games", async function () {
+      //  0
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("15")), "Should be 15 Token for CREATOR_0, for 0"); //  10 + 10  / 2 = 15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("0")), "Should be 0 testToken for OPPONENT_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("15")), "Should be 15 testToken for OPPONENT_1, for 0"); //  10 + 10  / 2 = 15
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
+
+
+      //  1
+      await game.startGame(testToken.address, 300, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 300, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 300, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 300, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 300, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(testToken.address, 2, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("15")), "Should be 15 testToken for CREATOR_0, for 1"); //  15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for CREATOR_1, for 1"); //  300 + 300 / 4 = 375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for OPPONENT_0, for 1"); //  300 + 300 / 4 = 375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("15")), "Should be 15 testToken for OPPONENT_1, for 1"); //  15
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("375")), "Should be  testToken for OPPONENT_2, for 1"); //  300 + 300 / 4 = 375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for OPPONENT_2, for 1"); //  300 + 300 / 4 = 375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
+
+
+      //  2
+      await game.startGame(testToken.address, 20, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(3));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for CREATOR_0, for 2"); //  15 + (20 + 20 * 2 / 3) = 48
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for CREATOR_1, for 2"); //  375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for OPPONENT_0, for 2"); //  375
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for OPPONENT_1, for 2"); //  15 + (20 + 20 * 2 / 3) = 48
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("408")), "Should be 408 testToken for OPPONENT_2, for 2"); //  375 + (20 + 20 * 2 / 3) = 408
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for OPPONENT_2, for 2"); //  375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0.00365 Token for CREATOR_0, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for CREATOR_1, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_0, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_1, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_2, for 2");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_3, for 2");
+
+
+      //  3
+      await game.startGame(testToken.address, 30, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 30, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 30, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 30, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for CREATOR_0, for 3"); //  48
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("415")), "Should be 415 testToken for CREATOR_1, for 3"); //  375 + 30 + 30 / 3 = 415
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("415")), "Should be 415 testToken for OPPONENT_0, for 3"); //  375 + 30 + 30 / 3 = 415
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("88")), "Should be 88 testToken for OPPONENT_1, for 3"); //  48 + 30 + 30 / 3 = 88
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("408")), "Should be 408 testToken for OPPONENT_2, for 3"); //  408
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("375")), "Should be 375 testToken for OPPONENT_2, for 3"); //  375
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 3");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 3");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
+
+
+      //  4
+      let startAt_4 = await time.latest();
+      await game.startGame(testToken.address, 15, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 15, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 15, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 15, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 15, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(5));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for CREATOR_0, for 4"); //  48
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("415")), "Should be 415 testToken for CREATOR_1, for 4"); //  415
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("433")), "Should be 433 testToken for OPPONENT_0, for 4"); //  415 + 15 + 15 / 4 = 433
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("106")), "Should be 106 testToken for OPPONENT_1, for 4"); //  88 + 15 + 15 / 4 = 106
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("426")), "Should be 426 testToken for OPPONENT_2, for 4"); //  408 + 15 + 15 / 4 = 426
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("393")), "Should be 393 testToken for OPPONENT_2, for 4"); //  375 + 15 + 15 / 4 = 393
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
+
+
+      //  5
+      let startAt_5 = await time.latest();
+      await game.startGame(testToken.address, 20, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for CREATOR_0, for 5"); //  48
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("515")), "Should be 515 testToken for CREATOR_1, for 5"); //  415 + 20 + 20 * 4 = 515
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("433")), "Should be 433 testToken for OPPONENT_0, for 5"); //  433
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("106")), "Should be 106 testToken for OPPONENT_1, for 5"); //  106
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("426")), "Should be 426 testToken for OPPONENT_2, for 5"); //  426
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("393")), "Should be 393 testToken for OPPONENT_2, for 5"); //  393
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
+
+
+      //  6 timeout
+      let startAt_6 = await time.latest();
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: OTHER
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("48")), "Should be 48 testToken for CREATOR_0, for 6"); //  0.365
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("515")), "Should be 515 testToken for CREATOR_1, for 6"); //  515
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("448")), "Should be 448 testToken for OPPONENT_0, for 6"); //  448
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("121")), "Should be 121 testToken for OPPONENT_1, for 6"); //  121
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("426")), "Should be 426 testToken for OPPONENT_2, for 6"); //  426
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("393")), "Should be 393 testToken for OPPONENT_2, for 6"); //  393
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
+
+
+      //  7 CREATOR_0 as opponent
+      let startAt_7 = await time.latest();
+      await game.startGame(testToken.address, 20, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_0, {
+        from: CREATOR_0
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.minutes(4));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      //  testToken
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).prize.cmp(new BN("98")), "Should be 98 testToken for CREATOR_0, for 7"); //  48 + 20 + 20 * 3 / 2 = 98
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).prize.cmp(new BN("565")), "Should be 565 testToken for CREATOR_1, for 7"); //  515 + 20 + 20 * 3 / 2 = 565
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).prize.cmp(new BN("448")), "Should be 448 testToken for OPPONENT_0, for 7"); //  448
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).prize.cmp(new BN("121")), "Should be 121 testToken for OPPONENT_1, for 7"); //  121
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).prize.cmp(new BN("426")), "Should be 426 testToken for OPPONENT_2, for 7"); //  426
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).prize.cmp(new BN("393")), "Should be 393 testToken for OPPONENT_2, for 7"); //  393
+
+      //  Token
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: CREATOR_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_0
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_1
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_2
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
+
+      assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
+        from: OPPONENT_3
+      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
+    });
+
+    it("should not increase referral fee", async function () {
+      await game.startGame(testToken.address, 10, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+
+      assert.equal(0, (await game.getReferralFeePending.call(testToken.address, {
+        from: CREATOR_REFERRAL_0
+      })).cmp(ether("0")), "Should be 0 for CREATOR_REFERRAL_0");
+      assert.equal(0, (await game.getReferralFeePending.call(testToken.address, {
+        from: OPPONENT_REFERRAL_0
+      })).cmp(ether("0")), "Should be 0 for OPPONENT_REFERRAL_0");
+      assert.equal(0, (await game.getReferralFeePending.call(testToken.address, {
+        from: OPPONENT_REFERRAL_1
+      })).cmp(ether("0")), "Should be 0 for OPPONENT_REFERRAL_1");
     });
   });
 
@@ -3372,6 +4260,4 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0.1375")), "Wrong opponentPrize for 5"); //  0.11 + 0.11 / 4 = 0.1375
     });
   });
-
-  //  TODO: finish Token
 });
