@@ -4260,4 +4260,243 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_5.opponentPrize.cmp(ether("0.1375")), "Wrong opponentPrize for 5"); //  0.11 + 0.11 / 4 = 0.1375
     });
   });
+
+  describe("gameInfo after finishTimeoutGame for Token", function () {
+    it("should set correct info", async function () {
+      let testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 1000);
+      testToken.transfer(CREATOR_1, 1000);
+      testToken.transfer(OPPONENT_0, 1000);
+      testToken.transfer(OPPONENT_1, 1000);
+      testToken.transfer(OPPONENT_2, 1000);
+      testToken.transfer(OPPONENT_3, 1000);
+
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_0
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_1
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_2
+      });
+      await testToken.approve(game.address, 1000, {
+        from: OPPONENT_3
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address);
+
+      //  0
+      await game.startGame(testToken.address, 120, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 120, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 120, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: OTHER
+      });
+
+      let gameObj_0 = await game.gameInfo.call(testToken.address, 0);
+      assert.equal(gameObj_0.running, false, "Should be true for gameObj_0");
+      assert.equal(gameObj_0.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_0");
+      assert.equal(gameObj_0.creator, CREATOR_0, "Wrong creator for gameObj_0");
+      assert.equal(gameObj_0.idx, 0, "Wrong idx for gameObj_0");
+      assert.equal(gameObj_0.stake.cmp(new BN("120")), 0, "Wrong stake for gameObj_0");
+      assert.equal(gameObj_0.heads, 1, "Wrong heads for gameObj_0");
+      assert.equal(gameObj_0.tails, 1, "Wrong tails for gameObj_0");
+      assert.equal(0, gameObj_0.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_0"); //  0
+      assert.equal(0, gameObj_0.opponentPrize.cmp(new BN("180")), "Wrong opponentPrize for gameObj_0"); //  120 + 120 / 2 = 180
+
+
+      //  1
+      await game.startGame(testToken.address, 10, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 10, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 10, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: OTHER
+      });
+
+      let gameObj_1 = await game.gameInfo.call(testToken.address, 1);
+      assert.equal(gameObj_1.running, false, "Should be true for gameObj_1");
+      assert.equal(gameObj_1.creatorCoinSide, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), "Wrong creatorCoinSide for gameObj_1");
+      assert.equal(gameObj_1.creator, CREATOR_1, "Wrong creator for gameObj_1");
+      assert.equal(gameObj_1.idx, 1, "Wrong idx for gameObj_1");
+      assert.equal(gameObj_1.stake.cmp(new BN("10")), 0, "Wrong stake for gameObj_1");
+      assert.equal(gameObj_1.heads, 1, "Wrong heads for gameObj_1");
+      assert.equal(gameObj_1.tails, 3, "Wrong tails for gameObj_1");
+      assert.equal(0, gameObj_1.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_1"); //  0
+      assert.equal(0, gameObj_1.opponentPrize.cmp(new BN("12")), "Wrong opponentPrize for gameObj_1"); //  10 + 10 / 4 = 12
+
+
+      //  2
+      await game.startGame(testToken.address, 20, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 20, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 20, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: CREATOR_0
+      });
+
+      let gameObj_2 = await game.gameInfo.call(testToken.address, 2);
+      assert.equal(gameObj_2.running, false, "Should be true for gameObj_2");
+      assert.equal(gameObj_2.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_2");
+      assert.equal(gameObj_2.creator, CREATOR_0, "Wrong creator for gameObj_2");
+      assert.equal(gameObj_2.idx, 2, "Wrong idx for gameObj_2");
+      assert.equal(gameObj_2.stake.cmp(new BN("20")), 0, "Wrong stake for gameObj_2");
+      assert.equal(gameObj_2.heads, 2, "Wrong heads for gameObj_2");
+      assert.equal(gameObj_2.tails, 2, "Wrong tails for gameObj_2");
+      assert.equal(0, gameObj_2.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_2"); //  0
+      assert.equal(0, gameObj_2.opponentPrize.cmp(new BN("25")), "Wrong opponentPrize for gameObj_2"); //  20 + 20 / 4 = 25
+
+
+      //  3
+      await game.startGame(testToken.address, 30, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 30, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 30, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 30, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: CREATOR_0
+      });
+
+      let gameObj_3 = await game.gameInfo.call(testToken.address, 3);
+      assert.equal(gameObj_3.running, false, "Should be true for gameObj_3");
+      assert.equal(gameObj_3.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_3");
+      assert.equal(gameObj_3.creator, CREATOR_1, "Wrong creator for gameObj_3");
+      assert.equal(gameObj_3.idx, 3, "Wrong idx for gameObj_3");
+      assert.equal(gameObj_3.stake.cmp(new BN("30")), 0, "Wrong stake for gameObj_3");
+      assert.equal(gameObj_3.heads, 2, "Wrong heads for gameObj_3");
+      assert.equal(gameObj_3.tails, 1, "Wrong tails for gameObj_3");
+      assert.equal(0, gameObj_3.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_3"); //  0
+      assert.equal(0, gameObj_3.opponentPrize.cmp(new BN("40")), "Wrong opponentPrize for gameObj_3"); //  30 + 30 / 3 = 40
+
+
+      //  4
+      await game.startGame(testToken.address, 11, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 11, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 11, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 11, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 11, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: OTHER
+      });
+
+      let gameObj_4 = await game.gameInfo.call(testToken.address, 4);
+      assert.equal(gameObj_4.running, false, "Should be true for gameObj_4");
+      assert.equal(gameObj_4.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_4");
+      assert.equal(gameObj_4.creator, CREATOR_1, "Wrong creator for gameObj_4");
+      assert.equal(gameObj_4.idx, 4, "Wrong idx for gameObj_4");
+      assert.equal(gameObj_4.stake.cmp(new BN("11")), 0, "Wrong stake for gameObj_4");
+      assert.equal(gameObj_4.heads, 4, "Wrong heads for gameObj_4");
+      assert.equal(gameObj_4.tails, 0, "Wrong tails for gameObj_4");
+      assert.equal(0, gameObj_4.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_4"); //  0
+      assert.equal(0, gameObj_4.opponentPrize.cmp(new BN("13")), "Wrong opponentPrize for gameObj_4"); //  11 + 11 / 4 = 13
+
+
+      //  5
+      await game.startGame(testToken.address, 40, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      await game.joinGame(testToken.address, 40, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+      await game.joinGame(testToken.address, 40, 2, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 40, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 40, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, {
+        from: OTHER
+      });
+
+      let gameObj_5 = await game.gameInfo.call(testToken.address, 5);
+      assert.equal(gameObj_5.running, false, "Should be true for gameObj_5");
+      assert.equal(gameObj_5.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_5");
+      assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
+      assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
+      assert.equal(gameObj_5.stake.cmp(new BN("40")), 0, "Wrong stake for gameObj_5");
+      assert.equal(gameObj_5.heads, 0, "Wrong heads for gameObj_5");
+      assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
+      assert.equal(0, gameObj_5.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for gameObj_5"); //  0
+      assert.equal(0, gameObj_5.opponentPrize.cmp(new BN("50")), "Wrong opponentPrize for 5"); //  40 + 40 / 4 = 50
+    });
+  });
+
+  describe("withdrawPendingPrizes", function () {
+
+  });
 });
