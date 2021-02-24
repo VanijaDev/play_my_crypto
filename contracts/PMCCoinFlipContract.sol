@@ -106,7 +106,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     } else {
       require(msg.value == 0, "Wrong value");
       require(isTokenSupported[_token], "Wrong token");
-      require(_tokens > 0, "Wrong tokens");
+      require(_tokens >= 100, "Wrong tokens");
       ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
       stakeAmount = _tokens;
     }
@@ -348,7 +348,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
   }
 
-  /**
+  /***
    * @dev Withdraws prize for sender.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
@@ -377,16 +377,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
         feeNumber = feeNumber - 1;
       }
 
-      transferAmount = pendingPrize.div(100).mul((100 - feeNumber));
+      transferAmount = pendingPrize.mul((100 - feeNumber)).div(100);
       msg.sender.transfer(transferAmount);
     } else {
-      feeNumber = (stakingAddr == address(0)) ? FEE_NUMBER_TOKEN - 1 : FEE_NUMBER_TOKEN;
+      feeNumber = (partner == address(0)) ? FEE_NUMBER_TOKEN - 1 : FEE_NUMBER_TOKEN;
 
-      if (partner == address(0)) {
-        feeNumber = feeNumber - 1;
-      }
-
-      transferAmount = pendingPrize.div(100).mul((100 - feeNumber));
+      transferAmount = pendingPrize.mul((100 - feeNumber)).div(100);
       ERC20(_token).transfer(msg.sender, transferAmount);
     }
     
@@ -419,7 +415,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   //  PENDING WITHDRAWAL -->
 
 
-  /**
+  /***
    * @dev Updates staking Smart Contract address. Can be 0x0.
    * @param _address Staking Smart Contract address.
    */
@@ -463,7 +459,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return games[_token][ongoingGameIdx];
   }
 
-  /**
+  /***
    * @dev Gets number of started games.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Number of started games.
@@ -472,7 +468,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return games[_token].length;
   }
 
-  /**
+  /***
    * @dev Gets number of finished games.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Number of finished games.
@@ -573,7 +569,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return playerStakeTotal[_token][msg.sender];
   }
 
-  /**
+  /***
    * @dev Gets player withdraw total amount.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @return Withdrawed total amount.
@@ -582,7 +578,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     return playerWithdrawedTotal[_token][msg.sender];
   }
 
-  /**
+  /***
    * PMCGovernanceCompliant
    */
   function updateGameMinStakeETH(uint256 _gameMinStakeETH) external override onlyGovernance(msg.sender) {
