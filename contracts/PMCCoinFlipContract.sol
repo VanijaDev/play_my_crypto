@@ -389,7 +389,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  fee
     uint256 feeTotal = pendingPrize.sub(transferAmount);
     uint256 singleFee = feeTotal.div(feeNumber);
-    uint256 usedFee = singleFee;
+    uint256 usedFee = singleFee.mul(2);  //  referral + raffle
 
     //  raffle
     addToRaffle(_token, singleFee);

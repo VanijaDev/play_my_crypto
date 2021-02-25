@@ -22,7 +22,7 @@ contract PMCFeeManager is Ownable {
   }
 
   //  partner
-  address partner;
+  address public partner;
   mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH.
   mapping(address => mapping(address => uint256)) public partnerFeeWithdrawn;
   mapping(address => uint256) public partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH.
@@ -41,7 +41,7 @@ contract PMCFeeManager is Ownable {
   uint256 public stakeRewardPoolPending_ETH;
   
   
-  /**
+  /***
    * @notice Can be 0x0.
    * @dev Updates partner address.
    * @param _partner Partner address.
@@ -50,7 +50,7 @@ contract PMCFeeManager is Ownable {
     partner = _partner;
   }
 
-  /**
+  /***
    * @dev Adds fee.
    * @param _type Fee type.
    * @param _token Token address. 0x0 - ETH.
@@ -60,11 +60,13 @@ contract PMCFeeManager is Ownable {
   function addFee(FeeType _type, address _token, uint256 _amount, address _referralAddress) internal {
     if (_amount > 0) {
       if (_type == FeeType.partner) {
-        require(partner != address(0), "No partner");
-        partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
+        if (partner != address(0)) {
+          partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
+        }
       } else if (_type == FeeType.referral) {
-        require(_referralAddress != address(0), "No referral");
-        referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
+        if (_referralAddress != address(0)) {
+          referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
+        }
       } else if (_type == FeeType.dev) {
         devFeePending[_token] = devFeePending[_token].add(_amount);
       } else if (_type == FeeType.stake) {
@@ -76,7 +78,7 @@ contract PMCFeeManager is Ownable {
   }
 
 
-  /**
+  /***
    * @dev Gets partner fee pending of sender.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -85,7 +87,7 @@ contract PMCFeeManager is Ownable {
     return partnerFeePending[_token][msg.sender];
   }
   
-  /**
+  /***
    * @dev Gets partner fee withdrawn of sender.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -94,7 +96,7 @@ contract PMCFeeManager is Ownable {
     return partnerFeeWithdrawn[_token][msg.sender];
   }
   
-  /**
+  /***
    * @dev Gets partner fee withdrawn total.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -104,7 +106,7 @@ contract PMCFeeManager is Ownable {
   }
 
 
-  /**
+  /***
    * @dev Gets referral fee pending of sender.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -113,7 +115,7 @@ contract PMCFeeManager is Ownable {
     return referralFeePending[_token][msg.sender];
   }
   
-  /**
+  /***
    * @dev Gets referral fee withdrawn of sender.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -122,7 +124,7 @@ contract PMCFeeManager is Ownable {
     return referralFeeWithdrawn[_token][msg.sender];
   }
   
-  /**
+  /***
    * @dev Gets referral fee withdrawn total.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -132,7 +134,7 @@ contract PMCFeeManager is Ownable {
   }
 
 
-  /**
+  /***
    * @dev Gets dev fee pending.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -141,7 +143,7 @@ contract PMCFeeManager is Ownable {
     return devFeePending[_token];
   }
   
-  /**
+  /***
    * @dev Gets dev fee withdrawn.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -150,7 +152,7 @@ contract PMCFeeManager is Ownable {
     return devFeeWithdrawn[_token];
   }
   
-  /**
+  /***
    * @dev Gets dev fee withdrawn total.
    * @param _token Token address. if 0x0 - ETH.
    * @return Fee amount.
@@ -159,7 +161,7 @@ contract PMCFeeManager is Ownable {
     return devFeeWithdrawnTotal[_token];
   }
 
-  /**
+  /***
    * @dev Withdraws partner fee.
    * @param _token Token address. if 0x0 - ETH.
    */
@@ -178,7 +180,7 @@ contract PMCFeeManager is Ownable {
     }
   }
   
-  /**
+  /***
    * @dev Withdraws referral fee.
    * @param _token Token address. if 0x0 - ETH.
    */
@@ -197,7 +199,7 @@ contract PMCFeeManager is Ownable {
     }
   }
 
-  /**
+  /***
    * @dev Withdraws dev fee.
    * @param _token Token address. if 0x0 - ETH.
    */
