@@ -16,21 +16,21 @@ abstract contract PMCRaffle is Ownable {
     uint256 prize;
   }
   
-  mapping(address => mapping(address => uint256)) public raffleJackpotPending;  //  token => (address => amount), 0x0 - ETH
-  mapping(address => mapping(address => uint256)) public raffleJackpotWithdrawn;
+  mapping(address => mapping(address => uint256)) private raffleJackpotPending;  //  token => (address => amount), 0x0 - ETH
+  mapping(address => mapping(address => uint256)) private raffleJackpotWithdrawn;
   
-  mapping(address => uint256) public raffleJackpot; //  token => amount, 0x0 - ETH
-  mapping(address => uint256) public raffleJackpotsWonTotal;
+  mapping(address => uint256) private raffleJackpot; //  token => amount, 0x0 - ETH
+  mapping(address => uint256) private raffleJackpotsWonTotal;
 
   mapping(address => address[]) private raffleParticipants; //  token => addresses, 0x0 - ETH
-  mapping(address => RaffleResult[]) public raffleResults;
+  mapping(address => RaffleResult[]) private raffleResults;
 
 
   event CF_RafflePlayed(address indexed token, address indexed winner, uint256 indexed prize);
   event CF_RaffleJackpotWithdrawn(address indexed token, uint256 indexed amount, address indexed winner);
 
 
-  /**
+  /***
    * @dev Adds to current raffle.
    * @param _token Token address.
    * @param _amount Amount.
@@ -42,7 +42,25 @@ abstract contract PMCRaffle is Ownable {
     }
   }
 
-  /**
+  /***
+   * @dev Gets raffle jackpot.
+   * @param _token Token address.
+   * @return Jackpot amount.
+   */
+  function getRaffleJackpot(address _token) external view returns (uint256) {
+    return raffleJackpot[_token];
+  }
+
+  /***
+   * @dev Gets raffle jackpot won total.
+   * @param _token Token address.
+   * @return Jackpot won total amount.
+   */
+  function getRaffleJackpotsWonTotal(address _token) external view returns (uint256) {
+    return raffleJackpotsWonTotal[_token];
+  }
+
+  /***
    * @dev Gets raffle participants.
    * @param _token Token address.
    * @return Participants list.
@@ -51,7 +69,7 @@ abstract contract PMCRaffle is Ownable {
     return raffleParticipants[_token];
   }
 
-  /**
+  /***
    * @dev Gets raffle participants number.
    * @param _token Token address.
    * @return Participants number.
@@ -60,7 +78,7 @@ abstract contract PMCRaffle is Ownable {
     return raffleParticipants[_token].length;
   }
 
-  /**
+  /***
    * @dev Gets raffle results number.
    * @param _token Token address.
    * @return Results number.
@@ -69,7 +87,38 @@ abstract contract PMCRaffle is Ownable {
     return raffleResults[_token].length;
   }
 
-  /**
+  /***
+   * @dev Gets raffle result info.
+   * @param _token Token address.
+   * @param _idx result index.
+   * @return Results number.
+   */
+  function getRaffleResultInfo(address _token, uint256 _idx) external view returns (address winner, uint256 prize) {
+    winner = raffleResults[_token][_idx].winner;
+    prize = raffleResults[_token][_idx].prize;
+  }
+
+  /***
+   * @dev Gets raffle jackpot for ongoing game for address.
+   * @param _token Token address.
+   * @param _address Address.
+   * @return Jackpot amount.
+   */
+  function getRaffleJackpotPending(address _token, address _address) external view returns (uint256) {
+    return raffleJackpotPending[_token][_address];
+  }
+
+  /***
+   * @dev Gets raffle jackpot withdrawn for address.
+   * @param _token Token address.
+   * @param _address Address.
+   * @return Jackpot amount.
+   */
+  function getRaffleJackpotWithdrawn(address _token, address _address) external view returns (uint256) {
+    return raffleJackpotWithdrawn[_token][_address];
+  }
+
+  /***
    * @dev Runs the current raffle.
    * @param _token Token address.
    */
@@ -88,7 +137,7 @@ abstract contract PMCRaffle is Ownable {
     }
   }
 
-  /**
+  /***
    * @dev Generates random number
    * @param _token Token address.
    */
@@ -100,7 +149,7 @@ abstract contract PMCRaffle is Ownable {
     return 0;
   }
 
-  /**
+  /***
    * @dev Withdraw jackpots for all won raffles.
    * @param _token Token address.
    */
