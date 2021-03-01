@@ -7,7 +7,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
- * @notice ETH only
+ * @notice ETH only. 
+ * User, who has PMCt stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
  */
 contract PMCStaking is Ownable, PMC_IStaking {
   using SafeMath for uint256;
@@ -29,7 +30,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
 
   mapping(address => bool) public gameplaySupported;
   
-  /**
+  /***
    * @dev Constructor.
    * @param _pmct PMCt token address.
    * @param _gameplay Gameplay address.
@@ -42,7 +43,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     gameplaySupported[_gameplay] = true;
   }
 
-  /**
+  /***
    * @dev Adds gameplay to accept replenish from.
    * @param _gameplay Gameplay address.
    */
@@ -52,7 +53,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     gameplaySupported[_gameplay] = true;
   }
 
-  /**
+  /***
    * @dev Removes gameplay to accept replenish from.
    * @param _gameplay Gameplay address.
    */
@@ -62,7 +63,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     delete gameplaySupported[_gameplay];
   }
 
-  /**
+  /***
    * @dev Adds ETH to reward pool.
    */
   function replenishRewardPool() override external payable {
@@ -84,7 +85,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
       if (tokensStaked == 0) {
         incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes;
       } else {
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = incomes.length;
+        incomeIdxToStartCalculatingRewardOf[msg.sender] = getIncomeCount();
       }
     } else {
       uint256 reward;
@@ -114,7 +115,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     tokensStaked = tokensStaked.sub(tokens);
 
     if (tokensStaked == 0) {
-      incomeIdxToStartCalculatingRewardIfNoStakes = incomes.length;
+      incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount();
     }
     
     ERC20(pmctAddr).transfer(msg.sender, tokens);
@@ -144,7 +145,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
-    uint256 incomesLength = incomes.length;
+    uint256 incomesLength = getIncomeCount();
     if (incomesLength > 0) {
       if (stakeOf[msg.sender] > 0) {
         uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
@@ -162,5 +163,24 @@ contract PMCStaking is Ownable, PMC_IStaking {
         }
       }
     }
+  }
+
+  /***
+   * @dev Gets income count.
+   * @return Income count.
+   */
+  function getIncomeCount() public view returns (uint256) {
+    return incomes.length;
+  }
+
+  /***
+   * @dev Gets income info.
+   * @param _idx Index.
+   * @return income Income amount replenished.
+   * @return tokensStakedAmount Tokens staked when replenished.
+   */
+  function getIncomeInfo(uint256 _idx) public view returns (uint256 income, uint256 tokensStakedAmount) {
+    income = incomes[_idx].income;
+    tokensStakedAmount = incomes[_idx].tokensStaked;
   }
 }
