@@ -44,8 +44,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   address public pmctAddr;
   address public stakingAddr;
 
-  mapping(address => uint256) public amountToAddToNextStake;  // token => amount, 0x0 - ETH. Previous game was timeout, no opponents joined, finished by not creator. Amount will be added to next stake for game.
-
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH.
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
   mapping(address => mapping(address => uint256)) private playerWithdrawedTotal;   //  token => (player => amount)
@@ -90,38 +88,40 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _coinSideHash Hashed coin side.
    * @param _referral Referral address.
    */
-  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) public payable {
-    uint256 stakeAmount = msg.value;
+  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
+    uint256 stake = msg.value;
 
-    if (_isEth(_token)) {
-      if (msg.value == 0) {
-        Game storage lastGame = _lastStartedGame(_token);
-        require(lastGame.startTime.add(gameMaxDuration) < block.timestamp, "Last game running");
-        require(msg.sender == lastGame.creator, "Not last game creator");
-
-        stakeAmount = lastGame.stake;
-      } else {
-        require(msg.value >= gameMinStakeETH, "Wrong ETH stake");
-      }
-    } else {
+    if (!_isEth(_token)) {
       require(msg.value == 0, "Wrong value");
+      stake = _tokens;
+    }
+
+    _startGame(_token, stake, _coinSideHash, _referral);
+  }
+
+  /***
+   * @dev Starts game with extraStake param. 
+   * @param _token ERC20 token address. 0x0 - ETH.
+   * @param _stake Stake amount.
+   * @param _coinSideHash Hashed coin side.
+   * @param _referral Referral address.
+   */
+  function _startGame(address _token, uint256 _stake, bytes32 _coinSideHash, address _referral) private {
+    if (_isEth(_token)) {
+      require(_stake >= gameMinStakeETH, "Wrong ETH stake");
+    } else {
       require(isTokenSupported[_token], "Wrong token");
-      require(_tokens >= 100, "Wrong tokens");
-      ERC20(_token).transferFrom(msg.sender, address(this), _tokens);
-      stakeAmount = _tokens;
+      require(_stake >= 100, "Wrong tokens");
+      ERC20(_token).transferFrom(msg.sender, address(this), _stake);
     }
 
     require(_coinSideHash[0] != 0, "Empty hash");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
 
-    _increaseStakes(_token, stakeAmount);
+    _increaseStakes(_token, _stake);
 
     uint256 nextIdx = gamesStarted(_token);
-    if (amountToAddToNextStake[_token] > 0) {
-      stakeAmount = stakeAmount.add(amountToAddToNextStake[_token]);
-      delete amountToAddToNextStake[_token];
-    }
-    Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, stakeAmount, block.timestamp, 0, 0, 0, 0);
+    Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, _stake, block.timestamp, 0, 0, 0, 0);
     games[_token].push(game);
     
     referralInGame[_token][nextIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
@@ -222,9 +222,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @dev Finishes game on timeout.
    * @param _token ERC20 token address. 0x0 - ETH.
    */
-  function finishTimeoutGame(address _token) external onlyWhileRunningGame(_token) {
-    Game storage game = _lastStartedGame(_token);
+  function finishTimeoutGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable onlyWhileRunningGame(_token) {
+    uint256 stake = msg.value;
 
+    if (!_isEth(_token)) {
+      require(msg.value == 0, "Wrong value");
+      stake = _tokens;
+    }
+    
+    Game storage game = _lastStartedGame(_token);
     require(game.startTime.add(gameMaxDuration) < block.timestamp, "Still running");
 
     delete game.running;
@@ -233,17 +239,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
       uint256 opponentReward = game.stake.div(opponents);
       game.opponentPrize = game.stake.add(opponentReward);
     } else {
-      if (msg.sender == game.creator) {
-        startGame(_token, game.stake, game.creatorCoinSide, referralInGame[_token][game.idx][msg.sender]); //  creator only in game -> start new game with same properties
-      } else {
-        amountToAddToNextStake[_token] = amountToAddToNextStake[_token].add(game.stake);
-      }
+      stake = stake.add(game.stake);
     }
 
     updateGameMinStakeETHIfNeeded();
     updateGameMaxDurationIfNeeded();
 
     emit CF_GameFinished(_token, game.idx, true);
+
+    _startGame(_token, stake, _coinSideHash, _referral);
   }
 
   //  GAMEPLAY -->

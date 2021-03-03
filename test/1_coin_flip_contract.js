@@ -70,7 +70,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe("startGame for ETH stake", function () {
+  describe.only("startGame for ETH stake", function () {
     it("should fail if Wrong ETH stake", async function () {
       await expectRevert(game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         value: BET_ETH_LESS_MIN
