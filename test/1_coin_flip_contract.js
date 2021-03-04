@@ -4437,7 +4437,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("withdrawPendingPrizes ETH & Token combined, _maxLoop = 0", function () {
+  describe("withdrawPendingPrizes ETH & Token combined, _maxLoop = 0", function () {
     let testToken;
 
     beforeEach("setup Token", async function () {
@@ -4473,7 +4473,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       await game.updateGameAddTokenSupported(testToken.address);
     });
 
-    it.only("should fail if No prize", async function () {
+    it("should fail if No prize", async function () {
       await expectRevert(game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0), "No prize");
       await expectRevert(game.withdrawPendingPrizes(testToken.address, 0), "No prize");
     });
@@ -4641,8 +4641,8 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: OPPONENT_3
       });
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
       //  CREATOR_0: 0
       //  OPPONENT_0: 100 + 100 / 4 = 125 Tokens
@@ -4652,10 +4652,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  3 - Token
-      await game.startGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 300, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4971,8 +4967,9 @@ contract("PMCCoinFlipContract", function (accounts) {
         value: BET_ETH_0
       });
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
       });
       //  CREATOR_0: 0
       //  OPPONENT_0: 0.11 + 0.11 / 4 = 0.1375
@@ -4981,11 +4978,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  OPPONENT_3: 0.11 + 0.11 / 4 = 0.1375
 
       //  6.1 - ETH
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0,
-        value: BET_ETH_1
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_1
@@ -5189,8 +5181,9 @@ contract("PMCCoinFlipContract", function (accounts) {
         value: BET_ETH_1
       });
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
       });
       //  CREATOR_1: 0
       //  OPPONENT_0: 0.12 + 0.12 / 3 = 0.16
@@ -5199,11 +5192,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  8 - ETH
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0,
-        value: BET_ETH_0
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_0
@@ -5908,7 +5896,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
       let CREATOR_0_balance_after_0 = await balance.current(CREATOR_0, "wei");
       assert.equal(0, CREATOR_0_balance_before_0.add(ether("0.1584")).sub(gasSpent).cmp(CREATOR_0_balance_after_0), "Wrong CREATOR_0_balance_after_0"); //  0.11 + 0.11 / 2 = 0.165 * 0.96 = 0.1584
-
     });
 
     it("should withdraw correct amount if no partner", async function () {
@@ -6252,16 +6239,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(1)), "should be 1");
-
-      //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
 
+      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(1)), "should be 1");
+
+      //  1
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_1.add(BET_ETH_0)
@@ -6301,15 +6286,13 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      await game.finishTimeoutGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
 
       assert.equal(0, (await game.gamesFinished.call(testToken.address)).cmp(new BN(1)), "should be 1");
 
       //  1
-      await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 200, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
