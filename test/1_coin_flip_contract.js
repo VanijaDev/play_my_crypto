@@ -70,7 +70,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe.only("startGame for ETH stake", function () {
+  describe("startGame for ETH stake", function () {
     it("should fail if Wrong ETH stake", async function () {
       await expectRevert(game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         value: BET_ETH_LESS_MIN
@@ -94,42 +94,20 @@ contract("PMCCoinFlipContract", function (accounts) {
       }), "Game is running");
     });
 
-    it("should increase stakeAmount if prev game was finished & amountToAddToNextStake[ETH] > 0", async function () {
+    it("should increase stakeAmount if prev game was finished", async function () {
       //  0
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
         value: BET_ETH_0
       });
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(BET_ETH_0), 0, "wrong amountToAddToNextStake after finish timeout game");
 
       //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
       assert.equal((new BN((await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).stake)).cmp(BET_ETH_0.add(BET_ETH_1)), 0, "wrong stake after game started");
-    });
-
-    it("should delete amountToAddToNextStake[ETH] if it was used", async function () {
-      //  0
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0,
-        value: BET_ETH_0
-      });
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(BET_ETH_0), 0, "wrong amountToAddToNextStake after finish timeout game");
-
-      //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: BET_ETH_1
-      });
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake after game started");
     });
 
     it("should push Game with correct params", async function () {
@@ -166,11 +144,10 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_0.creatorPrize, 0, "Wrong creatorPrize for gameObj_0");
       assert.equal(gameObj_0.opponentPrize, 0, "Wrong opponentPrize for gameObj_0");
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
       //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
@@ -241,12 +218,12 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal((new BN(await game.getPlayerStakeTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_0
       })).cmp(new BN("0"))), 0, "wrong playerStakeTotal[ETH] before 0");
+
       assert.equal((new BN(await game.betsTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_0
       })).cmp(new BN("0"))), 0, "wrong betsTotal[ETH] before 0");
 
       //  0
-      assert.equal((await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
         value: BET_ETH_0
@@ -254,15 +231,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal((new BN(await game.getPlayerStakeTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_0
       })).cmp(BET_ETH_0)), 0, "wrong playerStakeTotal[ETH] after 0");
+
       assert.equal((new BN(await game.betsTotal.call(constants.ZERO_ADDRESS, {
         from: CREATOR_0
       })).cmp(BET_ETH_0)), 0, "wrong betsTotal[ETH] after 0");
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
       //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
@@ -356,38 +332,18 @@ contract("PMCCoinFlipContract", function (accounts) {
       }), "Game is running");
     });
 
-    it("should increase stakeAmount if prev game was finished & amountToAddToNextStake[Token] > 0", async function () {
+    it("should increase stakeAmount if prev game was finished on timeout", async function () {
       //  0
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
       await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("100")), 0, "wrong amountToAddToNextStake after finish timeout game");
 
       //  1
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-      assert.equal((new BN((await game.gameInfo.call(testToken.address, 1)).stake)).cmp((new BN("100")).add(new BN("200"))), 0, "wrong stake after game started");
-    });
-
-    it("should delete amountToAddToNextStake[Token] if it was used", async function () {
-      //  0
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
-      await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0
-      });
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("100")), 0, "wrong amountToAddToNextStake after finish timeout game");
-
-      //  1
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1
       });
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake after game started");
+      assert.equal((new BN((await game.gameInfo.call(testToken.address, 1)).stake)).cmp((new BN("300"))), 0, "wrong stake after game started");
     });
 
     it("should push Game with correct params", async function () {
@@ -423,11 +379,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_0.creatorPrize, 0, "Wrong creatorPrize for gameObj_0");
       assert.equal(gameObj_0.opponentPrize, 0, "Wrong opponentPrize for gameObj_0");
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-
       //  1
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_1, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1
       });
       let startAt_1 = await time.latest();
@@ -452,7 +406,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_1.creatorCoinSide, creatorHash, "Wrong creatorCoinSide for gameObj_1");
       assert.equal(gameObj_1.creator, CREATOR_1, "Wrong creator for gameObj_1");
       assert.equal(gameObj_1.idx.cmp(new BN("1")), 0, "Wrong idx for gameObj_1");
-      assert.equal(gameObj_1.stake.cmp((new BN("100")).add(new BN("200"))), 0, "Wrong stake for gameObj_1");
+      assert.equal(gameObj_1.stake.cmp((new BN("300"))), 0, "Wrong stake for gameObj_1");
       assert.equal(gameObj_1.startTime.cmp(startAt_1), 0, "Wrong startTime for gameObj_1");
       assert.equal(gameObj_1.heads, 0, "Wrong heads for gameObj_1");
       assert.equal(gameObj_1.tails, 0, "Wrong tails for gameObj_1");
@@ -499,7 +453,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       })).cmp(new BN("0"))), 0, "wrong betsTotal[Token] before 0");
 
       //  0
-      assert.equal((await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("0")), 0, "wrong amountToAddToNextStake before");
       await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
@@ -510,11 +463,9 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_0
       })).cmp(new BN("100"))), 0, "wrong betsTotal[Token] after 0");
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-
       //  1
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1
       });
       assert.equal(((await game.getPlayerStakeTotal.call(testToken.address, {
@@ -525,7 +476,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       })).cmp(new BN("200"))), 0, "wrong playerStakeTotal[Token] after 1, CREATOR_1");
       assert.equal((new BN(await game.betsTotal.call(testToken.address, {
         from: CREATOR_0
-      })).cmp((new BN("100")).add(new BN("200")))), 0, "wrong betsTotal[Token] after 1");
+      })).cmp(new BN("300"))), 0, "wrong betsTotal[Token] after 1");
     });
 
     it("should emit CF_GameStarted with correct params", async function () {
@@ -561,8 +512,13 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail if No running games", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      })
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await expectRevert(game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
@@ -629,24 +585,15 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should increase tails if CoinSide.tails", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-      await time.increase(time.duration.seconds(2));
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: BET_ETH_1
-      })
-
-      let gameInfo_before = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      let gameInfo_before = await game.gameInfo.call(constants.ZERO_ADDRESS, 0);
       assert.equal(gameInfo_before.tails.cmp(new BN("0")), 0, "Wrong tails before");
 
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
-        value: BET_ETH_0.add(BET_ETH_1)
+        value: BET_ETH_0
       });
 
-      let gameInfo_after = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
+      let gameInfo_after = await game.gameInfo.call(constants.ZERO_ADDRESS, 0);
       assert.equal(gameInfo_after.tails.cmp(new BN("1")), 0, "Wrong tails after");
     });
 
@@ -672,13 +619,10 @@ contract("PMCCoinFlipContract", function (accounts) {
 
       //  1
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-      await time.increase(time.duration.seconds(2));
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
-      })
+      });
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, constants.ZERO_ADDRESS, {
         from: OPPONENT_0,
         value: BET_ETH_1
@@ -726,11 +670,10 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_0
       })).cmp(BET_ETH_0.mul(new BN("2")))), 0, "wrong betsTotal[Token] after 0");
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
 
       //  1
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
@@ -803,8 +746,13 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail if No running games", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      await time.increase(time.duration.hours(2));
+      game.joinGame(testToken.address, 100, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      })
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await expectRevert(game.joinGame(testToken.address, 100, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
@@ -924,23 +872,30 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal((new BN(await game.betsTotal.call(testToken.address, {
         from: CREATOR_0
       })).cmp(new BN("200"))), 0, "wrong betsTotal[Token] after 0");
-
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      assert.equal(((await game.getPlayerStakeTotal.call(testToken.address, {
+        from: OPPONENT_0
+      })).cmp(new BN("100"))), 0, "wrong playerStakeTotal[Token] after 0, OPPONENT_0");
 
       //  1
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1
       });
       await game.joinGame(testToken.address, 200, 1, constants.ZERO_ADDRESS, {
         from: OPPONENT_0
       });
+      await game.joinGame(testToken.address, 200, 1, constants.ZERO_ADDRESS, {
+        from: OPPONENT_1
+      });
       assert.equal(((await game.getPlayerStakeTotal.call(testToken.address, {
         from: OPPONENT_0
       })).cmp(new BN("300"))), 0, "wrong playerStakeTotal[Token] after 1, OPPONENT_0");
+      assert.equal(((await game.getPlayerStakeTotal.call(testToken.address, {
+        from: OPPONENT_1
+      })).cmp(new BN("200"))), 0, "wrong playerStakeTotal[Token] after 1, OPPONENT_1");
       assert.equal((new BN(await game.betsTotal.call(testToken.address, {
         from: CREATOR_0
-      })).cmp((new BN("600")))), 0, "wrong betsTotal[Token] after 1");
+      })).cmp((new BN("800")))), 0, "wrong betsTotal[Token] after 1");
     });
 
     it("should emit CF_GameJoined", async function () {
@@ -977,8 +932,9 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail if No running games", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await expectRevert(game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
@@ -1006,8 +962,9 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail if No opponents", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1,
@@ -1017,6 +974,16 @@ contract("PMCCoinFlipContract", function (accounts) {
       await expectRevert(game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
       }), "No opponents");
+    });
+
+    it("should delete game.running", async function () {
+      game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      let gameInfo = await game.gameInfo(constants.ZERO_ADDRESS, 0);
+      assert.isFalse(gameInfo.running, "should be false");
+
     });
 
     it("should set game.creatorCoinSide", async function () {
@@ -1045,12 +1012,13 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should increase tails if CoinSide.tails", async function () {
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_1, {
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
-      })
+      });
+
+      await time.increase(time.duration.minutes(2));
+
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_1, {
         from: OPPONENT_1,
         value: BET_ETH_1
@@ -1127,6 +1095,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
       });
+      await time.increase(time.duration.minutes(2));
 
       //  start new game
       await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(CREATOR_COIN_SIDE, CREATOR_SEED_HASH), CREATOR_REFERRAL_1, {
@@ -1295,7 +1264,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(1, (await balance.current(staking.address, "wei")).cmp(ether("0")), "should be > 0 eth after");
     });
 
-    it("should replenishRewardPool if (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH == 0), check balance", async function () {
+    it("should not replenishRewardPool if (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH == 0), check balance", async function () {
       await time.increase(time.duration.minutes(2));
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
@@ -1336,7 +1305,7 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: CREATOR_1
       });
 
-      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0")), "should be > 0 eth after");
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0")), "should be == 0 eth after");
     });
 
     it("should updateGameMinStakeETHIfNeeded", async function () {
@@ -1434,13 +1403,15 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail if No running games", async function () {
+      //  eth
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await expectRevert(game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
@@ -1469,11 +1440,9 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should fail if No opponents", async function () {
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-
-      await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_1, {
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1
-      })
+      });
 
       await expectRevert(game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
@@ -1518,11 +1487,10 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should increase tails if CoinSide.tails", async function () {
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-
-      await game.startGame(testToken.address, 100, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_1, {
+      await game.finishTimeoutGame(testToken.address, 100, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_1, {
         from: CREATOR_1
-      })
+      });
+
       await game.joinGame(testToken.address, 100, 2, OPPONENT_REFERRAL_1, {
         from: OPPONENT_1
       });
@@ -1663,7 +1631,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
       let gameInfo_after = await game.gameInfo.call(testToken.address, 1);
       //  200 + 200 / 3 = 266
-      assert.equal(0, (gameInfo_after.opponentPrize).cmp(new BN("266")), "Wrong opponentPrize after, should be 26");
+      assert.equal(0, (gameInfo_after.opponentPrize).cmp(new BN("266")), "Wrong opponentPrize after, should be 266");
     });
 
     it("should run raffle, emit event", async function () {
@@ -1852,26 +1820,54 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail No running games", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, {
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
+      });
+
+      await time.increase(time.duration.days(2));
+
+      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
       }), "No running games");
     });
 
     it("should fail if Still running", async function () {
-      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await expectRevert(game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
       }), "Still running");
+    });
+
+    it("should increase playerStakeTotal[ETH], betsTotal[ETH]", async function () {
+      assert.equal((new BN(await game.getPlayerStakeTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(new BN("0"))), 0, "wrong playerStakeTotal[ETH] before");
+      assert.equal((new BN(await game.betsTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      })).cmp(BET_ETH_0.mul(new BN("2")))), 0, "wrong betsTotal[ETH] before");
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      assert.equal((new BN(await game.getPlayerStakeTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_1
+      })).cmp(BET_ETH_1)), 0, "wrong playerStakeTotal[ETH] after");
+      assert.equal((new BN(await game.betsTotal.call(constants.ZERO_ADDRESS, {
+        from: CREATOR_0
+      })).cmp(BET_ETH_0.mul(new BN("2")).add(BET_ETH_1))), 0, "wrong betsTotal[ETH] after");
     });
 
     it("should delete game.running", async function () {
       await time.increase(time.duration.days(2));
 
       assert.isTrue((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be true before");
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
       });
       assert.isFalse((await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).running, "should be false after");
     });
@@ -1880,8 +1876,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
 
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
       });
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.22")), "should be BET_ETH_0 * 2 after");
     });
@@ -1904,8 +1901,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
 
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
       });
       //  ether("0.11") + ether("0.11") / 4 = 0.1375
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 0)).opponentPrize.cmp(ether("0.1375")), "should be 0.1375 eth after");
@@ -1913,34 +1911,33 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should set opponentPrize == 0 if (opponents == 0)", async function () {
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
 
       await time.increase(time.duration.days(2));
-
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
       assert.equal(0, (await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).opponentPrize.cmp(new BN("0")), "should be 0 after");
     });
 
-    it("should start new game with correct params if (opponents == 0) and (msg.sender == game.creator)", async function () {
+    it("should start new game with correct params", async function () {
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
-        from: CREATOR_1,
-        value: BET_ETH_1
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
       });
 
       await time.increase(time.duration.days(2));
       assert.equal(0, (await game.gamesStarted.call(constants.ZERO_ADDRESS)).cmp(new BN("2")), "should be 2 before");
       let startAt = await time.latest();
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_1
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: ether("0.123")
       });
       await time.increase(time.duration.minutes(2));
 
@@ -1951,31 +1948,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(lastGameInfo.running, false, "Should be false for lastGameInfo");
       assert.equal(newGameInfo.running, true, "Should be true for newGameInfo");
       assert.equal(newGameInfo.creatorCoinSide, lastGameInfo.creatorCoinSide, "Wrong creatorCoinSide for newGameInfo");
-      assert.equal(newGameInfo.creator, lastGameInfo.creator, "Wrong creator for newGameInfo");
+      assert.equal(newGameInfo.creator, CREATOR_1, "Wrong creator for newGameInfo");
       assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
-      assert.equal(0, newGameInfo.stake.cmp(lastGameInfo.stake), "Wrong stake for newGameInfo");
+      assert.equal(0, newGameInfo.stake.cmp(ether("0.123").add(BET_ETH_0)), "Wrong stake for newGameInfo");
       assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
       assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
       assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
       assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
       assert.equal(0, newGameInfo.opponentPrize.cmp(new BN("0")), "Wrong opponentPrize for newGameInfo");
-    });
-
-    it("should increase amountToAddToNextStake if (opponents == 0) and (msg.sender != game.creator)", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS);
-
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
-        from: CREATOR_1,
-        value: BET_ETH_1
-      });
-
-      await time.increase(time.duration.days(2));
-      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
-      });
-      assert.equal(0, (await game.amountToAddToNextStake.call(constants.ZERO_ADDRESS)).cmp((await game.gameInfo.call(constants.ZERO_ADDRESS, 1)).stake), "should be BET_ETH_0 after");
     });
 
     it("should updateGameMinStakeETHIfNeeded", async function () {
@@ -1988,8 +1968,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.gameMinStakeETH.call()).cmp(BET_ETH_MIN), "Wrong gameMinStakeETH before");
       //  finish
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OTHER,
+        value: ether("0.15")
       });
       assert.equal(0, (await game.gameMinStakeETH.call()).cmp(ether("0.15")), "Wrong gameMinStakeETH after");
     });
@@ -2004,8 +1985,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(1)), "Wrong gameMaxDuration before");
       //  finish
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OPPONENT_3
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OTHER,
+        value: BET_ETH_0
       });
       assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(2)), "Wrong gameMaxDuration after");
     });
@@ -2014,8 +1996,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
       const {
         logs
-      } = await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OPPONENT_3
+      } = await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OTHER,
+        value: BET_ETH_0
       });
       await expectEvent.inLogs(logs, 'CF_GameFinished', {
         token: constants.ZERO_ADDRESS,
@@ -2081,25 +2064,50 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should fail No running games", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
-      await expectRevert(game.finishTimeoutGame(testToken.address, {
+      await expectRevert(game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       }), "No running games");
     });
 
     it("should fail if Still running", async function () {
-      await expectRevert(game.finishTimeoutGame(testToken.address, {
+      await expectRevert(game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       }), "Still running");
+    });
+
+    it("should increase playerStakeTotal[testToken.address], betsTotal[testToken.address]", async function () {
+      assert.equal((new BN(await game.getPlayerStakeTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(new BN("0"))), 0, "wrong playerStakeTotal[testToken.address] before");
+      assert.equal((new BN(await game.betsTotal.call(testToken.address, {
+        from: CREATOR_0
+      })).cmp(new BN("200"))), 0, "wrong betsTotal[testToken.address] before");
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      })
+
+      assert.equal((new BN(await game.getPlayerStakeTotal.call(testToken.address, {
+        from: CREATOR_0
+      })).cmp(new BN("100"))), 0, "wrong playerStakeTotal[testToken.address] CREATOR_0 after");
+      assert.equal((new BN(await game.getPlayerStakeTotal.call(testToken.address, {
+        from: CREATOR_1
+      })).cmp(new BN("200"))), 0, "wrong playerStakeTotal[testToken.address] CREATOR_1 after");
+      assert.equal((new BN(await game.betsTotal.call(testToken.address, {
+        from: CREATOR_0
+      })).cmp(new BN("400"))), 0, "wrong betsTotal[testToken.address] after");
     });
 
     it("should delete game.running", async function () {
       await time.increase(time.duration.days(2));
 
       assert.isTrue((await game.gameInfo.call(testToken.address, 0)).running, "should be true before");
-      await game.finishTimeoutGame(testToken.address, {
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
       assert.isFalse((await game.gameInfo.call(testToken.address, 0)).running, "should be false after");
@@ -2109,7 +2117,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
 
       assert.equal(0, (await game.gameInfo.call(testToken.address, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(testToken.address, {
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await game.gameInfo.call(testToken.address, 0)).opponentPrize.cmp(new BN("200")), "should be 200 after");
@@ -2130,7 +2138,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
 
       assert.equal(0, (await game.gameInfo.call(testToken.address, 0)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(testToken.address, {
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
       //  100 + 100 / 4 = 125
@@ -2138,8 +2146,9 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
 
     it("should set opponentPrize == 0 if (opponents == 0)", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1
@@ -2148,13 +2157,16 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
 
       assert.equal(0, (await game.gameInfo.call(testToken.address, 1)).opponentPrize.cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(testToken.address);
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
       assert.equal(0, (await game.gameInfo.call(testToken.address, 1)).opponentPrize.cmp(new BN("0")), "should be 0 after");
     });
 
     it("should start new game with correct params if (opponents == 0) and (msg.sender == game.creator)", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
+      await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
 
       await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1
@@ -2163,8 +2175,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
       assert.equal(0, (await game.gamesStarted.call(testToken.address)).cmp(new BN("2")), "should be 2 before");
       let startAt = await time.latest();
-      await game.finishTimeoutGame(testToken.address, {
-        from: CREATOR_1
+      await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
       });
       await time.increase(time.duration.minutes(2));
 
@@ -2175,31 +2187,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(lastGameInfo.running, false, "Should be false for lastGameInfo");
       assert.equal(newGameInfo.running, true, "Should be true for newGameInfo");
       assert.equal(newGameInfo.creatorCoinSide, lastGameInfo.creatorCoinSide, "Wrong creatorCoinSide for newGameInfo");
-      assert.equal(newGameInfo.creator, lastGameInfo.creator, "Wrong creator for newGameInfo");
+      assert.equal(newGameInfo.creator, CREATOR_0, "Wrong creator for newGameInfo");
       assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
-      assert.equal(0, newGameInfo.stake.cmp(lastGameInfo.stake), "Wrong stake for newGameInfo");
+      assert.equal(0, newGameInfo.stake.cmp(new BN("400")), "Wrong stake for newGameInfo");
       assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
       assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
       assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
       assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
       assert.equal(0, newGameInfo.opponentPrize.cmp(new BN("0")), "Wrong opponentPrize for newGameInfo");
-    });
-
-    it("should increase amountToAddToNextStake if (opponents == 0) and (msg.sender != game.creator)", async function () {
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address);
-
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_1, {
-        from: CREATOR_1
-      });
-
-      await time.increase(time.duration.days(2));
-      assert.equal(0, (await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("0")), "should be 0 before");
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
-      });
-      assert.equal(0, (await game.amountToAddToNextStake.call(testToken.address)).cmp((await game.gameInfo.call(testToken.address, 1)).stake), "should be 200 after");
-      assert.equal(0, (await game.amountToAddToNextStake.call(testToken.address)).cmp(new BN("200")), "should be 200 after");
     });
 
     it("should updateGameMinStakeETHIfNeeded", async function () {
@@ -2212,8 +2207,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.gameMinStakeETH.call()).cmp(BET_ETH_MIN), "Wrong gameMinStakeETH before");
       //  finish
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
       });
       assert.equal(0, (await game.gameMinStakeETH.call()).cmp(ether("0.25")), "Wrong gameMinStakeETH after");
     });
@@ -2228,8 +2223,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(1)), "Wrong gameMaxDuration before");
       //  finish
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OPPONENT_3
+      await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
       });
       assert.equal(0, (await game.gameMaxDuration.call()).cmp(time.duration.days(3)), "Wrong gameMaxDuration after");
     });
@@ -2238,8 +2233,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       await time.increase(time.duration.days(2));
       const {
         logs
-      } = await game.finishTimeoutGame(testToken.address, {
-        from: OPPONENT_3
+      } = await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
       });
       await expectEvent.inLogs(logs, 'CF_GameFinished', {
         token: testToken.address,
@@ -2726,8 +2721,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.2")
       });
 
       //  eth
@@ -2781,13 +2777,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
 
 
-      //  7 CREATOR_0 as opponent
-      let startAt_7 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: ether("0.2")
-      });
-
+      //  join
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: CREATOR_0,
         value: ether("0.2")
@@ -3382,8 +3372,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       //  testToken
@@ -3438,11 +3428,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  7 CREATOR_0 as opponent
-      let startAt_7 = await time.latest();
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 200, 1, OPPONENT_REFERRAL_0, {
         from: CREATOR_0
       });
@@ -4042,8 +4027,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
       });
 
       let gameObj_0 = await game.gameInfo.call(constants.ZERO_ADDRESS, 0);
@@ -4059,12 +4045,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_0.opponentPrize.cmp(ether("0.165")), "Wrong opponentPrize for gameObj_0"); //  0.11 + 0.11 / 2 = 0.165 
 
       //  1
-      let startAt_1 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: BET_ETH_1
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_1
@@ -4083,8 +4063,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
       });
 
       let gameObj_1 = await game.gameInfo.call(constants.ZERO_ADDRESS, 1);
@@ -4100,12 +4081,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_1.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_1"); //  0.12 + 0.12 / 4 = 0.15
 
       //  2
-      let startAt_2 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0,
-        value: BET_ETH_1
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_1
@@ -4124,8 +4099,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
       });
 
       let gameObj_2 = await game.gameInfo.call(constants.ZERO_ADDRESS, 2);
@@ -4141,12 +4117,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_2.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_2"); //  0.12 + 0.12 / 4 = 0.15
 
       //  3
-      let startAt_3 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: BET_ETH_1
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_1
@@ -4161,8 +4131,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: ether("0.123")
       });
 
       let gameObj_3 = await game.gameInfo.call(constants.ZERO_ADDRESS, 3);
@@ -4178,12 +4149,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_3.opponentPrize.cmp(ether("0.16")), "Wrong opponentPrize for gameObj_3"); //  0.12 + 0.12 / 3 = 0.16
 
       //  4
-      let startAt_4 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: ether("0.123")
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: ether("0.123")
@@ -4202,8 +4167,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
       });
 
       let gameObj_4 = await game.gameInfo.call(constants.ZERO_ADDRESS, 4);
@@ -4219,12 +4185,6 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, gameObj_4.opponentPrize.cmp(ether("0.15375")), "Wrong opponentPrize for gameObj_4"); //  0.123 + 0.123 / 4 = 0.15375
 
       //  5
-      let startAt_5 = await time.latest();
-      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1,
-        value: BET_ETH_0
-      });
-
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
         value: BET_ETH_0
@@ -4243,8 +4203,9 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, {
-        from: OTHER
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OTHER,
+        value: BET_ETH_0
       });
 
       let gameObj_5 = await game.gameInfo.call(constants.ZERO_ADDRESS, 5);
@@ -4307,8 +4268,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 100, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       let gameObj_0 = await game.gameInfo.call(testToken.address, 0);
@@ -4324,10 +4285,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  1
-      await game.startGame(testToken.address, 100, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 100, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4342,8 +4299,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
       });
 
       let gameObj_1 = await game.gameInfo.call(testToken.address, 1);
@@ -4359,10 +4316,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  2
-      await game.startGame(testToken.address, 200, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_0
-      });
-
       await game.joinGame(testToken.address, 200, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4377,8 +4330,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       let gameObj_2 = await game.gameInfo.call(testToken.address, 2);
@@ -4394,10 +4347,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  3
-      await game.startGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 300, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4409,8 +4358,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: CREATOR_0
+      await game.finishTimeoutGame(testToken.address, 110, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       let gameObj_3 = await game.gameInfo.call(testToken.address, 3);
@@ -4426,10 +4375,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  4
-      await game.startGame(testToken.address, 110, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 110, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4444,8 +4389,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 400, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       let gameObj_4 = await game.gameInfo.call(testToken.address, 4);
@@ -4461,10 +4406,6 @@ contract("PMCCoinFlipContract", function (accounts) {
 
 
       //  5
-      await game.startGame(testToken.address, 400, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
       await game.joinGame(testToken.address, 400, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
@@ -4479,8 +4420,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, {
-        from: OTHER
+      await game.finishTimeoutGame(testToken.address, 400, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
       });
 
       let gameObj_5 = await game.gameInfo.call(testToken.address, 5);
@@ -4496,7 +4437,7 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
-  describe("withdrawPendingPrizes ETH & Token combined, _maxLoop = 0", function () {
+  describe.only("withdrawPendingPrizes ETH & Token combined, _maxLoop = 0", function () {
     let testToken;
 
     beforeEach("setup Token", async function () {
@@ -4532,7 +4473,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       await game.updateGameAddTokenSupported(testToken.address);
     });
 
-    it("should fail if No prize", async function () {
+    it.only("should fail if No prize", async function () {
       await expectRevert(game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0), "No prize");
       await expectRevert(game.withdrawPendingPrizes(testToken.address, 0), "No prize");
     });

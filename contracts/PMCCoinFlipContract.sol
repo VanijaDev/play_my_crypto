@@ -97,6 +97,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     }
 
     _startGame(_token, stake, _coinSideHash, _referral);
+    _increaseStakes(_token, stake);
   }
 
   /***
@@ -117,8 +118,6 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
     require(_coinSideHash[0] != 0, "Empty hash");
     require(gamesStarted(_token) == gamesFinished(_token), "Game is running");
-
-    _increaseStakes(_token, _stake);
 
     uint256 nextIdx = gamesStarted(_token);
     Game memory game = Game(true, _coinSideHash, msg.sender, nextIdx, _stake, block.timestamp, 0, 0, 0, 0);
@@ -233,6 +232,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     Game storage game = _lastStartedGame(_token);
     require(game.startTime.add(gameMaxDuration) < block.timestamp, "Still running");
 
+    _increaseStakes(_token, stake);
+    
     delete game.running;
     uint256 opponents = game.heads.add(game.tails);
     if (opponents > 0) {
