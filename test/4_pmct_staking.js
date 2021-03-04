@@ -385,4 +385,45 @@ contract("PMCStaking", function (accounts) {
     });
   });
 
+  describe.only("stake", function () {
+    let testToken;
+
+    beforeEach("setup", async function () {
+      testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 3000);
+      testToken.transfer(CREATOR_1, 3000);
+      testToken.transfer(OPPONENT_0, 3000);
+      testToken.transfer(OPPONENT_1, 3000);
+      testToken.transfer(OPPONENT_2, 3000);
+      testToken.transfer(OPPONENT_3, 3000);
+
+      await testToken.approve(game.address, 3000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 3000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 3000, {
+        from: OPPONENT_0
+      });
+      await testToken.approve(game.address, 3000, {
+        from: OPPONENT_1
+      });
+      await testToken.approve(game.address, 3000, {
+        from: OPPONENT_2
+      });
+      await testToken.approve(game.address, 3000, {
+        from: OPPONENT_3
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address);
+    });
+
+    it("should ", async function () {
+
+    });
+  });
+
 });
