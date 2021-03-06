@@ -121,16 +121,17 @@ contract PMCStaking is Ownable, PMC_IStaking {
     ERC20(pmctAddr).transfer(msg.sender, tokens);
   }
 
-  /**
+  /***
    * @dev Withdraws staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    */
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
-    (reward, ) = calculateRewardAndStartIncomeIdx(_maxLoop);
+    uint256 idx;
+    (reward, idx) = calculateRewardAndStartIncomeIdx(_maxLoop);
 
     if (reward > 0) {
-      delete incomeIdxToStartCalculatingRewardOf[msg.sender];
+      incomeIdxToStartCalculatingRewardOf[msg.sender] = idx;
       if (pendingRewardOf[msg.sender] > 0) {
         reward = reward.add(pendingRewardOf[msg.sender]);
         delete pendingRewardOf[msg.sender];
