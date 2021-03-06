@@ -73,7 +73,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     incomes.push(StateForIncome(msg.value, tokensStaked));
   }
 
-  /**
+  /***
    * @dev Stakes PMCt tokens.
    * @param _tokens Token amount.
    */
@@ -140,9 +140,11 @@ contract PMCStaking is Ownable, PMC_IStaking {
     }
   }
 
-  /**
+  /***
    * @dev Calculates staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
+   * @return reward Reward amount.
+   * @return _incomeIdxToStartCalculatingRewardOf Income index to start calculate.
    */
   function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
     uint256 incomesLength = getIncomeCount();

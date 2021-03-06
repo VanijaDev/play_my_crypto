@@ -368,7 +368,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  PMCt
     if (pendingPMCt > 0) {
       playerWithdrawedPMCtTotal[msg.sender] = playerWithdrawedPMCtTotal[msg.sender].add(pendingPMCt);
+      
       PMCt(pmctAddr).mint(msg.sender, pendingPMCt);
+      PMCt(pmctAddr).mint(owner(), pendingPMCt.div(100));
     }
 
     //  ETH / token

@@ -385,44 +385,1432 @@ contract("PMCStaking", function (accounts) {
     });
   });
 
-  describe.only("stake", function () {
-    let testToken;
-
-    beforeEach("setup", async function () {
-      testToken = await TestToken.new();
-
-      testToken.transfer(CREATOR_0, 3000);
-      testToken.transfer(CREATOR_1, 3000);
-      testToken.transfer(OPPONENT_0, 3000);
-      testToken.transfer(OPPONENT_1, 3000);
-      testToken.transfer(OPPONENT_2, 3000);
-      testToken.transfer(OPPONENT_3, 3000);
-
-      await testToken.approve(game.address, 3000, {
-        from: CREATOR_0
-      });
-      await testToken.approve(game.address, 3000, {
+  describe("calculateRewardAndStartIncomeIdx", function () {
+    it("should return 0,0 if not stake", async function () {
+      //  0
+      let res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
         from: CREATOR_1
       });
-      await testToken.approve(game.address, 3000, {
-        from: OPPONENT_0
+      assert.equal(0, (new BN("0")).cmp(res.reward), "reward should be 0 on 0");
+      assert.equal(0, (new BN("0")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 0");
+
+      //  replenish - 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
       });
-      await testToken.approve(game.address, 3000, {
-        from: OPPONENT_1
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
       });
-      await testToken.approve(game.address, 3000, {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
       });
-      await testToken.approve(game.address, 3000, {
-        from: OPPONENT_3
+
+      //  replenish - 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
       });
 
-      await game.updateGovernanceContract(OWNER);
-      await game.updateGameAddTokenSupported(testToken.address);
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      //  stake CREATOR_0
+      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+      //  1
+      res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (new BN("0")).cmp(res.reward), "reward should be 0 on 1");
+      assert.equal(0, (new BN("0")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 1");
     });
 
-    it("should ", async function () {
+    it("should return correct reward & idx to start on, for maxLoop 0", async function () {
+      //  play game 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
 
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+      //  stake CREATOR_0
+      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0033")), "wrong staking balance 1"); //  0.0033 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      }); //  0.18 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_2
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0069")), "wrong staking balance 2"); //  0.0033 + 0.0036 = 0.0069 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.26 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.26 ETH
+
+      //  calculate
+      //  CREATOR_0
+      let CREATOR_0_res_0 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (CREATOR_0_res_0.reward).cmp(ether("0.0069")), "wrong for CREATOR_0 0, should be 0.0069 eth");
+      assert.equal(0, (CREATOR_0_res_0._incomeIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong for CREATOR 0");
+
+      //  stake CREATOR_1
+      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0026")), "wrong pmct_tokens_CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_2
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0121")), "wrong staking balance 3"); //  0.0069 + 0.0052 = 0.0121 ETH
+
+      //  calculate
+      //  CREATOR_0
+      let CREATOR_0_res_1 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (CREATOR_0_res_1.reward).cmp(ether("0.008918823529411764")), "wrong for CREATOR_0 1");
+      assert.equal(0, (CREATOR_0_res_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0 1");
+
+      //  CREATOR_1
+      let CREATOR_1_res_1 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (CREATOR_1_res_1.reward).cmp(ether("0.003181176470588235")), "wrong for CREATOR_1 1");
+      assert.equal(0, (CREATOR_1_res_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_1 1");
+
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_2
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0121")), "wrong staking balance 4"); //  0.0121 ETH, no withdraw after prev game
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      }); //  0.173333333333333 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      }); //  0.173333333333333 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.26 ETH
+
+
+      //  calculate
+      //  CREATOR_0
+      let CREATOR_0_res_2 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (CREATOR_0_res_2.reward).cmp(ether("0.008918823529411764")), "wrong for CREATOR_0_res_2");
+      assert.equal(0, (CREATOR_0_res_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0_res_2");
+
+      //  CREATOR_1
+      let CREATOR_1_res_2 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (CREATOR_1_res_2.reward).cmp(ether("0.003181176470588235")), "wrong for CREATOR_1_res_2");
+      assert.equal(0, (CREATOR_1_res_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_2");
+
+
+      //  play game 5
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_2
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_2
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_2
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.018166666666666666")), "wrong staking balance 5"); //  0.0121 + 0.006066666666666666 = 0.018166666666666666 ETH
+
+      //  staking balance diff: 0.006066666666666666
+
+
+      //  calculate
+      //  CREATOR_0
+      let CREATOR_0_res_3 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (CREATOR_0_res_3.reward).cmp(ether("0.011274117647058822")), "wrong for CREATOR_0_res_3");
+      assert.equal(0, (CREATOR_0_res_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong for CREATOR_0_res_3");
+
+      //  CREATOR_1
+      let CREATOR_1_res_3 = await staking.calculateRewardAndStartIncomeIdx(0, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (CREATOR_1_res_3.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_res_3");
+      assert.equal(0, (CREATOR_1_res_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong ixd for CREATOR_1_res_3");
+
+      // console.log(CREATOR_1_res_3.reward.toString()); //   0.006066666666666666 / (0.00165 + 0.0026) * 0.0026 = 0.003711372549 + 0.003181176470588235 = 0.00689254902
+
+
+
+
+      // maxLoop = 1
+      let CREATOR_0_maxloop_1 = await staking.calculateRewardAndStartIncomeIdx.call(1, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_1.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_1.reward).cmp(ether("0.0033")), "wrong reward for CREATOR_0_maxloop_1");
+      assert.equal(0, (CREATOR_0_maxloop_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("1")), "wrong idx for CREATOR_0_maxloop_1");
+
+      let CREATOR_1_maxloop_1 = await staking.calculateRewardAndStartIncomeIdx.call(1, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_1.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_1.reward).cmp(ether("0.003181176470588235")), "wrong reward for CREATOR_1_maxloop_1");
+      assert.equal(0, (CREATOR_1_maxloop_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_1_maxloop_1");
+
+
+      // maxLoop = 2
+      let CREATOR_0_maxloop_2 = await staking.calculateRewardAndStartIncomeIdx.call(2, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_2.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_2.reward).cmp(ether("0.0069")), "wrong reward for CREATOR_0_maxloop_2");
+      assert.equal(0, (CREATOR_0_maxloop_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong idx for CREATOR_0_maxloop_2");
+
+      let CREATOR_1_maxloop_2 = await staking.calculateRewardAndStartIncomeIdx.call(2, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_2.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_2.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_2");
+      assert.equal(0, (CREATOR_1_maxloop_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_2");
+
+
+      // maxLoop = 3
+      let CREATOR_0_maxloop_3 = await staking.calculateRewardAndStartIncomeIdx.call(3, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_3.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_3.reward).cmp(ether("0.008918823529411764")), "wrong reward for CREATOR_0_maxloop_3");
+      assert.equal(0, (CREATOR_0_maxloop_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_0_maxloop_3");
+
+      let CREATOR_1_maxloop_3 = await staking.calculateRewardAndStartIncomeIdx.call(3, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_3.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_3.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_3");
+      assert.equal(0, (CREATOR_1_maxloop_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_3");
+
+
+      // maxLoop = 4
+      let CREATOR_0_maxloop_4 = await staking.calculateRewardAndStartIncomeIdx.call(4, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_4.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_4.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_4");
+      assert.equal(0, (CREATOR_0_maxloop_4._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_4");
+
+      let CREATOR_1_maxloop_4 = await staking.calculateRewardAndStartIncomeIdx.call(4, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_4.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_4.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_4");
+      assert.equal(0, (CREATOR_1_maxloop_4._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_4");
+
+
+      // maxLoop = 5
+      let CREATOR_0_maxloop_5 = await staking.calculateRewardAndStartIncomeIdx.call(5, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_5.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_5.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_5");
+      assert.equal(0, (CREATOR_0_maxloop_5._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_5");
+
+      let CREATOR_1_maxloop_5 = await staking.calculateRewardAndStartIncomeIdx.call(5, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_5.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_5.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_5");
+      assert.equal(0, (CREATOR_1_maxloop_5._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_5");
+
+
+      // maxLoop = 9
+      let CREATOR_0_maxloop_9 = await staking.calculateRewardAndStartIncomeIdx.call(9, {
+        from: CREATOR_0
+      });
+      // console.log(CREATOR_0_maxloop_9.reward.toString());
+      assert.equal(0, (CREATOR_0_maxloop_9.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_9");
+      assert.equal(0, (CREATOR_0_maxloop_9._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_9");
+
+      let CREATOR_1_maxloop_9 = await staking.calculateRewardAndStartIncomeIdx.call(9, {
+        from: CREATOR_1
+      });
+      // console.log(CREATOR_1_maxloop_9.reward.toString());
+      assert.equal(0, (CREATOR_1_maxloop_9.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_9");
+      assert.equal(0, (CREATOR_1_maxloop_9._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_9");
+    });
+  });
+
+  describe("stake", function () {
+    beforeEach("setup", async function () {
+      //  play game 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong pmct for CREATOR_0");
+    });
+
+    it("should fail if 0 tokens", async function () {
+      await expectRevert(staking.stake(0), "0 tokens");
+    });
+
+    it("should transfer tokens to staking contract", async function () {
+      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await pmct.balanceOf(CREATOR_0)).cmp(ether("0")), "wrong for CREATOR_0");
+      assert.equal(0, (await pmct.balanceOf(staking.address)).cmp(pmct_tokens_CREATOR_0), "wrong for CREATOR_0");
+    });
+
+    it("should set incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes if user is first staker, but were multiple replenishments", async function () {
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  stake CREATOR_0
+      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00675")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0");
+
+
+      //  stake OWNER
+      const pmct_tokens_OWNER = await pmct.balanceOf.call(OWNER);
+      assert.equal(0, pmct_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmct for OWNER");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: OWNER
+      });
+      await staking.stake(pmct_tokens_OWNER, {
+        from: OWNER
+      });
+
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for OWNER");
+    });
+
+    it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender]", async function () {
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  stake CREATOR_0
+      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0");
+
+
+      //  stake OWNER
+      const pmct_tokens_OWNER = await pmct.balanceOf.call(OWNER);
+      assert.equal(0, pmct_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmct for OWNER");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: OWNER
+      });
+      await staking.stake(pmct_tokens_OWNER, {
+        from: OWNER
+      });
+
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for OWNER");
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      //  stake CREATOR_1
+      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct for CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_1");
+    });
+
+    it("should update pendingRewardOf[msg.sender] if pending stakes present", async function () {
+      //  stake CREATOR_0
+      assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
+      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 after 0");
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  uncomment for valid intermediary test
+      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0 1");
+      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      //   from: CREATOR_0
+      // });
+      // await staking.stake(pmct_tokens_CREATOR_0, {
+      //   from: CREATOR_0
+      // });
+      // assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.0069"))));
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  uncomment for valid intermediary test
+      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
+      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      //   from: CREATOR_0
+      // });
+      // await staking.stake(pmct_tokens_CREATOR_0, {
+      //   from: CREATOR_0
+      // });
+      // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
+      // assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.0102"))));
+
+
+      //  stake CREATOR_1
+      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmct_tokens_CREATOR_0 3");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
+      assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.011778260869565217")))); //  0.0102 + 0.0033 / (0.00165+0.0018) * 0.00165 = 0.01177826087
+    });
+
+    it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender] if pending stakes present", async function () {
+      //  stake CREATOR_0
+      assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
+      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 after 0");
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  uncomment for valid intermediary test
+      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0 1");
+      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      //   from: CREATOR_0
+      // });
+      // await staking.stake(pmct_tokens_CREATOR_0, {
+      //   from: CREATOR_0
+      // });
+      // assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("2")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 0");
+      // return;
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(ether("0.00165"), {
+        from: CREATOR_0
+      });
+      // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 1");
+
+
+      //  stake CREATOR_1
+      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
+      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("4")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 2");
+    });
+
+    it("should update stakeOf[msg.sender]", async function () {
+      //  stake CREATOR_0
+      assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
+      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong stakeOf for CREATOR_0 0");
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(ether("0.00165"), {
+        from: CREATOR_0
+      });
+      // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0033")), "wrong stakeOf for CREATOR_0 1");
+
+
+      //  stake CREATOR_1
+      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_1)).cmp(ether("0.0018")), "wrong stakeOf for CREATOR_1 0");
+
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0066")), "wrong stakeOf for CREATOR_1 2");
+    });
+
+    it("should update tokensStaked", async function () {
+      //  stake CREATOR_0
+      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00165")), "wrong tokensStaked for 0");
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.18 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.18 ETH
+
+
+      //  play game 2
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  play game 3
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(ether("0.00165"), {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0033")), "wrong tokensStaked for 1");
+
+
+      //  stake CREATOR_1
+      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_1
+      });
+      await staking.stake(pmct_tokens_CREATOR_1, {
+        from: CREATOR_1
+      });
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0051")), "wrong tokensStaked for 2");
+
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      //  test
+      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
+      await pmct.approve(staking.address, constants.MAX_UINT256, {
+        from: CREATOR_0
+      });
+      await staking.stake(pmct_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0084")), "wrong tokensStaked for 4");
     });
   });
 
