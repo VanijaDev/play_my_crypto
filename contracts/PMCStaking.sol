@@ -102,7 +102,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     tokensStaked = tokensStaked.add(_tokens);
   }
 
-  /**
+  /***
    * @dev Unstakes PMCt tokens.
    */
   function unstake() external {
