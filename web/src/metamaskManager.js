@@ -1,34 +1,51 @@
 const MetaMaskManager = {
 
-  MetaMaskCodes: {
-    userDenied: 4001
+  MetaMaskErrorCodes: {
+    userDenied: 4001,
+    invalidParams: -32602,
+    internalError: 32603
   },
 
-  isInitted: false,
+  ChainIDs: {
+    ETH: 0x1,
+    BSC: 0x38
+  },
+
+  isReady: false,
 
   isEthereum: function () {
-    return (ethereum != null && typeof ethereum !== 'undefined');
-  },
-
-  // isMetaMask: function () {
-  //   return ethereum.isMetaMask;
-  // },
-
-  init: async function () {
-    if (this.isEthereum()) {
-      ethereum.autoRefreshOnNetworkChange = false;
-
-      return true;
-    } else {
-      console.log("MetaMaskManager - ERROR");
+    try {
+      return (ethereum != null && typeof ethereum !== 'undefined');
+    } catch (error) {
+      return false;
     }
   },
 
   isNetworkValid: async function (chainId) {
-    if (!chainId) chainId = await ethereum.request({
-      method: 'eth_chainId'
-    })
-    return (chainId === process.env.VUE_APP_CHAIN_ID);
+    return (chainId === this.ChainIDs.ETH || chainId == this.ChainIDs.BSC);
+  },
+
+  //  MetaMask does not handle log out properly. So, need to check if logged in before each request.
+  isMetaMaskLogged: async function () {
+    try {
+      await this.getAccount();
+      return true;
+    } catch (error) {
+      alert("MetaMask - not Logged in");
+    }
+  },
+
+  init: function () {
+    console.log("MetaMaskManager - init");
+
+    ethereum.autoRefreshOnNetworkChange = false;
+    this.isReady = true;
+  },
+
+  deinit: function () {
+    console.log("MetaMaskManager - deinit");
+
+    this.isReady = false;
   },
 
   getAccount: async function () {
