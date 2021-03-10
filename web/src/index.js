@@ -1,4 +1,5 @@
-import MetaMaskManager from "./metamaskManager.js";
+import MetaMaskManager from "./metamaskManager";
+import BlockchainManager from "./blockchainManager";
 
 const Index = {
 

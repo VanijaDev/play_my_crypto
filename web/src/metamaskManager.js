@@ -56,7 +56,4 @@ const MetaMaskManager = {
   },
 };
 
-
-// window.MetaMaskManager = MetaMaskManager;
-
 export default MetaMaskManager;

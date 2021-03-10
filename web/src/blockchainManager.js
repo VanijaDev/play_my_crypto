@@ -3,13 +3,18 @@ import {
 } from "ethers";
 
 const BlockchainManager = {
-  //  API
-  referralFeesUsedTotal: async function (_gameType) {
-    return new BigNumber(await PromiseManager.referralFeesUsedTotalPromise(_gameType));
+  //  API read
+  referralFeesUsedTotalPromise: async function (_gameType) {
+    return new Promise(resolve => {
+      window.BlockchainManager.gameInst(_gameType).methods.ongoingGameAsOpponent(_account).call()
+        .then(result => {
+          resolve(result);
+        })
+        .catch(err => {
+          throw new Error(err);
+        });
+    });
   },
 };
-
-
-// window.BlockchainManager = BlockchainManager;
 
 export default BlockchainManager;
