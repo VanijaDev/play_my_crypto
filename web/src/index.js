@@ -1,52 +1,64 @@
-import MetaMaskManager from "./metamaskManager";
-import BlockchainManager from "./blockchainManager";
+import MetaMaskManager from "./managers/metamaskManager";
+import BlockchainManager from "./managers/blockchainManager";
+import Types from "./types";
 
 const Index = {
 
   setup: function () {
-    if (ethereum.chainId == MetaMaskManager.ChainIDs.ETH) {
-      console.log("setup ETH");
-    } else if (ethereum.chainId == MetaMaskManager.ChainIDs.BSC) {
-      console.log("setup BSC");
-    } else {
-      console.error("setup - disable page");
-      MetaMaskManager.deinit();
-      alert("Wrong Network");
-      return;
+    switch (MetaMaskManager.chainId) {
+      case MetaMaskManager.ChainIDs.ETH:
+        // console.log("setup ETH");
+        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+        break;
+
+      case MetaMaskManager.ChainIDs.BSC:
+        // console.log("setup BSC");
+        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+        break;
+
+      default:
+        console.error("setup - disable page");
+        MetaMaskManager.deinit();
+        alert("setup - Wrong Network");
+        return;
     }
   },
 
 
   buttonClick: async function () {
     if (await MetaMaskManager.isMetaMaskLogged()) {
-      console.log("buttonClick");
+      console.log("Index - buttonClick");
     } else {
-      alert("buttonClick - MetaMask not logged in");
+      // alert("buttonClick - MetaMask not logged in");
+      let feeEthNumber = await BlockchainManager.feeNumberETHPromise();
     }
   }
-
 };
 
 window.addEventListener('load', async (event) => {
   console.log('page is fully loaded');
 
   if (!MetaMaskManager.isEthereum()) {
-    alert("Please login to MetaMask - isEthereum");
+    alert("load - isEthereum");
     return;
   }
 
   if (!(await MetaMaskManager.getAccount()).length) {
-    alert("Please login to MetaMask - getAccount");
+    alert("load - getAccount");
     return;
   }
 
-  if (MetaMaskManager.isNetworkValid(ethereum.chainId)) {
-    MetaMaskManager.init();
-    window.Index.setup();
-  } else {
-    alert("Wrong Network");
+  if (!MetaMaskManager.isNetworkValid(ethereum.chainId)) {
+    alert("load - Wrong Network");
     return;
   }
+
+  if (!MetaMaskManager.init(ethereum.chainId)) {
+    alert("load - MetaMaskManager.init");
+    return;
+  }
+
+  window.Index.setup();
 });
 
 ethereum.on('message', function (message) {
@@ -57,30 +69,40 @@ ethereum.on('accountsChanged', function (accounts) {
   console.log('accountsChanged: ', accounts);
 
   if (accounts.length == 0) {
-    console.log("accountsChanged - disable page");
+    console.error("accountsChanged - disable page");
     MetaMaskManager.deinit();
     return;
   }
 
-  if (MetaMaskManager.isNetworkValid(ethereum.chainId)) {
-    window.Index.setup();
-  } else {
+  if (!MetaMaskManager.isNetworkValid(ethereum.chainId)) {
     MetaMaskManager.deinit();
-    alert("Wrong Network");
+    alert("accountsChanged - Wrong Network");
     return;
   }
+
+  if (!MetaMaskManager.init(ethereum.chainId)) {
+    alert("accountsChanged - MetaMaskManager.init");
+    return;
+  }
+
+  window.Index.setup();
 });
 
 ethereum.on('chainChanged', function (chainId) {
   console.log('chainChanged: ', chainId);
 
-  if (MetaMaskManager.isNetworkValid(chainId)) {
-    window.Index.setup();
-  } else {
+  if (!MetaMaskManager.isNetworkValid(chainId)) {
     MetaMaskManager.deinit();
-    alert("Wrong Network");
+    alert("chainChanged - Wrong Network");
     return;
   }
+
+  if (!MetaMaskManager.init(ethereum.chainId)) {
+    alert("chainChanged - MetaMaskManager.init");
+    return;
+  }
+
+  window.Index.setup();
 });
 
 ethereum.on('disconnect', function (chainId) {
@@ -89,5 +111,4 @@ ethereum.on('disconnect', function (chainId) {
 
 
 window.Index = Index;
-
 export default Index;
