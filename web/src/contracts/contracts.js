@@ -3,293 +3,30 @@ import {
 } from "ethers";
 import MetaMaskManager from "../managers/metamaskManager";
 
-let CoinFlipData = {
-  address: "0x001c26Be0d22d38D37893a9e5495731be56c9042", //    Ganache
+let PMCtData = {
+  address: "0x188518dE08EA1446563D99E592456A26C35753f4", //    Ganache
   abi: [{
-      "inputs": [{
-        "internalType": "address payable",
-        "name": "_partner",
-        "type": "address"
-      }],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
       "anonymous": false,
       "inputs": [{
           "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
           "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameAddedToTop",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "bet",
-          "type": "uint256"
-        }
-      ],
-      "name": "CF_GameCreated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
+          "name": "owner",
           "type": "address"
         },
         {
           "indexed": true,
           "internalType": "address",
-          "name": "opponent",
+          "name": "spender",
           "type": "address"
         },
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "winner",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameExpiredFinished",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
           "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "opponent",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameJoined",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      }],
-      "name": "CF_GamePaused",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "opponent",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "winner",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GamePlayed",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      }],
-      "name": "CF_GamePrizesWithdrawn",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "opponent",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "winner",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameQuittedFinished",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-        "indexed": true,
-        "internalType": "address",
-        "name": "referral",
-        "type": "address"
-      }],
-      "name": "CF_GameReferralWithdrawn",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameUnpaused",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        }
-      ],
-      "name": "CF_GameUpdated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": false,
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "amount",
+          "name": "value",
           "type": "uint256"
         }
       ],
-      "name": "CF_PartnerFeeTransferred",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-          "indexed": true,
-          "internalType": "address",
-          "name": "winner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "prize",
-          "type": "uint256"
-        }
-      ],
-      "name": "CF_RafflePlayed",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [{
-        "indexed": true,
-        "internalType": "address",
-        "name": "winner",
-        "type": "address"
-      }],
-      "name": "CF_RafflePrizeWithdrawn",
+      "name": "Approval",
       "type": "event"
     },
     {
@@ -313,82 +50,51 @@ let CoinFlipData = {
     {
       "anonymous": false,
       "inputs": [{
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }],
-      "name": "Paused",
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
       "type": "event"
     },
     {
-      "anonymous": false,
       "inputs": [{
-        "indexed": false,
         "internalType": "address",
-        "name": "account",
+        "name": "_minter",
         "type": "address"
       }],
-      "name": "Unpaused",
-      "type": "event"
-    },
-    {
-      "inputs": [],
-      "name": "ACQUIRED_FEE_BENEFICIARY_MAX_DURATION",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "addTopGame",
+      "name": "addMinter",
       "outputs": [],
-      "stateMutability": "payable",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "name": "betTotal",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-          "internalType": "bytes32",
-          "name": "_guessHash",
-          "type": "bytes32"
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_referral",
+          "name": "spender",
           "type": "address"
         }
       ],
-      "name": "createGame",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "devFeePending",
+      "name": "allowance",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -398,23 +104,33 @@ let CoinFlipData = {
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "feeBeneficiar",
+      "inputs": [{
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
       "outputs": [{
-        "internalType": "address payable",
+        "internalType": "bool",
         "name": "",
-        "type": "address"
+        "type": "bool"
       }],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [{
         "internalType": "address",
-        "name": "",
+        "name": "account",
         "type": "address"
       }],
-      "name": "feeBeneficiarBalances",
+      "name": "balanceOf",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -425,192 +141,92 @@ let CoinFlipData = {
     },
     {
       "inputs": [],
-      "name": "feeBeneficiarPurchasedAt",
+      "name": "decimals",
       "outputs": [{
-        "internalType": "uint256",
+        "internalType": "uint8",
         "name": "",
-        "type": "uint256"
+        "type": "uint8"
       }],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "name": "feeBeneficiaryWithdrawn",
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "subtractedValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "decreaseAllowance",
       "outputs": [{
-        "internalType": "uint256",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "addedValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "increaseAllowance",
+      "outputs": [{
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }],
-      "name": "finishExpiredGame",
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "gameMoveDuration",
+      "name": "name",
       "outputs": [{
-        "internalType": "uint16",
+        "internalType": "string",
         "name": "",
-        "type": "uint16"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "gameMoveExpired",
-      "outputs": [{
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "gameOnPause",
-      "outputs": [{
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "name": "games",
-      "outputs": [{
-          "internalType": "bool",
-          "name": "paused",
-          "type": "bool"
-        },
-        {
-          "internalType": "uint8",
-          "name": "creatorCoinSide",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint8",
-          "name": "opponentCoinSide",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "bet",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "opponentJoinedAt",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "creatorGuessHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address payable",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "internalType": "address payable",
-          "name": "opponent",
-          "type": "address"
-        },
-        {
-          "internalType": "address payable",
-          "name": "winner",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "creatorReferral",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "opponentReferral",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "gamesCompletedAmount",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "type": "string"
       }],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "gamesCreatedAmount",
+      "name": "owner",
       "outputs": [{
-        "internalType": "uint256",
+        "internalType": "address",
         "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "gamesWithPendingPrizeWithdrawal",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "type": "address"
       }],
       "stateMutability": "view",
       "type": "function"
@@ -618,96 +234,124 @@ let CoinFlipData = {
     {
       "inputs": [{
         "internalType": "address",
-        "name": "_address",
+        "name": "_minter",
         "type": "address"
       }],
-      "name": "getGamesWithPendingPrizeWithdrawal",
-      "outputs": [{
-        "internalType": "uint256[]",
-        "name": "ids",
-        "type": "uint256[]"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "address",
-        "name": "_address",
-        "type": "address"
-      }],
-      "name": "getPlayedGamesForPlayer",
-      "outputs": [{
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getRaffleParticipants",
-      "outputs": [{
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getRaffleResultCount",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getTopGames",
-      "outputs": [{
-        "internalType": "uint256[5]",
-        "name": "",
-        "type": "uint256[5]"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "increaseBetForGameBy",
+      "name": "removeMinter",
       "outputs": [],
-      "stateMutability": "payable",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "isTopGame",
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
       "outputs": [{
-        "internalType": "bool",
+        "internalType": "string",
         "name": "",
-        "type": "bool"
+        "type": "string"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [{
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
           "internalType": "uint256",
-          "name": "_id",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [{
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [{
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+
+  build: function () {
+    try {
+      return new ethers.Contract(this.address, this.abi, window.MetaMaskManager.provider);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
+
+let CoinFlipData = {
+  address: "0x6E0414A796Ab1Acd27fC470806CdB8BCa581582F", //    Ganache
+  abi: [{
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_tokens",
           "type": "uint256"
         },
         {
@@ -727,44 +371,431 @@ let CoinFlipData = {
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "kill",
+      "inputs": [{
+        "internalType": "address",
+        "name": "_pmct",
+        "type": "address"
+      }],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "bool",
+          "name": "timeout",
+          "type": "bool"
+        }
+      ],
+      "name": "CF_GameFinished",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "opponent",
+          "type": "address"
+        }
+      ],
+      "name": "CF_GameJoined",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "CF_GameStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "prize",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "pmct",
+          "type": "uint256"
+        }
+      ],
+      "name": "CF_PrizeWithdrawn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "winner",
+          "type": "address"
+        }
+      ],
+      "name": "CF_RaffleJackpotWithdrawn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "winner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "prize",
+          "type": "uint256"
+        }
+      ],
+      "name": "CF_RafflePlayed",
+      "type": "event"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_tokens",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_coinSideHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_referral",
+          "type": "address"
+        }
+      ],
+      "name": "finishTimeoutGame",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxLoop",
+          "type": "uint256"
+        }
+      ],
+      "name": "pendingPrizeToWithdraw",
+      "outputs": [{
+          "internalType": "uint256",
+          "name": "prize",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pmct_tokens",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "_coinSide",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_seedHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "playGame",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "latestBeneficiarPrice",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "makeFeeBeneficiar",
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_tokens",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_coinSideHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_referral",
+          "type": "address"
+        }
+      ],
+      "name": "startGame",
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "minBet",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+      "inputs": [{
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
       }],
-      "stateMutability": "view",
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "ongoinRafflePrize",
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "updateGameAddTokenSupported",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "uint256",
+        "name": "_gameMaxDuration",
+        "type": "uint256"
+      }],
+      "name": "updateGameMaxDuration",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "uint256",
+        "name": "_gameMinStakeETH",
+        "type": "uint256"
+      }],
+      "name": "updateGameMinStakeETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_address",
+        "type": "address"
+      }],
+      "name": "updateGovernanceContract",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_partner",
+        "type": "address"
+      }],
+      "name": "updatePartner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_address",
+        "type": "address"
+      }],
+      "name": "updateStakingAddr",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "withdrawDevFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "withdrawPartnerFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxLoop",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawPendingPrizes",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "withdrawRaffleJackpots",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "withdrawReferralFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "name": "betsTotal",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -779,7 +810,7 @@ let CoinFlipData = {
         "name": "",
         "type": "address"
       }],
-      "name": "ongoingGameAsCreator",
+      "name": "devFeePending",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -794,11 +825,559 @@ let CoinFlipData = {
         "name": "",
         "type": "address"
       }],
-      "name": "ongoingGameAsOpponent",
+      "name": "devFeeWithdrawn",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "name": "devFeeWithdrawnTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_idx",
+          "type": "uint256"
+        }
+      ],
+      "name": "gameInfo",
+      "outputs": [{
+          "internalType": "bool",
+          "name": "running",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "creatorCoinSide",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "idx",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "stake",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "heads",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tails",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "creatorPrize",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "opponentPrize",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gameMaxDuration",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gameMaxDurationToUpdate",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gameMinStakeETH",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gameMinStakeETHToUpdate",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "gamesFinished",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "gamesStarted",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getDevFeePending",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getDevFeeWithdrawn",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getDevFeeWithdrawnTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getGamesParticipatedToCheckPrize",
+      "outputs": [{
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getPartnerFeePending",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getPartnerFeeWithdrawn",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getPartnerFeeWithdrawnTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getPlayerStakeTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getPlayerWithdrawedTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getRaffleJackpot",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "getRaffleJackpotPending",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getRaffleJackpotsWonTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "getRaffleJackpotWithdrawn",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getRaffleParticipants",
+      "outputs": [{
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getRaffleParticipantsNumber",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_idx",
+          "type": "uint256"
+        }
+      ],
+      "name": "getRaffleResultInfo",
+      "outputs": [{
+          "internalType": "address",
+          "name": "winner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "prize",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getRaffleResultNumber",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getReferralFeePending",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getReferralFeeWithdrawn",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }],
+      "name": "getReferralFeeWithdrawnTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_idx",
+          "type": "uint256"
+        }
+      ],
+      "name": "getReferralInGame",
+      "outputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "governance",
+      "outputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "name": "isTokenSupported",
+      "outputs": [{
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_idx",
+          "type": "uint256"
+        }
+      ],
+      "name": "opponentCoinSideForOpponent",
+      "outputs": [{
+        "internalType": "enum PMCCoinFlipContract.CoinSide",
+        "name": "opponentCoinSide",
+        "type": "uint8"
       }],
       "stateMutability": "view",
       "type": "function"
@@ -818,7 +1397,7 @@ let CoinFlipData = {
       "inputs": [],
       "name": "partner",
       "outputs": [{
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }],
@@ -826,7 +1405,17 @@ let CoinFlipData = {
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [{
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
       "name": "partnerFeePending",
       "outputs": [{
         "internalType": "uint256",
@@ -837,211 +1426,18 @@ let CoinFlipData = {
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "partnerFeeTotalUsed",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "partnerFeeTransferThreshold",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "pause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "pauseGame",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "paused",
-      "outputs": [{
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-          "internalType": "uint256",
-          "name": "_id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint8",
-          "name": "_coinSide",
-          "type": "uint8"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_seedHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "playGame",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "name": "prizeTotal",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_id",
-        "type": "uint256"
-      }],
-      "name": "quitGame",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "raffleActivated",
-      "outputs": [{
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "raffleActivationParticipantsAmount",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "name": "raffleParticipants",
-      "outputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "name": "rafflePrizePending",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }],
-      "name": "rafflePrizeWithdrawn",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "rafflePrizesWonTotal",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "name": "raffleResults",
-      "outputs": [{
           "internalType": "address",
-          "name": "winner",
+          "name": "",
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "prize",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "time",
-          "type": "uint256"
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "rand",
+      "name": "partnerFeeWithdrawn",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1056,7 +1452,7 @@ let CoinFlipData = {
         "name": "",
         "type": "address"
       }],
-      "name": "referralFeesPending",
+      "name": "partnerFeeWithdrawnTotal",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1071,7 +1467,7 @@ let CoinFlipData = {
         "name": "",
         "type": "address"
       }],
-      "name": "referralFeesWithdrawn",
+      "name": "playerWithdrawedPMCtTotal",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1082,25 +1478,28 @@ let CoinFlipData = {
     },
     {
       "inputs": [],
-      "name": "renounceOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "runRaffle",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "pmctAddr",
+      "outputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }],
+      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "name": "topGames",
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "referralFeePending",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1110,19 +1509,18 @@ let CoinFlipData = {
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "totalUsedInGame",
-      "outputs": [{
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalUsedReferralFees",
+      "inputs": [{
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "referralFeeWithdrawn",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1134,124 +1532,38 @@ let CoinFlipData = {
     {
       "inputs": [{
         "internalType": "address",
-        "name": "newOwner",
+        "name": "",
         "type": "address"
       }],
-      "name": "transferOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "referralFeeWithdrawnTotal",
+      "outputs": [{
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }],
+      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "unpause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
+      "name": "stakeRewardPoolPending_ETH",
+      "outputs": [{
         "internalType": "uint256",
-        "name": "_id",
+        "name": "",
         "type": "uint256"
       }],
-      "name": "unpauseGame",
-      "outputs": [],
-      "stateMutability": "payable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
-      "inputs": [{
-        "internalType": "uint16",
-        "name": "_duration",
-        "type": "uint16"
-      }],
-      "name": "updateGameMoveDuration",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_minBet",
-        "type": "uint256"
-      }],
-      "name": "updateMinBet",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "address payable",
-        "name": "_partnerAddress",
+      "inputs": [],
+      "name": "stakingAddr",
+      "outputs": [{
+        "internalType": "address",
+        "name": "",
         "type": "address"
       }],
-      "name": "updatePartner",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_transferThreshold",
-        "type": "uint256"
-      }],
-      "name": "updatePartnerTransferThreshold",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }],
-      "name": "updateRaffleActivationParticipantsCount",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawBeneficiaryFee",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawDevFee",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [{
-        "internalType": "uint256",
-        "name": "_maxLoop",
-        "type": "uint256"
-      }],
-      "name": "withdrawGamePrizes",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawRafflePrizes",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawReferralFees",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     }
   ],
@@ -1267,5 +1579,6 @@ let CoinFlipData = {
 
 
 export {
+  PMCtData,
   CoinFlipData
 };
