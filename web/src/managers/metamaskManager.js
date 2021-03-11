@@ -12,7 +12,8 @@ const MetaMaskManager = {
 
   ChainIDs: {
     ETH: "0x1",
-    BSC: "0x38"
+    BSC: "0x38",
+    TEST_Ganache: "0x539"
   },
 
   provider: null,
@@ -26,13 +27,15 @@ const MetaMaskManager = {
     }
   },
 
-  isNetworkValid: function (_chainId) {
-    // console.log('isNetworkValid: ', _chainId);
+  isChainIDValid: function (_chainId) {
+    console.log('isChainIDValid: ', _chainId);
 
     switch (_chainId) {
-      case this.ChainIDs.ETH:
-        return true;
-      case this.ChainIDs.BSC:
+      // case this.ChainIDs.ETH:
+      //   return true;
+      // case this.ChainIDs.BSC:
+      //   return true;
+      case this.ChainIDs.TEST_Ganache:
         return true;
 
       default:
@@ -41,19 +44,14 @@ const MetaMaskManager = {
   },
 
   //  MetaMask does not handle log out properly. So, need to check if logged in before each request.
-  isMetaMaskUsable: async function (_chainId) {
-    if (!this.isNetworkValid(_chainId)) {
-      console.error("MetaMaskManager - !isNetworkValid");
+  isMetaMaskUsable: async function () {
+    if (!this.isChainIDValid(this.chainId)) {
+      console.error("MetaMaskManager: isMetaMaskUsable - !isChainIDValid");
       return false;
     }
 
     if (this.provider == null) {
-      console.error("MetaMaskManager - !provider");
-      return false;
-    }
-
-    if (this.currentChainId == null) {
-      console.error("MetaMaskManager - !currentChainId");
+      console.error("MetaMaskManager: isMetaMaskUsable - !provider");
       return false;
     }
 
@@ -61,7 +59,7 @@ const MetaMaskManager = {
       await this.getAccount();
       return true;
     } catch (error) {
-      console.error("MetaMask - not isMetaMaskUsable");
+      console.error("isMetaMaskUsable: not isMetaMaskUsable");
     }
   },
 
@@ -70,8 +68,8 @@ const MetaMaskManager = {
 
     ethereum.autoRefreshOnNetworkChange = false;
 
-    if (!this.isNetworkValid(_chainId)) {
-      console.error("MetaMaskManager - !isNetworkValid");
+    if (!this.isChainIDValid(_chainId)) {
+      console.error("MetaMaskManager - !isChainIDValid");
 
       this.deinit();
       return false;

@@ -3,12 +3,14 @@ import {
 } from "ethers";
 import Types from "../types";
 import {
-  CoinFlipData
+  CoinFlipData,
+  PMCtData
 } from "../contracts/contracts";
 
 const BlockchainManager = {
-  contractInst_cf: null,
   gameType: "",
+  gameInst: null,
+  pmctInst: null,
 
   init: function (_chainID, _gameType) {
     console.log("BlockchainManager: _chainID:", _chainID, ", _gameType:", _gameType);
@@ -17,8 +19,7 @@ const BlockchainManager = {
       return;
     }
 
-    this.contractInst_cf = CoinFlipData.build(_chainID);
-    this.updateGameType(_gameType);
+    this.updateBlockchainInstances(_gameType, _chainID);
   },
 
   deinit: function () {
@@ -26,12 +27,17 @@ const BlockchainManager = {
     this.gameType = "";
   },
 
-  updateGameType: function (_gameType) {
+  updateBlockchainInstances: function (_gameType, _chainID) {
     if (this.isGameTypeValid(_gameType)) {
       this.gameType = _gameType;
+      this.gameInst = this.gameInstForTypeAndChainID(_gameType, _chainID);
+      this.pmctInst = PMCtData.build(_chainID);
     } else {
       this.gameType = "";
-      console.error("BlockchainManager - updateGameType: ", _gameType);
+      this.gameInst = null;
+      this.pmctInst = null;
+
+      console.error("BlockchainManager - updateBlockchainInstances: ", _gameType);
     }
   },
 
@@ -39,6 +45,16 @@ const BlockchainManager = {
     switch (_gameType) {
       case Types.Game.cf:
         return true;
+
+      default:
+        return false;
+    }
+  },
+
+  gameInstForTypeAndChainID: function (_gameType, _chainID) {
+    switch (_gameType) {
+      case Types.Game.cf:
+        return CoinFlipData.build(_chainID);
 
       default:
         return false;

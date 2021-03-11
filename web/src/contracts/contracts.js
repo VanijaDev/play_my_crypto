@@ -4,8 +4,8 @@ import {
 import MetaMaskManager from "../managers/metamaskManager";
 
 let PMCtData = {
-  address: "0x188518dE08EA1446563D99E592456A26C35753f4", //    Ganache
-  abi: [{
+  address_eth: "0x188518dE08EA1446563D99E592456A26C35753f4", //    Ganache
+  abi_eth: [{
       "anonymous": false,
       "inputs": [{
           "indexed": true,
@@ -331,19 +331,27 @@ let PMCtData = {
     }
   ],
 
-  build: function () {
-    try {
-      return new ethers.Contract(this.address, this.abi, window.MetaMaskManager.provider);
-    } catch (error) {
-      console.error(error);
+  build: function (_chainID) {
+    switch (_chainID) {
+      case MetaMaskManager.ChainIDs.TEST_Ganache:
+        try {
+          return new ethers.Contract(this.address_eth, this.abi_eth, window.MetaMaskManager.provider);
+        } catch (error) {
+          console.error(error);
+        }
+        break;
+
+      default:
+        console.error("setup - disable page");
+        return;
     }
   }
 }
 
 
 let CoinFlipData = {
-  address: "0x6E0414A796Ab1Acd27fC470806CdB8BCa581582F", //    Ganache
-  abi: [{
+  address_eth: "0x6E0414A796Ab1Acd27fC470806CdB8BCa581582F", //    Ganache
+  abi_eth: [{
       "inputs": [{
           "internalType": "address",
           "name": "_token",
@@ -1568,11 +1576,19 @@ let CoinFlipData = {
     }
   ],
 
-  build: function () {
-    try {
-      return new ethers.Contract(this.address, this.abi, window.MetaMaskManager.provider);
-    } catch (error) {
-      console.error(error);
+  build: function (_chainID) {
+    switch (_chainID) {
+      case MetaMaskManager.ChainIDs.TEST_Ganache:
+        try {
+          return new ethers.Contract(this.address_eth, this.abi_eth, window.MetaMaskManager.provider);
+        } catch (error) {
+          console.error(error);
+        }
+        break;
+
+      default:
+        console.error("setup - disable page");
+        return;
     }
   }
 }

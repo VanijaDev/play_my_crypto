@@ -6,13 +6,18 @@ const Index = {
 
   setup: function () {
     switch (MetaMaskManager.chainId) {
-      case MetaMaskManager.ChainIDs.ETH:
-        // console.log("setup ETH");
-        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
-        break;
+      // case MetaMaskManager.ChainIDs.ETH:
+      //   // console.log("setup ETH");
+      //   window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+      //   break;
 
-      case MetaMaskManager.ChainIDs.BSC:
-        // console.log("setup BSC");
+      // case MetaMaskManager.ChainIDs.BSC:
+      //   // console.log("setup BSC");
+      //   window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+      //   break;
+
+      case MetaMaskManager.ChainIDs.TEST_Ganache:
+        // console.log("setup Ganache");
         window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
         break;
 
@@ -26,12 +31,14 @@ const Index = {
 
 
   buttonClick: async function () {
-    if (await MetaMaskManager.isMetaMaskLogged()) {
-      console.log("Index - buttonClick");
-    } else {
-      // alert("buttonClick - MetaMask not logged in");
-      let feeEthNumber = await BlockchainManager.feeNumberETHPromise();
+    if (!(await window.MetaMaskManager.isMetaMaskUsable())) {
+      console.error("Index: buttonClick - !isMetaMaskUsable - disable page");
+      return;
     }
+
+    // alert("buttonClick - MetaMask not logged in");
+    let feeEthNumber = await BlockchainManager.feeNumberETHPromise();
+    console.log(feeEthNumber);
   }
 };
 
@@ -48,7 +55,7 @@ window.addEventListener('load', async (event) => {
     return;
   }
 
-  if (!MetaMaskManager.isNetworkValid(ethereum.chainId)) {
+  if (!MetaMaskManager.isChainIDValid(ethereum.chainId)) {
     alert("load - Wrong Network");
     return;
   }
@@ -74,7 +81,7 @@ ethereum.on('accountsChanged', function (accounts) {
     return;
   }
 
-  if (!MetaMaskManager.isNetworkValid(ethereum.chainId)) {
+  if (!MetaMaskManager.isChainIDValid(ethereum.chainId)) {
     MetaMaskManager.deinit();
     alert("accountsChanged - Wrong Network");
     return;
@@ -91,7 +98,7 @@ ethereum.on('accountsChanged', function (accounts) {
 ethereum.on('chainChanged', function (chainId) {
   console.log('chainChanged: ', chainId);
 
-  if (!MetaMaskManager.isNetworkValid(chainId)) {
+  if (!MetaMaskManager.isChainIDValid(chainId)) {
     MetaMaskManager.deinit();
     alert("chainChanged - Wrong Network");
     return;
