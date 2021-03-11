@@ -21,6 +21,11 @@ const Index = {
         window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
         break;
 
+      case MetaMaskManager.ChainIDs.TEST_Ropsten:
+        // console.log("setup Ropsten");
+        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+        break;
+
       default:
         console.error("setup - disable page");
         MetaMaskManager.deinit();

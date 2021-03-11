@@ -341,6 +341,14 @@ let PMCtData = {
         }
         break;
 
+      case MetaMaskManager.ChainIDs.TEST_Ropsten:
+        try {
+          return new ethers.Contract(this.address_eth, this.abi_eth, window.MetaMaskManager.provider);
+        } catch (error) {
+          console.error(error);
+        }
+        break;
+
       default:
         console.error("setup - disable page");
         return;
@@ -1579,6 +1587,14 @@ let CoinFlipData = {
   build: function (_chainID) {
     switch (_chainID) {
       case MetaMaskManager.ChainIDs.TEST_Ganache:
+        try {
+          return new ethers.Contract(this.address_eth, this.abi_eth, window.MetaMaskManager.provider);
+        } catch (error) {
+          console.error(error);
+        }
+        break;
+
+      case MetaMaskManager.ChainIDs.TEST_Ropsten:
         try {
           return new ethers.Contract(this.address_eth, this.abi_eth, window.MetaMaskManager.provider);
         } catch (error) {

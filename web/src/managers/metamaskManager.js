@@ -13,7 +13,8 @@ const MetaMaskManager = {
   ChainIDs: {
     ETH: "0x1",
     BSC: "0x38",
-    TEST_Ganache: "0x539"
+    TEST_Ganache: "0x539",
+    TEST_Ropsten: "0x3"
   },
 
   provider: null,
@@ -36,6 +37,9 @@ const MetaMaskManager = {
       // case this.ChainIDs.BSC:
       //   return true;
       case this.ChainIDs.TEST_Ganache:
+        return true;
+
+      case this.ChainIDs.TEST_Ropsten:
         return true;
 
       default:
