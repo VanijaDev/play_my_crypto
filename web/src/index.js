@@ -42,8 +42,8 @@ const Index = {
     }
 
     // alert("buttonClick - MetaMask not logged in");
-    let feeEthNumber = await BlockchainManager.feeNumberETHPromise();
-    console.log(feeEthNumber);
+    let allowance = await window.BlockchainManager.cf_playerStakeTotalPromise("0x0000000000000000000000000000000000000000");
+    console.log(allowance);
   }
 };
 
