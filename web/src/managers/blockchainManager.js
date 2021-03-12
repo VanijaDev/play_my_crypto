@@ -1,6 +1,3 @@
-import {
-  ethers
-} from "ethers";
 import Types from "../types";
 import {
   CoinFlipData,
