@@ -1,6 +1,5 @@
 import MetaMaskManager from "./managers/metamaskManager";
 import BlockchainManager from "./managers/blockchainManager";
-import Types from "./types";
 
 const Index = {
 
@@ -8,22 +7,22 @@ const Index = {
     switch (MetaMaskManager.chainId) {
       // case MetaMaskManager.ChainIDs.ETH:
       //   // console.log("setup ETH");
-      //   window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+      //   window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
       //   break;
 
       // case MetaMaskManager.ChainIDs.BSC:
       //   // console.log("setup BSC");
-      //   window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+      //   window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
       //   break;
 
       case MetaMaskManager.ChainIDs.TEST_Ganache:
         // console.log("setup Ganache");
-        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+        window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
         break;
 
       case MetaMaskManager.ChainIDs.TEST_Ropsten:
         // console.log("setup Ropsten");
-        window.BlockchainManager.init(MetaMaskManager.chainId, Types.Game.cf);
+        window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
         break;
 
       default:
@@ -42,8 +41,8 @@ const Index = {
     }
 
     // alert("buttonClick - MetaMask not logged in");
-    let allowance = await window.BlockchainManager.cf_playerStakeTotalPromise("0x0000000000000000000000000000000000000000");
-    console.log(allowance);
+    let res = await window.BlockchainManager.api_game_partnerFeePending("0x0000000000000000000000000000000000000000");
+    console.log(res);
   }
 };
 

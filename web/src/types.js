@@ -4,10 +4,10 @@ const Types = {
   //   game: "game"
   // },
 
-  Game: {
-    cf: "cf",
-    // rps: "rps"
-  },
+  // Game: {
+  //   cf: "cf",
+  //   // rps: "rps"
+  // },
 
   // SpinnerView: {
   //   gameView: "gameView",
@@ -17,10 +17,10 @@ const Types = {
   //   beneficiary: "beneficiaryBlock"
   // },
 
-  BlockchainType: {
-    ethereum: "ethereum",
-    tron: "tron"
-  },
+  // BlockchainType: {
+  //   eth: "eth",
+  //   bsc: "bsc"
+  // },
 
   // CF_Move: {
   //   rock: 0,

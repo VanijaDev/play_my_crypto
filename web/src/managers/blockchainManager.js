@@ -1,10 +1,18 @@
-import Types from "../types";
 import {
   CoinFlipData,
   PMCtData
 } from "../contracts/contracts";
 
 const BlockchainManager = {
+  Blockchain: {
+    eth: "eth",
+    bsc: "bsc"
+  },
+
+  Game: {
+    cf: "cf"
+  },
+
   gameType: "",
   gameInst: null,
   pmctInst: null,
@@ -40,7 +48,7 @@ const BlockchainManager = {
 
   isGameTypeValid: function (_gameType) {
     switch (_gameType) {
-      case Types.Game.cf:
+      case this.Game.cf:
         return true;
 
       default:
@@ -50,13 +58,33 @@ const BlockchainManager = {
 
   gameInstForTypeAndChainID: function (_gameType, _chainID) {
     switch (_gameType) {
-      case Types.Game.cf:
+      case this.Game.cf:
         return CoinFlipData.build(_chainID);
 
       default:
         return false;
     }
-  }
+  },
+
+
+  /**
+   * API
+   */
+
+  //  PMCT
+  api_pmct_balanceOf: async function (_address) {
+    return pmctInst.balanceOf(_address);
+  },
+
+  api_pmct_allowanceOf: async function (_address) {
+    return pmctInst.allowance(_address);
+  },
+
+
+  //  CF
+  api_game_partnerFeePending: async function (_token) {
+    return this.gameInst.getPartnerFeePending(_token);
+  },
 
 };
 
