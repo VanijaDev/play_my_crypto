@@ -64,6 +64,7 @@ const MetaMaskManager = {
       return true;
     } catch (error) {
       console.error("isMetaMaskUsable: not isMetaMaskUsable");
+      return false;
     }
   },
 
