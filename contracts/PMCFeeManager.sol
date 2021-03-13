@@ -23,19 +23,19 @@ contract PMCFeeManager is Ownable {
 
   //  partner
   address public partner;
-  mapping(address => mapping(address => uint256)) public partnerFeePending; //  token => (address => amount), token 0x0 - ETH.
-  mapping(address => mapping(address => uint256)) public partnerFeeWithdrawn;
-  mapping(address => uint256) public partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH.
+  mapping(address => mapping(address => uint256)) private partnerFeePending; //  token => (address => amount), token 0x0 - ETH.
+  mapping(address => mapping(address => uint256)) private partnerFeeWithdrawn;
+  mapping(address => uint256) private partnerFeeWithdrawnTotal; //  (token => amount), token 0x0 - ETH.
 
   //  referral
-  mapping(address => mapping(address => uint256)) public referralFeePending;
-  mapping(address => mapping(address => uint256)) public referralFeeWithdrawn;
-  mapping(address => uint256) public referralFeeWithdrawnTotal;
+  mapping(address => mapping(address => uint256)) private referralFeePending;
+  mapping(address => mapping(address => uint256)) private referralFeeWithdrawn;
+  mapping(address => uint256) private referralFeeWithdrawnTotal;
 
   //  dev
-  mapping(address => uint256) public devFeePending; //  token => amount, token 0x0 - ETH.
-  mapping(address => uint256) public devFeeWithdrawn;
-  mapping(address => uint256) public devFeeWithdrawnTotal;
+  mapping(address => uint256) private devFeePending; //  token => amount, token 0x0 - ETH.
+  mapping(address => uint256) private devFeeWithdrawn;
+  mapping(address => uint256) private devFeeWithdrawnTotal;
 
   //  staking (ETH only)
   uint256 public stakeRewardPoolPending_ETH;
