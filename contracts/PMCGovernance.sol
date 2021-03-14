@@ -31,8 +31,8 @@ contract PMCGovernance is Ownable {
   uint256 constant private MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL = 10;   //  percentage of minted PMC tokens for the proposal to be accepted
   uint16 constant private MIN_VOTERS_TO_ACCEPT_PROPOSAL = 2; // TODO: for Prod: 1000;   //  amount of voters for the proposal to be accepted
 
-  address pmctAddr;
-  address[] games;  //  gameplay Smart Contracts to be governed
+  address public pmctAddr;
+  address[] private games;  //  gameplay Smart Contracts to be governed
 
     //  minStake
   uint256[] public proposalsMinStakeValues; // value
@@ -60,7 +60,7 @@ contract PMCGovernance is Ownable {
   event ProposalQuitted(address indexed sender, ProposalType indexed proposalType);
 
 
-  /**
+  /***
    * @dev Constructor.
    * @param _pmct PMCt address.
    * @param _game Game addresses, that should be governed by this Smart Contract. Games should be PMCGovernanceCompliant.
@@ -73,7 +73,7 @@ contract PMCGovernance is Ownable {
     games.push(_game);
   }
 
-  /**
+  /***
    * @dev Adds game to be governed.
    * @param _game Game address, that should be governed by this Smart Contract. Should be PMCGovernanceCompliant.
    */
@@ -82,7 +82,7 @@ contract PMCGovernance is Ownable {
     games.push(_game);
   }
 
-  /**
+  /***
    * @dev Removes game to be governed.
    * @param _game Game address.
    */
@@ -96,6 +96,14 @@ contract PMCGovernance is Ownable {
         return;
       }
     }
+  }
+
+  /***
+   * @dev Gets governed game addresses.
+   * @return Game addresses.
+   */
+  function gamesGoverned() external view returns(address[] memory) {
+    return games;
   }
 
   /**
