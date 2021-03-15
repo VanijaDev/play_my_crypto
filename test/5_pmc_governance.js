@@ -65,6 +65,16 @@ contract("PMCGovernance", function (accounts) {
 
     creatorHash = web3.utils.soliditySha3(CREATOR_COIN_SIDE, CREATOR_SEED_HASH);
 
+    await pmct.approve(governance.address, ether("1"), {
+      from: CREATOR_0
+    });
+    await pmct.approve(governance.address, ether("1"), {
+      from: CREATOR_1
+    });
+    await pmct.approve(governance.address, ether("1"), {
+      from: OTHER
+    });
+
     await time.advanceBlock();
   });
 
@@ -138,4 +148,204 @@ contract("PMCGovernance", function (accounts) {
     });
   });
 
+  describe("addProposal", function () {
+    it("should fail if Wrong proposal", async function () {
+      await expectRevert(governance.addProposal(3, constants.ZERO_ADDRESS, ether("0"), ether("1"), {
+        from: OTHER
+      }), "Wrong proposal");
+    });
+
+    it("should fail if Wrong _pmctTokens", async function () {
+      await expectRevert(governance.addProposal(1, constants.ZERO_ADDRESS, ether("0"), ether("0"), {
+        from: OTHER
+      }), "Wrong _pmctTokens");
+    });
+
+    it("should fail if Wrong value for minStake", async function () {
+      await expectRevert(governance.addProposal(0, constants.ZERO_ADDRESS, ether("0"), ether("1"), {
+        from: OTHER
+      }), "Wrong value");
+    });
+
+    it("should fail if Wrong value for gameMaxDuration", async function () {
+      await expectRevert(governance.addProposal(1, constants.ZERO_ADDRESS, new BN("0"), ether("1"), {
+        from: OTHER
+      }), "Wrong value");
+    });
+
+    it("should fail if Wrong token for addToken", async function () {
+      await expectRevert(governance.addProposal(2, constants.ZERO_ADDRESS, new BN("0"), ether("1"), {
+        from: OTHER
+      }), "Wrong token");
+    });
+
+    it("should fail if Cannt add PMCt for addToken", async function () {
+      await expectRevert(governance.addProposal(2, pmct.address, new BN("0"), ether("1"), {
+        from: OTHER
+      }), "Cannt add PMCt");
+    });
+  });
+
+  describe("_addProposalMinStake - voteProposalMinStake", function () {
+    beforeEach("setup", async function () {
+      //  play game 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.165 ETH
+    });
+
+    it("should transfer PMCt tokens", async function () {
+      assert.equal(0, (await pmct.balanceOf.call(governance.address)).cmp(ether("0")), "Wrong before");
+
+      await governance.addProposal(1, constants.ZERO_ADDRESS, ether("0.2"), ether("0.0001"), {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await pmct.balanceOf.call(governance.address)).cmp(ether("0.0001")), "Wrong after");
+    });
+
+    it("should push _minStake to proposalsMinStakeValues", async function () {
+      assert.equal(0, (await governance.proposalMinStakeValueParticipating.call(CREATOR_0)).cmp(ether("0")), "Wrong before");
+
+      await governance.addProposal(0, constants.ZERO_ADDRESS, ether("0.2"), ether("0.0001"), {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await governance.proposalMinStakeValueParticipating.call(CREATOR_0)).cmp(ether("0.2")), "Wrong after");
+    });
+
+    it("should update proposalMinStakeValueParticipating for sender", async function () {
+      await governance.addProposal(0, constants.ZERO_ADDRESS, ether("0.2"), ether("0.0001"), {
+        from: CREATOR_0
+      });
+      let startedTime = await time.latest();
+      await time.increase(time.duration.seconds(5));
+
+      let info = await governance.getProposalInfo.call(0, constants.ZERO_ADDRESS, ether("0.2"), {
+        from: CREATOR_0
+      });
+      assert.equal(0, (info.votersTotal).cmp(new BN("1")), "Wrong votersTotal");
+      assert.equal(0, (info.tokensTotal).cmp(ether("0.0001")), "Wrong tokensTotal");
+      assert.equal(0, (info.startedAt).cmp(startedTime), "Wrong startedAt");
+      assert.equal(0, (info.tokensOfVoter).cmp(ether("0.0001")), "Wrong tokensOfVoter");
+      assert.equal(0, (info.voterVotedAt).cmp(startedTime), "Wrong voterVotedAt");
+    });
+
+    it("should emit ProposalAdded", async function () {
+      const {
+        logs
+      } = await governance.addProposal(0, constants.ZERO_ADDRESS, ether("0.2"), ether("0.0001"), {
+        from: CREATOR_0
+      });
+
+      await expectEvent.inLogs(logs, 'ProposalAdded', {
+        sender: CREATOR_0,
+        proposalType: new BN("0"),
+        token: constants.ZERO_ADDRESS,
+      });
+    });
+  });
+
+  describe.only("_addProposalMinStake - voteProposalMinStake", function () {
+    beforeEach("setup", async function () {
+      //  play game 0
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+
+
+      //  play game 1
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+      // console.log("staking balance 0:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      }); //  0.165 ETH
+    });
+
+
+
+  });
 });

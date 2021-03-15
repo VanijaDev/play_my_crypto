@@ -50,8 +50,8 @@ contract PMCGovernance is Ownable {
   mapping(address => Proposal) public proposalsAddToken;
     
 
-  modifier onlyValidProposal(ProposalType _proposalType) {
-    require(_proposalType <= ProposalType.addToken, "Wrong proposal");
+  modifier onlyValidProposal(uint8 _proposalType) {
+    require(_proposalType < 3, "Wrong proposal");
     _;
   }
 
@@ -106,31 +106,31 @@ contract PMCGovernance is Ownable {
     return games;
   }
 
-  /**
+  /***
    * @dev Adds proposal.
    * @param _proposalType Proposal type.
    * @param _token Proposal token to be added.
    * @param _value Proposal value.
    * @param _pmctTokens PMCt amount to vote.
    */
-  function addProposal(ProposalType _proposalType, address _token, uint256 _value, uint256 _pmctTokens) external onlyValidProposal(_proposalType) {
+  function addProposal(uint8 _proposalType, address _token, uint256 _value, uint256 _pmctTokens) external onlyValidProposal(_proposalType) {
     require(_pmctTokens > 0, "Wrong _pmctTokens");
 
-    if (_proposalType == ProposalType.minStake) {
+    if (ProposalType(_proposalType) == ProposalType.minStake) {
       require(_value > 0, "Wrong value");
       _addProposalMinStake(_value, _pmctTokens);
-    } else if (_proposalType == ProposalType.gameMaxDuration) {
+    } else if (ProposalType(_proposalType) == ProposalType.gameMaxDuration) {
       require(_value > 0, "Wrong value");
       _addProposalGameMaxDuration(_value, _pmctTokens);
     } else {
       require(_token != address(0), "Wrong token");
-      require(_token != pmctAddr, "Cannt add PMC");
+      require(_token != pmctAddr, "Cannt add PMCt");
       _addProposalAddToken(_token, _pmctTokens);
     }
   }
 
   //  <-- ADD, VOTE MIN STAKE
-  /**
+  /***
    * @dev Adds proposal minStake.
    * @param _minStake minStake value.
    * @param _pmctTokens PMCt amount to vote.
@@ -139,7 +139,7 @@ contract PMCGovernance is Ownable {
     (proposalsMinStake[_minStake].votersTotal == 0) ? _createProposalMinStake(_minStake, _pmctTokens) : voteProposalMinStake(_minStake, _pmctTokens);
   }
 
-  /**
+  /***
    * @dev Creates proposal minStake.
    * @param _minStake minStake value.
    * @param _pmctTokens PMCt amount to vote.
@@ -390,10 +390,10 @@ contract PMCGovernance is Ownable {
    * @dev Quits proposal.
    * @param _proposalType Proposal type.
    */
-  function quitProposal(ProposalType _proposalType) external onlyValidProposal(_proposalType) {    
-    if (_proposalType == ProposalType.minStake) {
+  function quitProposal(uint8 _proposalType) external onlyValidProposal(_proposalType) {    
+    if (ProposalType(_proposalType) == ProposalType.minStake) {
       _quitProposalMinStake();
-    } else if (_proposalType == ProposalType.gameMaxDuration) {
+    } else if (ProposalType(_proposalType) == ProposalType.gameMaxDuration) {
       _quitProposalGameMaxDuration();
     } else {
       _quitProposalAddToken();
@@ -467,17 +467,17 @@ contract PMCGovernance is Ownable {
    * @param _proposalType Proposal type.
    * @return Count of proposals.
    */
-  function getProposalsCount(ProposalType _proposalType) external view onlyValidProposal(_proposalType) returns(uint256) {
-    if (_proposalType == ProposalType.minStake) {
+  function getProposalsCount(uint8 _proposalType) external view onlyValidProposal(_proposalType) returns(uint256) {
+    if (ProposalType(_proposalType) == ProposalType.minStake) {
       return proposalsMinStakeValues.length;
-    } else if (_proposalType == ProposalType.gameMaxDuration) {
+    } else if (ProposalType(_proposalType) == ProposalType.gameMaxDuration) {
       return proposalsGameMaxDurationValues.length;
     } else {
       return proposalsAddTokenValues.length;
     }
   }
 
-  /**
+  /***
    * @dev Gets proposal info.
    * @param _proposalType Proposal type.
    * @param _token Token address.
@@ -488,14 +488,14 @@ contract PMCGovernance is Ownable {
    * @return startedAt Timestamp when proposal started.
    * @return voterVotedAt Timestamp when sender voted for the proposal.
    */
-  function getProposalInfo(ProposalType _proposalType, address _token, uint256 _value) external view onlyValidProposal(_proposalType) returns (uint256 votersTotal, uint256 tokensTotal, uint256 tokensOfVoter, uint256 startedAt, uint256 voterVotedAt) {
-    if (_proposalType == ProposalType.minStake) {      
+  function getProposalInfo(uint8 _proposalType, address _token, uint256 _value) external view onlyValidProposal(_proposalType) returns (uint256 votersTotal, uint256 tokensTotal, uint256 tokensOfVoter, uint256 startedAt, uint256 voterVotedAt) {
+    if (ProposalType(_proposalType) == ProposalType.minStake) {
       votersTotal = proposalsMinStake[_value].votersTotal;
       tokensTotal = proposalsMinStake[_value].tokensTotal;
       tokensOfVoter = proposalsMinStake[_value].tokensOfVoter[msg.sender];
       startedAt = proposalsMinStake[_value].startedAt;
       voterVotedAt = proposalsMinStake[_value].voterVotedAt[msg.sender];
-    } else if (_proposalType == ProposalType.gameMaxDuration) {      
+    } else if (ProposalType(_proposalType) == ProposalType.gameMaxDuration) {      
       votersTotal = proposalsGameMaxDuration[_value].votersTotal;
       tokensTotal = proposalsGameMaxDuration[_value].tokensTotal;
       tokensOfVoter = proposalsGameMaxDuration[_value].tokensOfVoter[msg.sender];
