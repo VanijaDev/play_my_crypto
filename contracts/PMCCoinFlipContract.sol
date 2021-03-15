@@ -138,6 +138,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
     Game storage game = _lastStartedGame(_token);
+    require(game.creator != msg.sender, "Cannt join");
 
     if (_isEth(_token)) {
       require(msg.value == game.stake, "Wrong stake");
