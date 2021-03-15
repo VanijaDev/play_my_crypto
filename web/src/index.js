@@ -3,7 +3,7 @@ import BlockchainManager from "./managers/blockchainManager";
 
 const Index = {
 
-  setup: function () {
+  setup: async function () {
     switch (MetaMaskManager.chainId) {
       // case MetaMaskManager.ChainIDs.ETH:
       //   // console.log("setup ETH");
@@ -18,6 +18,7 @@ const Index = {
       case MetaMaskManager.ChainIDs.TEST_Ganache:
         // console.log("setup Ganache");
         window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
+        await this.updateData();
         break;
 
       case MetaMaskManager.ChainIDs.TEST_Ropsten:
@@ -31,6 +32,11 @@ const Index = {
         alert("setup - Wrong Network");
         return;
     }
+  },
+
+  updateData: async function () {
+    let val = await BlockchainManager.api_game_raffleJackpotsWonTotal(BlockchainManager.ZERO_ADDRESS);
+    document.getElementById("raffle_jackpots").innerText = val.toString();
   },
 
 

@@ -4,6 +4,8 @@ import {
 } from "../contracts/contracts";
 
 const BlockchainManager = {
+  ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
+
   Blockchain: {
     eth: "eth",
     bsc: "bsc"
