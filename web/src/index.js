@@ -5,6 +5,7 @@ const Index = {
 
   setup: async function () {
     switch (MetaMaskManager.chainId) {
+
       // case MetaMaskManager.ChainIDs.ETH:
       //   // console.log("setup ETH");
       //   window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
