@@ -5,6 +5,8 @@ import {
 
 const BlockchainManager = {
   ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
+  BALANCES_DECIMALS: 5,
+  BALANCES_LENGTH: 8,
 
   Blockchain: {
     eth: "eth",
@@ -64,11 +66,11 @@ const BlockchainManager = {
    * API - PMCT
    */
   api_pmct_balanceOf: async function (_address) {
-    return pmctInst.balanceOf(_address);
+    return this.pmctInst.balanceOf(_address);
   },
 
   api_pmct_allowanceOf: async function (_address) {
-    return pmctInst.allowance(_address);
+    return this.pmctInst.allowance(_address);
   },
 
 

@@ -101,7 +101,7 @@ const MetaMaskManager = {
   },
 
   getAccountBalance: async function () {
-    const balance = await web3.eth.getBalance(await this.getAccount());
+    const balance = await this.provider.getBalance(await this.getAccount());
     return balance;
   },
 };

@@ -1,4 +1,6 @@
 const Types = {
+
+
   // View: {
   //   index: "index",
   //   game: "game"

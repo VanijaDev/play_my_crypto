@@ -1,5 +1,8 @@
 import MetaMaskManager from "./managers/metamaskManager";
 import BlockchainManager from "./managers/blockchainManager";
+import {
+  ethers
+} from "ethers";
 
 const Index = {
 
@@ -36,8 +39,17 @@ const Index = {
   },
 
   updateData: async function () {
-    let val = await BlockchainManager.api_game_raffleJackpotsWonTotal(BlockchainManager.ZERO_ADDRESS);
-    document.getElementById("raffle_jackpots").innerText = val.toString();
+    //  balance eth
+    let balance_eth = ethers.utils.formatEther(await window.MetaMaskManager.getAccountBalance());
+    // console.log("balance_eth:", balance_eth);
+    document.getElementById("balance_eth").innerText = balance_eth.slice(0, window.BlockchainManager.BALANCES_LENGTH);
+
+    //  balance pmc
+    let acc = await window.MetaMaskManager.getAccount();
+    let balance_pmc = await window.BlockchainManager.api_pmct_balanceOf(acc);
+    console.log("balance_pmc:", balance_pmc);
+    // document.getElementById("balance_pmc").innerText = balance_pmc.slice(0, window.BlockchainManager.BALANCES_LENGTH);
+
   },
 
 
