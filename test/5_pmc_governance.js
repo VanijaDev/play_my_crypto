@@ -291,7 +291,7 @@ contract("PMCGovernance", function (accounts) {
     });
   });
 
-  describe.only("_addProposalMinStake - voteProposalMinStake", function () {
+  describe("_addProposalMinStake - voteProposalMinStake", function () {
     beforeEach("setup", async function () {
       //  play game 0
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {

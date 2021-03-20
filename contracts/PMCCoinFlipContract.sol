@@ -257,26 +257,61 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
   //  <-- PENDING WITHDRAWAL
   /***
-   * @notice Referral fees not updated.
    * @dev Calculates prize to withdraw for sender.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @return prize Prize amount.
    * @return pmc_tokens PMC amount.
    */
-  function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external returns(uint256 prize, uint256 pmc_tokens) {
-    return _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
+  function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external view returns(uint256 prize, uint256 pmc_tokens) {
+    uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
+    if (gamesToCheck == 0) {
+      return (0, 0);
+    }
+
+    uint256 loop = ((_maxLoop > 0) && (_maxLoop < gamesToCheck)) ? _maxLoop : gamesToCheck;
+    uint256 subIdx;
+
+    while (loop > 0) {
+      subIdx = subIdx.add(1);
+      
+      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(subIdx)];
+      Game storage game = games[_token][gameToCheckIdx];
+
+      if (msg.sender == game.creator) {
+        if (game.creatorPrize > 0) {
+          prize = prize.add(game.creatorPrize);
+
+          if (_isEth(_token)) {
+            pmc_tokens = pmc_tokens.add(game.creatorPrize.div(100));  //  1%
+          }
+        }
+      } else {
+        if (game.opponentPrize > 0) {
+          bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
+            
+          if (timeout || keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
+            prize = prize.add(game.opponentPrize);
+
+            if (timeout && _isEth(_token)) {
+              pmc_tokens = pmc_tokens.add(game.opponentPrize.div(100));  //  1%
+            }
+          }
+        }
+      }
+
+      loop = loop.sub(1);
+    }
   }
 
   /***
-   * @dev Calculates prize to withdraw for sender.
+   * @dev Calculates prize to withdraw for sender and updates referral fees.
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
-   * @param _updateReferralFees Boolean value whether to update referral fees.
    * @return prize Prize amount.
    * @return pmc_tokens PMC amount.
    */
-  function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmc_tokens) {
+  function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop) private returns(uint256 prize, uint256 pmc_tokens) {
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     if (gamesToCheck == 0) {
       return (0, 0);
@@ -299,22 +334,21 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
             pmc_tokens = pmc_tokens.add(game.creatorPrize.div(100));  //  1%
           }
 
-          if (_updateReferralFees) {
-            address referral = referralInGame[_token][game.idx][msg.sender];
-            uint256 referralFee = game.creatorPrize.div(100);  //  1%
+          //  referral fees
+          address referral = referralInGame[_token][game.idx][msg.sender];
+          uint256 referralFee = game.creatorPrize.div(100);  //  1%
 
-            if (prevReferral != referral) {
-              if (prevReferralAmount > 0) {
-                addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
-                delete prevReferral;
-                delete prevReferralAmount;
-              }
-              
-              prevReferral = referral;
+          if (prevReferral != referral) {
+            if (prevReferralAmount > 0) {
+              addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
+              delete prevReferral;
+              delete prevReferralAmount;
             }
             
-            prevReferralAmount = prevReferralAmount.add(referralFee);
+            prevReferral = referral;
           }
+          
+          prevReferralAmount = prevReferralAmount.add(referralFee);
         }
       } else {
         if (game.opponentPrize > 0) {
@@ -327,22 +361,22 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
               pmc_tokens = pmc_tokens.add(game.opponentPrize.div(100));  //  1%
             }
 
-            if (_updateReferralFees) {
-              address referral = referralInGame[_token][game.idx][msg.sender];
-              uint256 referralFee = game.opponentPrize.div(100);  //  1%
+            
+            //  referral fees
+            address referral = referralInGame[_token][game.idx][msg.sender];
+            uint256 referralFee = game.opponentPrize.div(100);  //  1%
 
             if (prevReferral != referral) {
-                if (prevReferralAmount > 0) {
-                  addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
-                  delete prevReferral;
-                  delete prevReferralAmount;
-                }
-
-                prevReferral = referral;
+              if (prevReferralAmount > 0) {
+                addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
+                delete prevReferral;
+                delete prevReferralAmount;
               }
-              
-              prevReferralAmount = prevReferralAmount.add(referralFee);
+
+              prevReferral = referral;
             }
+              
+            prevReferralAmount = prevReferralAmount.add(referralFee);
           }
         }
       }
@@ -362,7 +396,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
     uint256 pendingPMC;
-    (pendingPrize, pendingPMC) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
+    (pendingPrize, pendingPMC) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop);
 
     require(pendingPrize > 0, "No prize");
 
