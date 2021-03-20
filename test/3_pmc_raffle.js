@@ -1,6 +1,6 @@
 const PMCCoinFlipContract = artifacts.require("PMCCoinFlipContract");
 const PMCStaking = artifacts.require("PMCStaking");
-const PMCt = artifacts.require("PMCt");
+const PMC = artifacts.require("PMC");
 const TestToken = artifacts.require("TestToken");
 
 const {
@@ -46,14 +46,14 @@ contract("PMCRaffle", function (accounts) {
   const CREATOR_COIN_SIDE = 1;
   const CREATOR_SEED_HASH = web3.utils.soliditySha3("Hello World");
 
-  let pmct;
+  let pmc;
   let game;
   let creatorHash;
 
   beforeEach("setup", async function () {
-    pmct = await PMCt.new();
-    game = await PMCCoinFlipContract.new(pmct.address);
-    await pmct.addMinter(game.address);
+    pmc = await PMC.new();
+    game = await PMCCoinFlipContract.new(pmc.address);
+    await pmc.addMinter(game.address);
 
     creatorHash = web3.utils.soliditySha3(CREATOR_COIN_SIDE, CREATOR_SEED_HASH);
 

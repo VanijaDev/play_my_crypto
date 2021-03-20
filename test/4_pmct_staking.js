@@ -1,6 +1,6 @@
 const PMCCoinFlipContract = artifacts.require("PMCCoinFlipContract");
 const PMCStaking = artifacts.require("PMCStaking");
-const PMCt = artifacts.require("PMCt");
+const PMC = artifacts.require("PMC");
 const TestToken = artifacts.require("TestToken");
 
 const {
@@ -46,18 +46,18 @@ contract("PMCStaking", function (accounts) {
   const CREATOR_COIN_SIDE = 1;
   const CREATOR_SEED_HASH = web3.utils.soliditySha3("Hello World");
 
-  let pmct;
+  let pmc;
   let game;
   let staking;
   let creatorHash;
 
   beforeEach("setup", async function () {
-    pmct = await PMCt.new();
+    pmc = await PMC.new();
 
-    game = await PMCCoinFlipContract.new(pmct.address);
-    await pmct.addMinter(game.address);
+    game = await PMCCoinFlipContract.new(pmc.address);
+    await pmc.addMinter(game.address);
 
-    staking = await PMCStaking.new(pmct.address, game.address);
+    staking = await PMCStaking.new(pmc.address, game.address);
     await staking.addGame(game.address);
     await game.updateStakingAddr(staking.address);
 
@@ -67,16 +67,16 @@ contract("PMCStaking", function (accounts) {
   });
 
   describe("constructor", function () {
-    it("should fail if Wrong _pmct", async function () {
-      await expectRevert(PMCStaking.new(constants.ZERO_ADDRESS, game.address), " Wrong _pmct");
+    it("should fail if Wrong _pmc", async function () {
+      await expectRevert(PMCStaking.new(constants.ZERO_ADDRESS, game.address), " Wrong _pmc");
     });
 
     it("should fail if Wrong _gameplay", async function () {
-      await expectRevert(PMCStaking.new(pmct.address, constants.ZERO_ADDRESS), " Wrong _gameplay");
+      await expectRevert(PMCStaking.new(pmc.address, constants.ZERO_ADDRESS), " Wrong _gameplay");
     });
 
-    it("should set correct pmctAddr & gameplay", async function () {
-      assert.equal(await staking.pmctAddr.call(), pmct.address, "Wrong pmct address");
+    it("should set correct pmcAddr & gameplay", async function () {
+      assert.equal(await staking.pmcAddr.call(), pmc.address, "Wrong pmc address");
       assert.isTrue(await staking.gameplaySupported.call(game.address), "Should be true");
     });
   });
@@ -156,7 +156,7 @@ contract("PMCStaking", function (accounts) {
       }), "Wrong value");
     });
 
-    it("should push StateForIncome with correct params for 0 pmct", async function () {
+    it("should push StateForIncome with correct params for 0 pmc", async function () {
       //  0 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -236,7 +236,7 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0")), "Wrong tokensStakedAmount 0, 1");
     });
 
-    it("should push StateForIncome with correct params for 0 pmct", async function () {
+    it("should push StateForIncome with correct params for 0 pmc", async function () {
       //  0 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -268,8 +268,8 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("0")), "Wrong amount, 0");
 
       //  make stake
-      // console.log((await pmct.balanceOf(CREATOR_0)).toString());
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      // console.log((await pmc.balanceOf(CREATOR_0)).toString());
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(ether("0.00165"), {
@@ -341,8 +341,8 @@ contract("PMCStaking", function (accounts) {
       //  3 - ETH
 
       // //  make stake
-      // console.log((await pmct.balanceOf(CREATOR_1)).toString());
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      // console.log((await pmc.balanceOf(CREATOR_1)).toString());
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
       await staking.stake(ether("0.003"), {
@@ -442,11 +442,11 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -488,12 +488,12 @@ contract("PMCStaking", function (accounts) {
       }); //  0.165 ETH
 
       //  stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -568,12 +568,12 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (CREATOR_0_res_0._incomeIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong for CREATOR 0");
 
       //  stake CREATOR_1
-      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0026")), "wrong pmct_tokens_CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0026")), "wrong pmc_tokens_CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
 
@@ -846,7 +846,7 @@ contract("PMCStaking", function (accounts) {
         from: OPPONENT_2
       }); //  0.165 ETH
 
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong pmct for CREATOR_0");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong pmc for CREATOR_0");
     });
 
     it("should fail if 0 tokens", async function () {
@@ -854,17 +854,17 @@ contract("PMCStaking", function (accounts) {
     });
 
     it("should transfer tokens to staking contract", async function () {
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
-      assert.equal(0, (await pmct.balanceOf(CREATOR_0)).cmp(ether("0")), "wrong for CREATOR_0");
-      assert.equal(0, (await pmct.balanceOf(staking.address)).cmp(pmct_tokens_CREATOR_0), "wrong for CREATOR_0");
+      assert.equal(0, (await pmc.balanceOf(CREATOR_0)).cmp(ether("0")), "wrong for CREATOR_0");
+      assert.equal(0, (await pmc.balanceOf(staking.address)).cmp(pmc_tokens_CREATOR_0), "wrong for CREATOR_0");
     });
 
     it("should set incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes if user is first staker, but were multiple replenishments", async function () {
@@ -956,12 +956,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00675")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00675")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -969,12 +969,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake OWNER
-      const pmct_tokens_OWNER = await pmct.balanceOf.call(OWNER);
-      assert.equal(0, pmct_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmct for OWNER");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_OWNER = await pmc.balanceOf.call(OWNER);
+      assert.equal(0, pmc_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmc for OWNER");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: OWNER
       });
-      await staking.stake(pmct_tokens_OWNER, {
+      await staking.stake(pmc_tokens_OWNER, {
         from: OWNER
       });
 
@@ -1070,12 +1070,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -1083,12 +1083,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake OWNER
-      const pmct_tokens_OWNER = await pmct.balanceOf.call(OWNER);
-      assert.equal(0, pmct_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmct for OWNER");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_OWNER = await pmc.balanceOf.call(OWNER);
+      assert.equal(0, pmc_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmc for OWNER");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: OWNER
       });
-      await staking.stake(pmct_tokens_OWNER, {
+      await staking.stake(pmc_tokens_OWNER, {
         from: OWNER
       });
 
@@ -1116,12 +1116,12 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  stake CREATOR_1
-      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct for CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc for CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
       assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_1");
@@ -1130,12 +1130,12 @@ contract("PMCStaking", function (accounts) {
     it("should update pendingRewardOf[msg.sender] if pending stakes present", async function () {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
-      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 after 0");
@@ -1200,12 +1200,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  uncomment for valid intermediary test
-      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0 1");
-      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      // pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0 1");
+      // await pmc.approve(staking.address, constants.MAX_UINT256, {
       //   from: CREATOR_0
       // });
-      // await staking.stake(pmct_tokens_CREATOR_0, {
+      // await staking.stake(pmc_tokens_CREATOR_0, {
       //   from: CREATOR_0
       // });
       // assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.0069"))));
@@ -1241,12 +1241,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  uncomment for valid intermediary test
-      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
-      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      // pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      // await pmc.approve(staking.address, constants.MAX_UINT256, {
       //   from: CREATOR_0
       // });
-      // await staking.stake(pmct_tokens_CREATOR_0, {
+      // await staking.stake(pmc_tokens_CREATOR_0, {
       //   from: CREATOR_0
       // });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
@@ -1254,12 +1254,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_1
-      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
 
@@ -1292,12 +1292,12 @@ contract("PMCStaking", function (accounts) {
       }); //  0.165 ETH
 
 
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmct_tokens_CREATOR_0 3");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmc_tokens_CREATOR_0 3");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
@@ -1307,12 +1307,12 @@ contract("PMCStaking", function (accounts) {
     it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender] if pending stakes present", async function () {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
-      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 after 0");
@@ -1377,12 +1377,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  uncomment for valid intermediary test
-      // pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      // assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0 1");
-      // await pmct.approve(staking.address, constants.MAX_UINT256, {
+      // pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0 1");
+      // await pmc.approve(staking.address, constants.MAX_UINT256, {
       //   from: CREATOR_0
       // });
-      // await staking.stake(pmct_tokens_CREATOR_0, {
+      // await staking.stake(pmc_tokens_CREATOR_0, {
       //   from: CREATOR_0
       // });
       // assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("2")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 0");
@@ -1419,9 +1419,9 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(ether("0.00165"), {
@@ -1432,12 +1432,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_1
-      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
 
@@ -1471,12 +1471,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
@@ -1486,12 +1486,12 @@ contract("PMCStaking", function (accounts) {
     it("should update stakeOf[msg.sender]", async function () {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
-      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong stakeOf for CREATOR_0 0");
@@ -1585,9 +1585,9 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(ether("0.00165"), {
@@ -1598,12 +1598,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_1
-      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
       assert.equal(0, (await staking.stakeOf.call(CREATOR_1)).cmp(ether("0.0018")), "wrong stakeOf for CREATOR_1 0");
@@ -1638,12 +1638,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0066")), "wrong stakeOf for CREATOR_1 2");
@@ -1651,12 +1651,12 @@ contract("PMCStaking", function (accounts) {
 
     it("should update tokensStaked", async function () {
       //  stake CREATOR_0
-      let pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmct_tokens_CREATOR_0");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00165")), "wrong tokensStaked for 0");
@@ -1750,9 +1750,9 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 2");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(ether("0.00165"), {
@@ -1762,12 +1762,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake CREATOR_1
-      let pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmct_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmct_tokens_CREATOR_1");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
       assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0051")), "wrong tokensStaked for 2");
@@ -1802,12 +1802,12 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmct_tokens_CREATOR_0 3");
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
       assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0084")), "wrong tokensStaked for 4");
@@ -1846,11 +1846,11 @@ contract("PMCStaking", function (accounts) {
 
 
       // stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -1884,11 +1884,11 @@ contract("PMCStaking", function (accounts) {
 
 
       // stake CREATOR_1
-      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
 
@@ -2020,8 +2020,8 @@ contract("PMCStaking", function (accounts) {
 
     it("should delete pendingRewardOf[msg.sender] if present", async function () {
       // stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -2190,11 +2190,11 @@ contract("PMCStaking", function (accounts) {
 
 
       // stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -2228,11 +2228,11 @@ contract("PMCStaking", function (accounts) {
 
 
       // stake CREATOR_1
-      const pmct_tokens_CREATOR_1 = await pmct.balanceOf.call(CREATOR_1);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(pmct_tokens_CREATOR_1, {
+      await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
 
@@ -2357,11 +2357,11 @@ contract("PMCStaking", function (accounts) {
 
       //  check
       // stake CREATOR_0
-      const pmct_tokens_CREATOR_0 = await pmct.balanceOf.call(CREATOR_0);
-      await pmct.approve(staking.address, constants.MAX_UINT256, {
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(pmct_tokens_CREATOR_0, {
+      await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
 
@@ -2444,14 +2444,14 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (new BN("5")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 2");
     });
 
-    it("should transfer PMCt", async function () {
-      let balanceBefore = await pmct.balanceOf(CREATOR_0);
+    it("should transfer PMC", async function () {
+      let balanceBefore = await pmc.balanceOf(CREATOR_0);
 
       await staking.unstake({
         from: CREATOR_0
       });
 
-      let balanceAfter = await pmct.balanceOf(CREATOR_0);
+      let balanceAfter = await pmc.balanceOf(CREATOR_0);
 
       assert.equal(0, balanceBefore.add(ether("0.00165")).cmp(balanceAfter), "wrong after");
     });

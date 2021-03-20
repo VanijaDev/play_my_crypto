@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
@@ -5,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract PMCt is ERC20("PlayMyCrypto token", "PMCt"), Ownable {
+contract PMC is ERC20("Play My Crypto token", "PMC"), Ownable {
   mapping(address => bool) minters;
 
   /**

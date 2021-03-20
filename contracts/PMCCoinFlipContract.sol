@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./PMCt.sol";
+import "./PMC.sol";
 import "./PMCRaffle.sol";
 import "./PMC_IStaking.sol";
 import "./PMCFeeManager.sol";
@@ -9,11 +9,11 @@ import "./PMCGovernanceCompliant.sol";
 
 /**
   * @notice Deplyment flow:
-  * 1. Deploy PMCt;
-  * 2. Deploy Game(PMCt);
-  * 3. Add Game to minters for PMCt;
-  * 4. Deploy Staking(PMCt, PMCCoinFlipContract);
-  * 5. Deploy Governance(PMCt, PMCCoinFlipContract);
+  * 1. Deploy PMC;
+  * 2. Deploy Game(PMC);
+  * 3. Add Game to minters for PMC;
+  * 4. Deploy Staking(PMC, PMCCoinFlipContract);
+  * 5. Deploy Governance(PMC, PMCCoinFlipContract);
  */
 
 contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle {
@@ -41,13 +41,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   uint8 private constant FEE_NUMBER_ETH = 5;  //  1. referral; 2. partner*; 3. raffle; 4. staking*; 5. dev. 95% - as a prize. (*) - may be not used if 0x0.
   uint8 private constant FEE_NUMBER_TOKEN = 4;  //  1. referral; 2. partner*; 3. raffle; 4. dev. 96% - as a prize
 
-  address public pmctAddr;
+  address public pmcAddr;
   address public stakingAddr;
 
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH.
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
   mapping(address => mapping(address => uint256)) private playerWithdrawedTotal;   //  token => (player => amount)
-  mapping(address => uint256) public playerWithdrawedPMCtTotal;
+  mapping(address => uint256) public playerWithdrawedPMCTotal;
 
   mapping(address => mapping(address => uint256[])) private gamesParticipatedToCheckPrize;    //  token => (player => idx[])
 
@@ -68,15 +68,15 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   event CF_GameStarted(address indexed token, uint256 indexed id);
   event CF_GameJoined(address indexed token, uint256 indexed id, address indexed opponent);
   event CF_GameFinished(address indexed token, uint256 indexed id, bool indexed timeout);
-  event CF_PrizeWithdrawn(address indexed token, address indexed player, uint256 indexed prize, uint256 pmct);
+  event CF_PrizeWithdrawn(address indexed token, address indexed player, uint256 indexed prize, uint256 pmc);
 
   /***
    * @dev Constructor.
-   * @param _pmct PMCt address.
+   * @param _pmc PMC address.
    */
-  constructor(address _pmct) PMCGovernanceCompliant() {
-    require(_pmct != address(0), "Wrong token");
-    pmctAddr = _pmct;
+  constructor(address _pmc) PMCGovernanceCompliant() {
+    require(_pmc != address(0), "Wrong token");
+    pmcAddr = _pmc;
   }
 
 
@@ -262,9 +262,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _token ERC20 token address. 0x0 - ETH.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @return prize Prize amount.
-   * @return pmct_tokens PMCt amount.
+   * @return pmc_tokens PMC amount.
    */
-  function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external returns(uint256 prize, uint256 pmct_tokens) {
+  function pendingPrizeToWithdraw(address _token, uint256 _maxLoop) external returns(uint256 prize, uint256 pmc_tokens) {
     return _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, false);
   }
 
@@ -274,9 +274,9 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @param _updateReferralFees Boolean value whether to update referral fees.
    * @return prize Prize amount.
-   * @return pmct_tokens PMCt amount.
+   * @return pmc_tokens PMC amount.
    */
-  function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmct_tokens) {
+  function _pendingPrizeToWithdrawAndReferralFeesUpdate(address _token, uint256 _maxLoop, bool _updateReferralFees) private returns(uint256 prize, uint256 pmc_tokens) {
     uint256 gamesToCheck = gamesParticipatedToCheckPrize[_token][msg.sender].length;
     if (gamesToCheck == 0) {
       return (0, 0);
@@ -296,7 +296,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
           prize = prize.add(game.creatorPrize);
 
           if (_isEth(_token)) {
-            pmct_tokens = pmct_tokens.add(game.creatorPrize.div(100));  //  1%
+            pmc_tokens = pmc_tokens.add(game.creatorPrize.div(100));  //  1%
           }
 
           if (_updateReferralFees) {
@@ -324,7 +324,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
             prize = prize.add(game.opponentPrize);
 
             if (timeout && _isEth(_token)) {
-              pmct_tokens = pmct_tokens.add(game.opponentPrize.div(100));  //  1%
+              pmc_tokens = pmc_tokens.add(game.opponentPrize.div(100));  //  1%
             }
 
             if (_updateReferralFees) {
@@ -361,17 +361,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   function withdrawPendingPrizes(address _token, uint256 _maxLoop) external {
     uint256 pendingPrize;
-    uint256 pendingPMCt;
-    (pendingPrize, pendingPMCt) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
+    uint256 pendingPMC;
+    (pendingPrize, pendingPMC) = _pendingPrizeToWithdrawAndReferralFeesUpdate(_token, _maxLoop, true);
 
     require(pendingPrize > 0, "No prize");
 
-    //  PMCt
-    if (pendingPMCt > 0) {
-      playerWithdrawedPMCtTotal[msg.sender] = playerWithdrawedPMCtTotal[msg.sender].add(pendingPMCt);
+    //  PMC
+    if (pendingPMC > 0) {
+      playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(pendingPMC);
       
-      PMCt(pmctAddr).mint(msg.sender, pendingPMCt);
-      PMCt(pmctAddr).mint(owner(), pendingPMCt.div(100));
+      PMC(pmcAddr).mint(msg.sender, pendingPMC);
+      PMC(pmcAddr).mint(owner(), pendingPMC.div(100));
     }
 
     //  ETH / token
@@ -418,7 +418,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
     
     playerWithdrawedTotal[_token][msg.sender] = playerWithdrawedTotal[_token][msg.sender].add(transferAmount);
-    emit CF_PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMCt);
+    emit CF_PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMC);
   }
   //  PENDING WITHDRAWAL -->
 

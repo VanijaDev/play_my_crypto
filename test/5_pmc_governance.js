@@ -1,7 +1,7 @@
 const PMCCoinFlipContract = artifacts.require("PMCCoinFlipContract");
 const PMCStaking = artifacts.require("PMCStaking");
 const PMCGovernance = artifacts.require("PMCGovernance");
-const PMCt = artifacts.require("PMCt");
+const PMC = artifacts.require("PMC");
 const TestToken = artifacts.require("TestToken");
 
 const {
@@ -50,28 +50,28 @@ contract("PMCGovernance", function (accounts) {
   const CREATOR_COIN_SIDE = 1;
   const CREATOR_SEED_HASH = web3.utils.soliditySha3("Hello World");
 
-  let pmct;
+  let pmc;
   let game;
   let governance;
 
   let creatorHash;
 
   beforeEach("setup", async function () {
-    pmct = await PMCt.new();
-    game = await PMCCoinFlipContract.new(pmct.address);
-    await pmct.addMinter(game.address);
+    pmc = await PMC.new();
+    game = await PMCCoinFlipContract.new(pmc.address);
+    await pmc.addMinter(game.address);
 
-    governance = await PMCGovernance.new(pmct.address, game.address);
+    governance = await PMCGovernance.new(pmc.address, game.address);
 
     creatorHash = web3.utils.soliditySha3(CREATOR_COIN_SIDE, CREATOR_SEED_HASH);
 
-    await pmct.approve(governance.address, ether("1"), {
+    await pmc.approve(governance.address, ether("1"), {
       from: CREATOR_0
     });
-    await pmct.approve(governance.address, ether("1"), {
+    await pmc.approve(governance.address, ether("1"), {
       from: CREATOR_1
     });
-    await pmct.approve(governance.address, ether("1"), {
+    await pmc.approve(governance.address, ether("1"), {
       from: OTHER
     });
 
@@ -79,21 +79,21 @@ contract("PMCGovernance", function (accounts) {
   });
 
   describe("Constructor", function () {
-    it("should fail if Wrong _pmct", async function () {
-      await expectRevert(PMCGovernance.new(constants.ZERO_ADDRESS, game.address), "Wrong _pmct");
+    it("should fail if Wrong _pmc", async function () {
+      await expectRevert(PMCGovernance.new(constants.ZERO_ADDRESS, game.address), "Wrong _pmc");
     });
 
     it("should fail if Wrong _game", async function () {
-      await expectRevert(PMCGovernance.new(pmct.address, constants.ZERO_ADDRESS), "Wrong _game");
+      await expectRevert(PMCGovernance.new(pmc.address, constants.ZERO_ADDRESS), "Wrong _game");
     });
 
-    it("should set correct pmctAddr", async function () {
+    it("should set correct pmcAddr", async function () {
       let gov = await PMCGovernance.new(OTHER, game.address);
-      assert.equal(await gov.pmctAddr.call(), OTHER, "Wrong pmctAddr");
+      assert.equal(await gov.pmcAddr.call(), OTHER, "Wrong pmcAddr");
     });
 
     it("should push game into games", async function () {
-      let gov = await PMCGovernance.new(pmct.address, OTHER);
+      let gov = await PMCGovernance.new(pmc.address, OTHER);
       assert.deepEqual(await gov.gamesGoverned.call(), [OTHER], "Wrong games after push");
     });
   });
@@ -155,10 +155,10 @@ contract("PMCGovernance", function (accounts) {
       }), "Wrong proposal");
     });
 
-    it("should fail if Wrong _pmctTokens", async function () {
+    it("should fail if Wrong _pmcTokens", async function () {
       await expectRevert(governance.addProposal(1, constants.ZERO_ADDRESS, ether("0"), ether("0"), {
         from: OTHER
-      }), "Wrong _pmctTokens");
+      }), "Wrong _pmcTokens");
     });
 
     it("should fail if Wrong value for minStake", async function () {
@@ -179,10 +179,10 @@ contract("PMCGovernance", function (accounts) {
       }), "Wrong token");
     });
 
-    it("should fail if Cannt add PMCt for addToken", async function () {
-      await expectRevert(governance.addProposal(2, pmct.address, new BN("0"), ether("1"), {
+    it("should fail if Cannt add PMC for addToken", async function () {
+      await expectRevert(governance.addProposal(2, pmc.address, new BN("0"), ether("1"), {
         from: OTHER
-      }), "Cannt add PMCt");
+      }), "Cannt add PMC");
     });
   });
 
@@ -240,14 +240,14 @@ contract("PMCGovernance", function (accounts) {
       }); //  0.165 ETH
     });
 
-    it("should transfer PMCt tokens", async function () {
-      assert.equal(0, (await pmct.balanceOf.call(governance.address)).cmp(ether("0")), "Wrong before");
+    it("should transfer PMC tokens", async function () {
+      assert.equal(0, (await pmc.balanceOf.call(governance.address)).cmp(ether("0")), "Wrong before");
 
       await governance.addProposal(1, constants.ZERO_ADDRESS, ether("0.2"), ether("0.0001"), {
         from: CREATOR_0
       });
 
-      assert.equal(0, (await pmct.balanceOf.call(governance.address)).cmp(ether("0.0001")), "Wrong after");
+      assert.equal(0, (await pmc.balanceOf.call(governance.address)).cmp(ether("0.0001")), "Wrong after");
     });
 
     it("should push _minStake to proposalsMinStakeValues", async function () {

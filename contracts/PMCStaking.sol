@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-import "./PMCt.sol";
+import "./PMC.sol";
 import "./PMC_IStaking.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @notice ETH only. 
- * User, who has PMCt stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
+ * User, who has PMC stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
  */
 contract PMCStaking is Ownable, PMC_IStaking {
   using SafeMath for uint256;
 
-  address public pmctAddr;
+  address public pmcAddr;
   
   struct StateForIncome {
     uint256 income;
@@ -32,14 +32,14 @@ contract PMCStaking is Ownable, PMC_IStaking {
   
   /***
    * @dev Constructor.
-   * @param _pmct PMCt token address.
+   * @param _pmc PMC token address.
    * @param _gameplay Gameplay address.
    */
-  constructor(address _pmct, address _gameplay) {
-    require(_pmct != address(0), "Wrong _pmct");
+  constructor(address _pmc, address _gameplay) {
+    require(_pmc != address(0), "Wrong _pmc");
     require(_gameplay != address(0), "Wrong _gameplay");
     
-    pmctAddr = _pmct;
+    pmcAddr = _pmc;
     gameplaySupported[_gameplay] = true;
   }
 
@@ -74,12 +74,12 @@ contract PMCStaking is Ownable, PMC_IStaking {
   }
 
   /***
-   * @dev Stakes PMCt tokens.
+   * @dev Stakes PMC tokens.
    * @param _tokens Token amount.
    */
   function stake(uint256 _tokens) external {
     require(_tokens > 0, "0 tokens");
-    ERC20(pmctAddr).transferFrom(msg.sender, address(this), _tokens);
+    ERC20(pmcAddr).transferFrom(msg.sender, address(this), _tokens);
     
     if (stakeOf[msg.sender] == 0) {
       if (tokensStaked == 0) {
@@ -103,7 +103,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   }
 
   /***
-   * @dev Unstakes PMCt tokens.
+   * @dev Unstakes PMC tokens.
    */
   function unstake() external {
     uint256 tokens = stakeOf[msg.sender];
@@ -118,7 +118,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
       incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount();
     }
     
-    ERC20(pmctAddr).transfer(msg.sender, tokens);
+    ERC20(pmcAddr).transfer(msg.sender, tokens);
   }
 
   /***

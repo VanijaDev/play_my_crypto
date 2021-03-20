@@ -1,6 +1,6 @@
 const PMCCoinFlipContract = artifacts.require("PMCCoinFlipContract");
 const PMCStaking = artifacts.require("PMCStaking");
-const PMCt = artifacts.require("PMCt");
+const PMC = artifacts.require("PMC");
 const TestToken = artifacts.require("TestToken");
 
 const {
@@ -46,14 +46,14 @@ contract("PMCCoinFlipContract", function (accounts) {
   const CREATOR_COIN_SIDE = 1;
   const CREATOR_SEED_HASH = web3.utils.soliditySha3("Hello World");
 
-  let pmct;
+  let pmc;
   let game;
   let creatorHash;
 
   beforeEach("setup", async function () {
-    pmct = await PMCt.new();
-    game = await PMCCoinFlipContract.new(pmct.address);
-    await pmct.addMinter(game.address);
+    pmc = await PMC.new();
+    game = await PMCCoinFlipContract.new(pmc.address);
+    await pmc.addMinter(game.address);
 
     creatorHash = web3.utils.soliditySha3(CREATOR_COIN_SIDE, CREATOR_SEED_HASH);
 
@@ -65,8 +65,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       await expectRevert(PMCCoinFlipContract.new(constants.ZERO_ADDRESS), "Wrong token");
     });
 
-    it("should set correct pmct", async function () {
-      assert.equal(await game.pmctAddr.call(), pmct.address, "Wrong PMCt");
+    it("should set correct pmc", async function () {
+      assert.equal(await game.pmcAddr.call(), pmc.address, "Wrong PMC");
     });
   });
 
@@ -1222,7 +1222,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should replenishRewardPool if (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH > 0), check balance", async function () {
       //  add Staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       await time.increase(time.duration.minutes(2));
@@ -1276,7 +1276,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       //  add Staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       //  start new game
@@ -1672,7 +1672,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should not replenishRewardPool if (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH > 0), check balance", async function () {
       //  add Staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       await time.increase(time.duration.minutes(2));
@@ -1700,14 +1700,14 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: OPPONENT_2
       });
 
-      assert.equal(0, (await pmct.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens before");
+      assert.equal(0, (await pmc.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens before");
 
       // play
       await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
       });
 
-      assert.equal(0, (await pmct.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens after");
+      assert.equal(0, (await pmc.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens after");
     });
 
     it("should replenishRewardPool if (stakingAddr != address(0)) && (stakeRewardPoolPending_ETH == 0), check balance", async function () {
@@ -1722,7 +1722,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       //  add Staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       //  start new game
@@ -1740,14 +1740,14 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: OPPONENT_2
       });
 
-      assert.equal(0, (await pmct.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens before");
+      assert.equal(0, (await pmc.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens before");
 
       // play
       await game.playGame(testToken.address, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
       });
 
-      assert.equal(0, (await pmct.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens after");
+      assert.equal(0, (await pmc.balanceOf.call(staking.address)).cmp(ether("0")), "should be 0 tokens after");
     });
 
     it("should updateGameMinStakeETHIfNeeded", async function () {
@@ -2259,7 +2259,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0)).prize.cmp(new BN("0")), "Should be 0");
     });
 
-    it("should return correct prize & pmct_tokens for multiple games", async function () {
+    it("should return correct prize & pmc_tokens for multiple games", async function () {
       //  0
       let startAt_0 = await time.latest();
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
@@ -2297,15 +2297,15 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 0");
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 0");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
 
 
       //  1
@@ -2365,27 +2365,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 1");
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for CREATOR_0, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 1");
+      })).pmc_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
 
 
       //  2
@@ -2445,27 +2445,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 2");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 2");
+      })).pmc_tokens.cmp(ether("0.0015")), "Should be 0.0015 Token for CREATOR_1, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 2");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 2");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 2");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 2");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 2");
 
 
       //  3
@@ -2521,27 +2521,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 3");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 3");
+      })).pmc_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
 
 
       //  4
@@ -2601,27 +2601,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 4");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 4");
+      })).pmc_tokens.cmp(ether("0.0031")), "Should be 0.0031 Token for CREATOR_1, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
 
 
       //  5
@@ -2681,27 +2681,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 5");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 5");
+      })).pmc_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
 
 
       //  6 timeout
@@ -2754,27 +2754,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 6");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 6");
+      })).pmc_tokens.cmp(ether("0.0086")), "Should be 0.0086 Token for CREATOR_1, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 6"); //  (0.11 + 0.11 / 2) / 100 = 0.00165
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
 
 
       //  join
@@ -2828,27 +2828,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 7");
+      })).pmc_tokens.cmp(ether("0.00365")), "Should be 0.00365 Token for CREATOR_0, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0.0136")), "Should be 0.0136 Token for CREATOR_1, for 7"); //  0.0086 + (0.2 + 0.2 * 3 / 2) / 100 = 0.0136
+      })).pmc_tokens.cmp(ether("0.0136")), "Should be 0.0136 Token for CREATOR_1, for 7"); //  0.0086 + (0.2 + 0.2 * 3 / 2) / 100 = 0.0136
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 7"); //  0.00165
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_0, for 7"); //  0.00165
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 7"); //  0.00165
+      })).pmc_tokens.cmp(ether("0.00165")), "Should be 0.00165 Token for OPPONENT_1, for 7"); //  0.00165
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
     });
 
     it("should not increase referral fee", async function () {
@@ -2944,7 +2944,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0)).prize.cmp(new BN("0")), "Should be 0");
     });
 
-    it("should return correct prize & pmct_tokens for multiple games", async function () {
+    it("should return correct prize & pmc_tokens for multiple games", async function () {
       //  0
       await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
@@ -2978,15 +2978,15 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 0");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 0");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 0");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 0");
 
       //  1
       await game.startGame(testToken.address, 300, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
@@ -3039,27 +3039,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 1");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 1");
 
 
       //  2
@@ -3113,27 +3113,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0.00365 Token for CREATOR_0, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0.00365 Token for CREATOR_0, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for CREATOR_1, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0 Token for CREATOR_1, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_0, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_0, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_1, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_1, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_2, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_2, for 2");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_3, for 2");
+      })).pmc_tokens.cmp(new BN("0")), "Should be 0 Token for OPPONENT_3, for 2");
 
 
       //  3
@@ -3185,27 +3185,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 3");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 3");
 
 
       //  4
@@ -3260,27 +3260,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 4");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 4");
 
 
       //  5
@@ -3335,27 +3335,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 5");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 5");
 
 
       //  6 timeout
@@ -3404,27 +3404,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 6");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 6");
 
 
       //  7 CREATOR_0 as opponent
@@ -3474,27 +3474,27 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  Token
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_0, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: CREATOR_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for CREATOR_1, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_0
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_0, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_1
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_1, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_2
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_2, for 7");
 
       assert.equal(0, (await game.pendingPrizeToWithdraw.call(testToken.address, 0, {
         from: OPPONENT_3
-      })).pmct_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
+      })).pmc_tokens.cmp(ether("0")), "Should be 0 Token for OPPONENT_3, for 7");
     });
 
     it("should not increase referral fee", async function () {
@@ -4480,7 +4480,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should withdraw correct amount", async function () {
       //  add staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       //  add partner
@@ -4538,13 +4538,13 @@ contract("PMCCoinFlipContract", function (accounts) {
       let OPPONENT_1_balance_after_0 = await balance.current(OPPONENT_1, "wei");
       assert.equal(0, OPPONENT_1_balance_before_0.add(ether("0.15675")).sub(gasSpent).cmp(OPPONENT_1_balance_after_0), "Wrong OPPONENT_1_balance_after_0"); //  0.11 + 0.11 / 2 = 0.165 * 0.95
 
-      //  check - PMCt
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "should be 0.00165 PMCT for CREATOR_0, 0");
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0 PMCT for CREATOR_1, 0");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_0, 0");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_1, 0");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_2, 0");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_3, 0");
+      //  check - PMC
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "should be 0.00165 pmc for CREATOR_0, 0");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0 pmc for CREATOR_1, 0");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 0");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 0");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 0");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 0");
 
 
       //  check - playerWithdrawedTotal, ETH
@@ -4858,13 +4858,13 @@ contract("PMCCoinFlipContract", function (accounts) {
       // })).prize.toString());
       assert.equal(0, balance_token_before.add(new BN("120")).cmp(balance_token_after), "Wrong balance_token_after for OPPONENT_3, 4"); //  125 * 0.96 = 120
 
-      //  check - PMCt
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.00315")), "should be 0.00315 PMCT for CREATOR_0, 4");
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0.15675 PMCT for CREATOR_1, 4");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_0, 4");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_1, 4");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_2, 4");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 PMCT for OPPONENT_3, 4");
+      //  check - PMC
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00315")), "should be 0.00315 pmc for CREATOR_0, 4");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0.15675 pmc for CREATOR_1, 4");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 4");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 4");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 4");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 4");
 
 
       //  check - playerWithdrawedTotal, ETH
@@ -5111,13 +5111,13 @@ contract("PMCCoinFlipContract", function (accounts) {
       // console.log(eth_balance_after.toString());
       assert.equal(0, eth_balance_before.add(ether("0.510625")).sub(gasSpent).cmp(eth_balance_after), "Wrong eth_balance_after for OPPONENT_3, 5"); //  0.5375 * 0.95 = 0.510625
 
-      //  check - PMCt
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.00515")), "should be 0.0055 PMCT for CREATOR_0, 5");
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 PMCT for CREATOR_1, 5");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_0)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_0, 5");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_1, 5");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_2)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_2, 5");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_3)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_3, 5");
+      //  check - PMC
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00515")), "should be 0.0055 pmc for CREATOR_0, 5");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 pmc for CREATOR_1, 5");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_0, 5");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 5");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_2, 5");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_3, 5");
 
       //  check - playerWithdrawedTotal, ETH
       assert.equal(0, (await game.getPlayerWithdrawedTotal.call(constants.ZERO_ADDRESS, {
@@ -5457,13 +5457,13 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: OPPONENT_3
       }), "No prize");
 
-      //  check - PMCt
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.0104")), "should be 0.0104 PMCT for CREATOR_0, 7");
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 PMCT for CREATOR_1, 7");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_0, 7");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_1, 7");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_2, 7");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_3, 7");
+      //  check - PMC
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0104")), "should be 0.0104 pmc for CREATOR_0, 7");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 pmc for CREATOR_1, 7");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_0, 7");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 7");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_2, 7");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_3, 7");
 
 
       //  check - playerWithdrawedTotal, ETH
@@ -5810,13 +5810,13 @@ contract("PMCCoinFlipContract", function (accounts) {
       }), "No prize");
 
 
-      //  check - PMCT
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_0)).cmp(ether("0.0139")), "should be 0.0139 PMCT for CREATOR_0, 14");
-      assert.equal(0, (await pmct.balanceOf.call(CREATOR_1)).cmp(ether("0.004")), "should be 0.004 PMCT for CREATOR_1, 14");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_0, 14");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 PMCT for OPPONENT_1, 14");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_2, 14");
-      assert.equal(0, (await pmct.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 PMCT for OPPONENT_3, 14");
+      //  check - pmc
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0139")), "should be 0.0139 pmc for CREATOR_0, 14");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.004")), "should be 0.004 pmc for CREATOR_1, 14");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_0, 14");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 14");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_2, 14");
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_3, 14");
 
 
       // check - playerWithdrawedTotal, ETH
@@ -5900,7 +5900,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
     it("should withdraw correct amount if no partner", async function () {
       //  add staking
-      let staking = await PMCStaking.new(pmct.address, game.address);
+      let staking = await PMCStaking.new(pmc.address, game.address);
       await game.updateStakingAddr(staking.address);
 
       //  0 - ETH
@@ -5968,7 +5968,7 @@ contract("PMCCoinFlipContract", function (accounts) {
         token: constants.ZERO_ADDRESS,
         player: CREATOR_0,
         prize: ether("0.16005"),
-        pmct: ether("0.00165")
+        pmc: ether("0.00165")
       });
     });
   });
@@ -6151,7 +6151,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       //  ETH
 
       //  check - CREATOR_0: 2 / 4
-      let pmct_before = await pmct.balanceOf.call(CREATOR_0);
+      let pmc_before = await pmc.balanceOf.call(CREATOR_0);
       let CREATOR_0_balance_before_0 = await balance.current(CREATOR_0, "wei");
       let tx_CREATOR_0_0 = await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 2, {
         from: CREATOR_0
@@ -6164,12 +6164,12 @@ contract("PMCCoinFlipContract", function (accounts) {
       let CREATOR_0_balance_after_0 = await balance.current(CREATOR_0, "wei");
       assert.equal(0, CREATOR_0_balance_before_0.add(ether("0.5141")).sub(gasSpent).cmp(CREATOR_0_balance_after_0), "Wrong CREATOR_0_balance_after_0");
 
-      let pmct_after = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_after.sub(pmct_before).cmp(ether("0.0035")), "Wrong pmct after 0");
+      let pmc_after = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.0035")), "Wrong pmc after 0");
 
 
       //  check - CREATOR_0: single 3 / 4
-      pmct_before = await pmct.balanceOf.call(CREATOR_0);
+      pmc_before = await pmc.balanceOf.call(CREATOR_0);
 
       let CREATOR_0_balance_before_1 = await balance.current(CREATOR_0, "wei");
       let tx_CREATOR_0_1 = await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 1, {
@@ -6183,12 +6183,12 @@ contract("PMCCoinFlipContract", function (accounts) {
       let CREATOR_0_balance_after_1 = await balance.current(CREATOR_0, "wei");
       assert.equal(0, CREATOR_0_balance_before_1.add(ether("0.16005")).sub(gasSpent).cmp(CREATOR_0_balance_after_1), "Wrong CREATOR_0_balance_after_1");
 
-      pmct_after = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_after.sub(pmct_before).cmp(ether("0.00165")), "Wrong pmct after 1");
+      pmc_after = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.00165")), "Wrong pmc after 1");
 
 
       //  check - CREATOR_0: single 4 / 4
-      pmct_before = await pmct.balanceOf.call(CREATOR_0);
+      pmc_before = await pmc.balanceOf.call(CREATOR_0);
 
       let CREATOR_0_balance_before_2 = await balance.current(CREATOR_0, "wei");
       let tx_CREATOR_0_2 = await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
@@ -6202,8 +6202,8 @@ contract("PMCCoinFlipContract", function (accounts) {
       let CREATOR_0_balance_after_2 = await balance.current(CREATOR_0, "wei");
       assert.equal(0, CREATOR_0_balance_before_2.add(ether("0.16005")).sub(gasSpent).cmp(CREATOR_0_balance_after_2), "Wrong CREATOR_0_balance_after_2");
 
-      pmct_after = await pmct.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmct_after.sub(pmct_before).cmp(ether("0.00165")), "Wrong pmct after 2");
+      pmc_after = await pmc.balanceOf.call(CREATOR_0);
+      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.00165")), "Wrong pmc after 2");
 
 
       //  Tokens
