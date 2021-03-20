@@ -99,6 +99,11 @@ const MetaMaskManager = {
     });
     return accounts[0];
   },
+
+  getAccountBalance: async function () {
+    const balance = await web3.eth.getBalance(await this.getAccount());
+    return balance;
+  },
 };
 
 window.MetaMaskManager = MetaMaskManager;
