@@ -27,6 +27,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
+  mapping(address => uint256) public stakingRewardWithdrawnOf;
 
   mapping(address => bool) public gameplaySupported;
   
@@ -137,6 +138,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
         delete pendingRewardOf[msg.sender];
       }
 
+      stakingRewardWithdrawnOf[msg.sender] = stakingRewardWithdrawnOf[msg.sender].add(reward);
       msg.sender.transfer(reward);
     }
   }

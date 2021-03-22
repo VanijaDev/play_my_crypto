@@ -2018,6 +2018,50 @@ contract("PMCStaking", function (accounts) {
       })).reward.cmp(ether("0")), "wrong reward after 0");
     });
 
+    it("should increase stakingRewardWithdrawnOf[msg.sender]", async function () {
+      // stake CREATOR_0
+      const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
+      await staking.stake(pmc_tokens_CREATOR_0, {
+        from: CREATOR_0
+      });
+
+      //  play game 4
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      }); //  0.165 ETH
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      }); //  0.165 ETH
+
+
+      assert.equal(0, (await staking.stakingRewardWithdrawnOf.call(CREATOR_0)).cmp(ether("0")), "wrong before");
+
+      await staking.withdrawReward(0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await staking.stakingRewardWithdrawnOf.call(CREATOR_0)).cmp(ether("0.009019999999999999")), "wrong after");
+    });
+
     it("should delete pendingRewardOf[msg.sender] if present", async function () {
       // stake CREATOR_0
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
