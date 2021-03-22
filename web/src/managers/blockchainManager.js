@@ -77,6 +77,28 @@ const BlockchainManager = {
   /**
    * API - CF
    */
+  api_game_gamesStarted: async function (_token) {
+    return this.gameInst.gamesStarted(_token);
+  },
+
+  api_game_gameInfo: async function (_token, _idx) {
+    return this.gameInst.gameInfo(_token, _idx);
+  },
+
+  api_game_getGamesParticipatedToCheckPrize: async function (_token, _acc) {
+    return this.gameInst.getGamesParticipatedToCheckPrize(_token, {
+      from: _acc
+    });
+  },
+
+  api_game_getPlayerStakeTotal: async function (_token, _acc) {
+    return this.gameInst.getPlayerStakeTotal(_token, {
+      from: _acc
+    });
+  },
+
+
+
   api_game_partnerFeePending: async function (_token) {
     return this.gameInst.getPartnerFeePending(_token);
   },

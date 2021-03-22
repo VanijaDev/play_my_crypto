@@ -4,8 +4,8 @@ import {
 import MetaMaskManager from "../managers/metamaskManager";
 
 let PMCtData = {
-  address_eth: "0xC2B06384431811B99d1613352c06e650221Cf86F", //    Ganache
-  address_ropsten: "0x73E4363349fc1D18F87FC31ec051F4328C7c2eE2", //    Ropsten
+  address_eth: "0xe100be8F3A46A1420772e8392873509CAe93506A", //    Ganache
+  address_ropsten: "", //    Ropsten
 
   abi: [{
       "inputs": [{
@@ -360,8 +360,8 @@ let PMCtData = {
 
 
 let CoinFlipData = {
-  address_eth: "0x7Be06904715513745d2A7A7dD88c76cd4Aee6C25", //    Ganache
-  address_ropsten: "0x5Fffd4a7B54c7ba63eDDdf35d6F470D1F1bE5dBA", //    Ropsten
+  address_eth: "0xa8d58280d2820167D2EAD1640A3274bd8CC83C0e", //    Ganache
+  address_ropsten: "", //    Ropsten
   abi: [{
       "inputs": [{
           "internalType": "address",
@@ -392,7 +392,7 @@ let CoinFlipData = {
     {
       "inputs": [{
         "internalType": "address",
-        "name": "_pmct",
+        "name": "_pmc",
         "type": "address"
       }],
       "stateMutability": "nonpayable",
@@ -487,7 +487,7 @@ let CoinFlipData = {
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "pmct",
+          "name": "pmc",
           "type": "uint256"
         }
       ],
@@ -586,33 +586,6 @@ let CoinFlipData = {
       ],
       "name": "OwnershipTransferred",
       "type": "event"
-    },
-    {
-      "inputs": [{
-          "internalType": "address",
-          "name": "_token",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_maxLoop",
-          "type": "uint256"
-        }
-      ],
-      "name": "pendingPrizeToWithdraw",
-      "outputs": [{
-          "internalType": "uint256",
-          "name": "prize",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "pmct_tokens",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
     },
     {
       "inputs": [{
@@ -1380,11 +1353,38 @@ let CoinFlipData = {
     },
     {
       "inputs": [{
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxLoop",
+          "type": "uint256"
+        }
+      ],
+      "name": "pendingPrizeToWithdraw",
+      "outputs": [{
+          "internalType": "uint256",
+          "name": "prize",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pmc_tokens",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{
         "internalType": "address",
         "name": "",
         "type": "address"
       }],
-      "name": "playerWithdrawedPMCtTotal",
+      "name": "playerWithdrawedPMCTotal",
       "outputs": [{
         "internalType": "uint256",
         "name": "",
@@ -1395,7 +1395,7 @@ let CoinFlipData = {
     },
     {
       "inputs": [],
-      "name": "pmctAddr",
+      "name": "pmcAddr",
       "outputs": [{
         "internalType": "address",
         "name": "",

@@ -1,5 +1,6 @@
 import MetaMaskManager from "./managers/metamaskManager";
 import BlockchainManager from "./managers/blockchainManager";
+import BN from "bn.js";
 import {
   ethers
 } from "ethers";
@@ -39,16 +40,50 @@ const Index = {
   },
 
   updateData: async function () {
+    //  clear
+    document.getElementById("addr").innerText = "...";
+    document.getElementById("balance_eth").innerText = "...";
+    document.getElementById("balance_pmc").innerText = "...";
+    document.getElementById("playing_now_cf").innerText = "...";
+
+
+    const acc = await window.MetaMaskManager.getAccount();
+    document.getElementById("addr").innerText = acc;
+
+
     //  balance eth
-    let balance_eth = ethers.utils.formatEther(await window.MetaMaskManager.getAccountBalance());
+    const balance_eth = ethers.utils.formatEther(await window.MetaMaskManager.getAccountBalance());
     // console.log("balance_eth:", balance_eth);
     document.getElementById("balance_eth").innerText = balance_eth.slice(0, window.BlockchainManager.BALANCES_LENGTH);
 
+
     //  balance pmc
-    let acc = await window.MetaMaskManager.getAccount();
-    let balance_pmc = await window.BlockchainManager.api_pmct_balanceOf(acc);
-    console.log("balance_pmc:", balance_pmc);
-    // document.getElementById("balance_pmc").innerText = balance_pmc.slice(0, window.BlockchainManager.BALANCES_LENGTH);
+    const balance_pmc = ethers.utils.formatEther(await window.BlockchainManager.api_pmct_balanceOf(acc));
+    // console.log("balance_pmc:", balance_pmc);
+    document.getElementById("balance_pmc").innerText = balance_pmc.slice(0, window.BlockchainManager.BALANCES_LENGTH);
+
+
+    //  playing now, playing_now_cf
+    const gamesStarted = await window.BlockchainManager.api_game_gamesStarted(window.BlockchainManager.ZERO_ADDRESS);
+    const gameInfo = await window.BlockchainManager.api_game_gameInfo(window.BlockchainManager.ZERO_ADDRESS, gamesStarted - 1);
+    // console.log(gameInfo.idx.toString());
+
+    if (gameInfo.running) {
+      const checkPrizeForGames = await window.BlockchainManager.api_game_getGamesParticipatedToCheckPrize(window.BlockchainManager.ZERO_ADDRESS, acc);
+      if (checkPrizeForGames.length > 0) {
+        const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
+        // console.log(lastGameToCheckPrize.toString());
+
+        if ((new BN(gameInfo.idx.toString())).cmp(new BN(lastGameToCheckPrize.toString())) == 0) {
+          document.getElementById("playing_now_cf").innerText = "true";
+        }
+      }
+    }
+
+
+    //  total in
+    const accIn = ethers.utils.formatEther(await window.BlockchainManager.api_game_getPlayerStakeTotal(window.BlockchainManager.ZERO_ADDRESS, acc));
+    document.getElementById("acc_total_in").innerText = accIn.slice(0, window.BlockchainManager.BALANCES_LENGTH);
 
   },
 

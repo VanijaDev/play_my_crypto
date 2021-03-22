@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/VanijaDev/play_my_crypto#readme",
   "dependencies": {
+    "bn.js": "5.2.0",
     "ethers": "5.0.32",
     "http-server": "0.12.3",
     "webpack": "5.4.0",
