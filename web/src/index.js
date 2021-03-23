@@ -54,6 +54,8 @@ const Index = {
     document.getElementById("acc_total_out").innerText = "...";
     document.getElementById("pending_withdraw_cf").innerText = "...";
     document.getElementById("pending_withdraw_partner").innerText = "...";
+    document.getElementById("participants_cf").innerText = "...";
+    document.getElementById("in_cf").innerText = "...";
 
 
     const acc = await window.MetaMaskManager.getAccount();
@@ -149,6 +151,22 @@ const Index = {
       document.getElementById("pending_withdraw_partner").innerText = "CF";
     }
 
+
+    //  Game icon CF
+    // const gamesStarted = await window.BlockchainManager.api_game_gamesStarted(window.BlockchainManager.ZERO_ADDRESS);
+    // const gameInfo = await window.BlockchainManager.api_game_gameInfo(window.BlockchainManager.ZERO_ADDRESS, gamesStarted - 1);
+    // console.log(gameInfo.idx.toString());
+
+    if (gameInfo.running) {
+      const participants = (new BN(gameInfo.heads.toString())).add(new BN(gameInfo.tails.toString())).add(new BN("1"));
+      const stakes = participants.mul(new BN(gameInfo.stake.toString()));
+
+      document.getElementById("participants_cf").innerText = participants.toString();
+      document.getElementById("in_cf").innerText = ethers.utils.formatEther(stakes.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
+    } else {
+      document.getElementById("participants_cf").innerText = "0";
+      document.getElementById("in_cf").innerText = "0";
+    }
   },
 
 
