@@ -1,6 +1,7 @@
 import {
   CoinFlipData,
-  PMCtData
+  PMCtData,
+  StakingData
 } from "../contracts/contracts";
 
 const BlockchainManager = {
@@ -20,6 +21,7 @@ const BlockchainManager = {
   gameType: "",
   gameInst: null,
   pmctInst: null,
+  stakingInst: null,
 
   init: function (_chainID, _gameType) {
     console.log("BlockchainManager: _chainID:", _chainID, ", _gameType:", _gameType);
@@ -33,12 +35,14 @@ const BlockchainManager = {
     this.gameType = _gameType;
     this.pmctInst = PMCtData.build(_chainID);
     this.gameInst = this.gameInstForTypeAndChainID(_gameType, _chainID);
+    this.stakingInst = StakingData.build(_chainID);
   },
 
   deinit: function () {
     this.gameType = "";
     this.gameInst = null;
     this.pmctInst = null;
+    this.stakingInst = null;
   },
 
   isGameTypeValid: function (_gameType) {
@@ -97,67 +101,58 @@ const BlockchainManager = {
     });
   },
 
-
-
-  api_game_partnerFeePending: async function (_token) {
-    return this.gameInst.getPartnerFeePending(_token);
+  api_game_getPlayerWithdrawedTotal: async function (_token, _acc) {
+    return this.gameInst.getPlayerWithdrawedTotal(_token, {
+      from: _acc
+    });
   },
 
-  api_game_partnerFeeWithdrawn: async function (_token) {
-    return this.gameInst.getPartnerFeeWithdrawn(_token);
+  api_game_getReferralFeeWithdrawn: async function (_token, _acc) {
+    return this.gameInst.getReferralFeeWithdrawn(_token, {
+      from: _acc
+    });
   },
 
-  api_game_partnerFeeWithdrawnTotal: async function (_token) {
-    return this.gameInst.getPartnerFeeWithdrawnTotal(_token);
+  api_game_getReferralFeePending: async function (_token, _acc) {
+    return this.gameInst.getReferralFeePending(_token, {
+      from: _acc
+    });
   },
 
-  api_game_referralFeePending: async function (_token) {
-    return this.gameInst.getReferralFeePending(_token);
+  api_game_getRaffleJackpotWithdrawn: async function (_token, _acc) {
+    return this.gameInst.getRaffleJackpotWithdrawn(_token, _acc);
   },
 
-  api_game_referralFeeWithdrawn: async function (_token) {
-    return this.gameInst.getReferralFeeWithdrawn(_token);
+  api_game_getRaffleJackpotPending: async function (_token, _acc) {
+    return this.gameInst.getRaffleJackpotPending(_token, _acc);
   },
 
-  api_game_referralFeeWithdrawnTotal: async function (_token) {
-    return this.gameInst.getReferralFeeWithdrawnTotal(_token);
+  api_game_getPartnerFeeWithdrawn: async function (_token, _acc) {
+    return this.gameInst.getPartnerFeeWithdrawn(_token, {
+      from: _acc
+    });
   },
 
-  api_game_devFeePending: async function (_token) {
-    return this.gameInst.getDevFeePending(_token);
+  api_game_getPartnerFeePending: async function (_token, _acc) {
+    return this.gameInst.getPartnerFeePending(_token, {
+      from: _acc
+    });
   },
 
-  api_game_devFeeWithdrawn: async function (_token) {
-    return this.gameInst.getDevFeeWithdrawn(_token);
+  api_game_pendingPrizeToWithdraw: async function (_token, _maxLoop, _acc) {
+    return this.gameInst.pendingPrizeToWithdraw(_token, _maxLoop, {
+      from: _acc
+    });
   },
 
-  api_game_devFeeWithdrawnTotal: async function (_token) {
-    return this.gameInst.getRaffleJackpotPending(_token);
-  },
 
-  api_game_raffleJackpotPending: async function (_token, _address) {
-    return this.gameInst.getRaffleJackpotPending(_token, _address);
-  },
 
-  api_game_raffleJackpotWithdrawn: async function (_token, _address) {
-    return this.gameInst.getRaffleJackpotWithdrawn(_token, _address);
+  /**
+   * API - Staking
+   */
+  api_staking_stakingRewardWithdrawnOf: async function (_acc) {
+    return this.stakingInst.stakingRewardWithdrawnOf(_acc);
   },
-
-  api_game_raffleJackpot: async function (_token) {
-    return this.gameInst.getRaffleJackpot(_token);
-  },
-
-  api_game_raffleJackpotsWonTotal: async function (_token) {
-    return this.gameInst.getRaffleJackpotsWonTotal(_token);
-  },
-
-  api_game_raffleParticipantsNumber: async function (_token) {
-    return this.gameInst.getRaffleParticipantsNumber(_token);
-  },
-
-  api_game_raffleParticipantsNumber: async function (_token) {
-    return this.gameInst.getRaffleParticipantsNumber(_token);
-  }
 };
 
 window.BlockchainManager = BlockchainManager;
