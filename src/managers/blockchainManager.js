@@ -77,6 +77,10 @@ const BlockchainManager = {
     return this.pmctInst.balanceOf(_address);
   },
 
+  TEST_api_pmct_balanceOf: async function (_address) {
+    return this.pmctInst.balanceOf(_address);
+  },
+
   api_pmct_allowanceOf: async function (_address) {
     return this.pmctInst.allowance(_address);
   },
