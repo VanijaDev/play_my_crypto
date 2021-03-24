@@ -58,7 +58,7 @@
 //@import "node_modules/bootstrap-vue/src/components/form-spinbutton/index";
 //@import "node_modules/bootstrap-vue/src/components/form-tags/index";
 //@import "node_modules/bootstrap-vue/src/components/input-group/index";
-@import "node_modules/bootstrap-vue/src/components/modal/index"; 
+@import "node_modules/bootstrap-vue/src/components/modal/index";
 //@import "node_modules/bootstrap-vue/src/components/nav/index";
 //@import "node_modules/bootstrap-vue/src/components/navbar/index";
 //@import "node_modules/bootstrap-vue/src/components/pagination/index";
@@ -71,61 +71,78 @@
 // Temporary until Bootstrap v5 (maybe)
 //@import "node_modules/bootstrap-vue/src/icons/index";
 
-html, body, #app {
+html,
+body,
+#app {
   background: radial-gradient(#E5EBFB, #FDFDFE);
-  color: $_black  !important;
+  color: $_black !important;
   height: 100%;
   font-size: 0.9rem;
 }
 
-a, button {
-  -o-transition:color .2s ease-out, background .1s ease-in;
-  -ms-transition:color .2s ease-out, background .1s ease-in;
-  -moz-transition:color .2s ease-out, background .1s ease-in;
-  -webkit-transition:color .2s ease-out, background .1s ease-in;
+a,
+button {
+  -o-transition: color .2s ease-out, background .1s ease-in;
+  -ms-transition: color .2s ease-out, background .1s ease-in;
+  -moz-transition: color .2s ease-out, background .1s ease-in;
+  -webkit-transition: color .2s ease-out, background .1s ease-in;
   transition: color .2s ease-out, background .1s ease-in;
-  cursor: pointer;  
+  cursor: pointer;
 }
+
 a {
-  color: $_black  !important;  
+  color: $_black !important;
 }
-a:hover, button:hover {
+
+a:hover,
+button:hover {
   text-decoration: none !important;
 }
+
 .disabled {
   pointer-events: none;
   color: rgba(0, 0, 0, 0.15);
 }
-.invisible{
+
+.invisible {
   opacity: 0 !important;
 }
-*:focus, *:active {
-  outline: none !important;  
+
+*:focus,
+*:active {
+  outline: none !important;
 }
-.text-monospace{
+
+.text-monospace {
   font-weight: 600;
   font-size: 1rem;
 }
 
 // ----------------------------------- Helpers -------------------------------------------
-.__blue_text{
-  color: $_blue  !important;
+.__blue_text {
+  color: $_blue !important;
 }
-.__orange_text{
-  color: $_orange  !important;
-}
-.__red_text{
-  color: $_red  !important;
-}
-.__info_link{
+
+.__orange_text {
   color: $_orange !important;
+}
+
+.__red_text {
+  color: $_red !important;
+}
+
+.__info_link {
+  color: $_orange !important;
+
   &:hover {
     color: darken($_orange, 20%) !important;
   }
 }
+
 .__gradient_violet {
   background: linear-gradient(270deg, lighten($_violet, 5%) 0%, darken($_violet, 20%) 100%);
 }
+
 .__gradient_violet_reverse {
   background: linear-gradient(90deg, lighten($_violet, 5%) 0%, darken($_violet, 20%) 100%);
 }
@@ -133,17 +150,20 @@ a:hover, button:hover {
 .__shadow {
   box-shadow: 0 0.2rem 0.4rem rgb(19 19 19 / 30%) !important;
 }
+
 .__shadow_filter {
   filter: drop-shadow(0 0.2rem 0.25rem rgb(19 19 19 / 30%));
 }
 
 .__img_button {
-  cursor: pointer;     
+  cursor: pointer;
   transition: transform ease 0.1s, filter ease 0.1s;
+
   &:active {
     filter: drop-shadow(0 0 0.2rem rgb(19 19 19 / 10%));
     transform: translateY(4px);
   }
+
   &.__hover:hover {
     filter: contrast(110%) brightness(90%);
   }
@@ -153,22 +173,25 @@ a:hover, button:hover {
   @extend .__shadow;
   background: linear-gradient(93.58deg, darken($_violet, 5%) 0%, lighten($_violet, 10%) 100%);
   padding: 0.4rem 1.5rem;
-  border: none;  
+  border: none;
   border-radius: $_content_block_border_radius;
-  font-weight: 500; 
-  transition: transform ease 0.1s, box-shadow ease 0.1s, background ease 0.2s;  
+  font-weight: 500;
+  transition: transform ease 0.1s, box-shadow ease 0.1s, background ease 0.2s;
+
   &:hover {
-    background: linear-gradient(93.58deg, darken($_violet, 10%) 0%, darken($_violet, 5%) 100%);    
+    background: linear-gradient(93.58deg, darken($_violet, 10%) 0%, darken($_violet, 5%) 100%);
   }
+
   &.btn-lg {
     font-weight: 700;
-    padding: 0.7rem 1.5rem;    
+    padding: 0.7rem 1.5rem;
   }
+
   &:active {
     box-shadow: 0 0 0.2rem rgb(19 19 19 / 10%) !important;
     transform: translateY(4px);
   }
-} 
+}
 
 .__orange_outline_button {
   background: lighten($_orange, 30%);
@@ -177,12 +200,16 @@ a:hover, button:hover {
   color: $_orange;
   transition: transform ease 0.1s;
   box-shadow: none !important;
-  &:hover, &:active, &:focus {
+
+  &:hover,
+  &:active,
+  &:focus {
     outline: none;
     color: $_white;
     background: $_orange !important;
     box-shadow: none !important;
   }
+
   &:active {
     transform: translateY(4px);
   }
@@ -193,9 +220,11 @@ a:hover, button:hover {
 // ----------------------------------- Tooltip -------------------------------------------
 .__tooltip {
   opacity: 1 !important;
+
   .arrow::before {
     border-top-color: $_white !important;
   }
+
   .tooltip-inner {
     @extend .text-monospace;
     color: $_blue !important;
@@ -205,76 +234,95 @@ a:hover, button:hover {
     box-shadow: 0 0.2rem 0.5rem rgb(0 0 0 / 20%);
   }
 }
+
 // ------------------------------------------------------------------------------
 
 // ----------------------------------- Content Blocks -------------------------------------------
-.__content-block{
+.__content-block {
   padding: 1em;
   border-radius: $_content_block_border_radius;
-  
-  &.__cb_blue{
+
+  &.__cb_blue {
     @extend .__gradient_violet;
     color: white;
+
     &.__reverse {
-      @extend .__gradient_violet_reverse;      
+      @extend .__gradient_violet_reverse;
     }
   }
+
   &.__cb_inactive {
-    border: 1px solid transparent !important; 
-    *:not(.__info_link) { color: #BCBCBC !important; }    
+    border: 1px solid transparent !important;
+
+    *:not(.__info_link) {
+      color: #BCBCBC !important;
+    }
   }
-  &.__cb_white{
+
+  &.__cb_white {
     background: white;
     border: 1px solid #9BB5FF;
     font-weight: 600;
     font-size: 1.1rem;
     line-height: 1em;
+
     h3 {
       color: $_blue;
       line-height: 1;
       margin-bottom: .5em;
       font-size: 1.5rem;
     }
+
     .__text_line {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: .5em;
       min-height: 30px;
-      &:last-child{
+
+      &:last-child {
         margin-bottom: 0;
       }
-      .__info_link{
+
+      .__info_link {
         margin-bottom: 0;
         font-size: 1.5rem;
       }
+
       .__img_value_block {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 110px;
-        span:nth-child(2){
-          @extend .text-monospace;          
+
+        span:nth-child(2) {
+          @extend .text-monospace;
         }
       }
+
       .__img_value_group {
         display: flex;
         flex-direction: row;
+
         @include media-breakpoint-down(xs) {
           flex-direction: column;
         }
+
         .__img_value_block {
           margin-left: .5rem;
+
           @include media-breakpoint-down(xs) {
             margin-bottom: .5rem;
+
             &:last-child {
               margin-bottom: 0;
             }
           }
         }
       }
-      
-    }    
-  }  
+
+    }
+  }
 }
+
 // ------------------------------------------------------------------------------
