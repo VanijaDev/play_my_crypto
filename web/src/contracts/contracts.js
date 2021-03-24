@@ -333,11 +333,11 @@ let PMCtData = {
     }
   ],
 
-  build: function (_chainID) {
+  build: function (_chainID, _signer) {
     switch (_chainID) {
       case MetaMaskManager.ChainIDs.TEST_Ganache:
         try {
-          return new ethers.Contract(this.address_eth, this.abi, window.MetaMaskManager.provider);
+          return new ethers.Contract(this.address_eth, this.abi, _signer);
         } catch (error) {
           console.error(error);
         }
@@ -345,7 +345,7 @@ let PMCtData = {
 
       case MetaMaskManager.ChainIDs.TEST_Ropsten:
         try {
-          return new ethers.Contract(this.address_ropsten, this.abi, window.MetaMaskManager.provider);
+          return new ethers.Contract(this.address_ropsten, this.abi, _signer);
         } catch (error) {
           console.error(error);
         }
@@ -1428,11 +1428,11 @@ let CoinFlipData = {
     }
   ],
 
-  build: function (_chainID) {
+  build: function (_chainID, _signer) {
     switch (_chainID) {
       case MetaMaskManager.ChainIDs.TEST_Ganache:
         try {
-          return new ethers.Contract(this.address_eth, this.abi, window.MetaMaskManager.provider);
+          return new ethers.Contract(this.address_eth, this.abi, _signer);
         } catch (error) {
           console.error(error);
         }
@@ -1440,7 +1440,7 @@ let CoinFlipData = {
 
       case MetaMaskManager.ChainIDs.TEST_Ropsten:
         try {
-          return new ethers.Contract(this.address_ropsten, this.abi, window.MetaMaskManager.provider);
+          return new ethers.Contract(this.address_ropsten, this.abi, _signer);
         } catch (error) {
           console.error(error);
         }
@@ -1739,11 +1739,11 @@ let StakingData = {
     }
   ],
 
-  build: function (_chainID) {
+  build: function (_chainID, _signer) {
     switch (_chainID) {
       case MetaMaskManager.ChainIDs.TEST_Ganache:
         try {
-          return new ethers.Contract(this.address_eth, this.abi, window.MetaMaskManager.provider);
+          return new ethers.Contract(this.address_eth, this.abi, _signer);
         } catch (error) {
           console.error(error);
         }

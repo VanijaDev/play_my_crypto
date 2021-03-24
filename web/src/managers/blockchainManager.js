@@ -2,7 +2,9 @@ import {
   CoinFlipData,
   PMCtData,
   StakingData
-} from "../contracts/contracts";
+}
+from "../contracts/contracts";
+import MetaMaskManager from "../managers/metamaskManager";
 
 const BlockchainManager = {
   ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
@@ -23,8 +25,8 @@ const BlockchainManager = {
   pmctInst: null,
   stakingInst: null,
 
-  init: function (_chainID, _gameType) {
-    console.log("BlockchainManager: _chainID:", _chainID, ", _gameType:", _gameType);
+  init: function (_chainID, _gameType, _account) {
+    console.log("BlockchainManager: _chainID:", _chainID, ", _gameType:", _gameType, "_account:", _account);
 
     if (!this.isGameTypeValid(_gameType)) {
       console.error("BlockchainManager - init - !isGameTypeValid");
@@ -32,10 +34,12 @@ const BlockchainManager = {
       return;
     }
 
+    const _signer = window.MetaMaskManager.provider.getSigner();
+
     this.gameType = _gameType;
-    this.pmctInst = PMCtData.build(_chainID);
-    this.gameInst = this.gameInstForTypeAndChainID(_gameType, _chainID);
-    this.stakingInst = StakingData.build(_chainID);
+    this.pmctInst = PMCtData.build(_chainID, _signer);
+    this.gameInst = this.gameInstForTypeAndChainID(_gameType, _chainID, _signer);
+    this.stakingInst = StakingData.build(_chainID, _signer);
   },
 
   deinit: function () {
@@ -55,10 +59,10 @@ const BlockchainManager = {
     }
   },
 
-  gameInstForTypeAndChainID: function (_gameType, _chainID) {
+  gameInstForTypeAndChainID: function (_gameType, _chainID, _signer) {
     switch (_gameType) {
       case this.Game.cf:
-        return CoinFlipData.build(_chainID);
+        return CoinFlipData.build(_chainID, _signer);
 
       default:
         return false;
@@ -89,34 +93,24 @@ const BlockchainManager = {
     return this.gameInst.gameInfo(_token, _idx);
   },
 
-  api_game_getGamesParticipatedToCheckPrize: async function (_token, _acc) {
-    return this.gameInst.getGamesParticipatedToCheckPrize(_token, {
-      from: _acc
-    });
+  api_game_getGamesParticipatedToCheckPrize: async function (_token) {
+    return this.gameInst.getGamesParticipatedToCheckPrize(_token);
   },
 
-  api_game_getPlayerStakeTotal: async function (_token, _acc) {
-    return this.gameInst.getPlayerStakeTotal(_token, {
-      from: _acc
-    });
+  api_game_getPlayerStakeTotal: async function (_token) {
+    return this.gameInst.getPlayerStakeTotal(_token);
   },
 
-  api_game_getPlayerWithdrawedTotal: async function (_token, _acc) {
-    return this.gameInst.getPlayerWithdrawedTotal(_token, {
-      from: _acc
-    });
+  api_game_getPlayerWithdrawedTotal: async function (_token) {
+    return this.gameInst.getPlayerWithdrawedTotal(_token);
   },
 
-  api_game_getReferralFeeWithdrawn: async function (_token, _acc) {
-    return this.gameInst.getReferralFeeWithdrawn(_token, {
-      from: _acc
-    });
+  api_game_getReferralFeeWithdrawn: async function (_token) {
+    return this.gameInst.getReferralFeeWithdrawn(_token);
   },
 
-  api_game_getReferralFeePending: async function (_token, _acc) {
-    return this.gameInst.getReferralFeePending(_token, {
-      from: _acc
-    });
+  api_game_getReferralFeePending: async function (_token) {
+    return this.gameInst.getReferralFeePending(_token);
   },
 
   api_game_getRaffleJackpotWithdrawn: async function (_token, _acc) {
@@ -127,22 +121,16 @@ const BlockchainManager = {
     return this.gameInst.getRaffleJackpotPending(_token, _acc);
   },
 
-  api_game_getPartnerFeeWithdrawn: async function (_token, _acc) {
-    return this.gameInst.getPartnerFeeWithdrawn(_token, {
-      from: _acc
-    });
+  api_game_getPartnerFeeWithdrawn: async function (_token) {
+    return this.gameInst.getPartnerFeeWithdrawn(_token);
   },
 
-  api_game_getPartnerFeePending: async function (_token, _acc) {
-    return this.gameInst.getPartnerFeePending(_token, {
-      from: _acc
-    });
+  api_game_getPartnerFeePending: async function (_token) {
+    return this.gameInst.getPartnerFeePending(_token);
   },
 
-  api_game_pendingPrizeToWithdraw: async function (_token, _maxLoop, _acc) {
-    return this.gameInst.pendingPrizeToWithdraw(_token, _maxLoop, {
-      from: _acc
-    });
+  api_game_pendingPrizeToWithdraw: async function (_token, _maxLoop) {
+    return this.gameInst.pendingPrizeToWithdraw(_token, _maxLoop);
   },
 
 
@@ -153,6 +141,23 @@ const BlockchainManager = {
   api_staking_stakingRewardWithdrawnOf: async function (_acc) {
     return this.stakingInst.stakingRewardWithdrawnOf(_acc);
   },
+
+  api_staking_calculateRewardAndStartIncomeIdx: async function (_maxLoop, _acc) {
+    return this.stakingInst.calculateRewardAndStartIncomeIdx(_acc);
+  },
+
+  api_staking_pendingRewardOf: async function (_acc) {
+    return this.stakingInst.pendingRewardOf(_acc);
+  },
+
+  api_staking_tokensStaked: async function (_acc) {
+    return this.stakingInst.tokensStaked();
+  },
+
+  api_staking_stakeOf: async function (_acc) {
+    return this.stakingInst.stakeOf(_acc);
+  },
+
 };
 
 window.BlockchainManager = BlockchainManager;

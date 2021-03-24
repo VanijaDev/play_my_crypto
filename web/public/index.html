@@ -16,86 +16,126 @@
 <body>
   <!-- <button onclick="window.Index.buttonClick()">Button</button> -->
 
-
-  <div>
-    <h4 id="addr">...</h4>
-
-    <h2>Balance</h2>
+  <div style="float: left; width: 40%;">
     <div>
-      <span>ETH:</span>
-      <span id="balance_eth">...</span>
+      <h4 id="addr">...</h4>
+
+      <h2>Balance</h2>
+      <div>
+        <span>ETH:</span>
+        <span id="balance_eth">...</span>
+      </div>
+      <div>
+        <span>PMC:</span>
+        <span id="balance_pmc">...</span>
+      </div>
     </div>
+
+    <h2>Playing now</h2>
     <div>
-      <span>PMC:</span>
-      <span id="balance_pmc">...</span>
+      <span id="playing_now_cf">...</span>
+    </div>
+
+    <h2>Total in</h2>
+    <div>
+      <h4 id="acc_total_in">...</h4>
+    </div>
+
+    <h2>Total out</h2>
+    <div>
+      <h4 id="acc_total_out">...</h4>
+
+      <div>
+        <span>Gameplay:</span>
+        <span id="out_gameplay">...</span>
+      </div>
+
+      <div>
+        <span>Referral:</span>
+        <span id="out_referral">...</span>
+      </div>
+
+      <div>
+        <span>Raffle:</span>
+        <span id="out_raffle">...</span>
+      </div>
+
+      <div>
+        <span>Staking:</span>
+        <span id="out_staking">...</span>
+      </div>
+
+      <div>
+        <span>Partnership:</span>
+        <span id="out_partnership">...</span>
+      </div>
+    </div>
+
+    <h2>Pending withdraw</h2>
+    <div>
+      <div>
+        <span>CF:</span>
+        <span id="pending_withdraw_cf">...</span>
+      </div>
+
+      <div>
+        <span>Partner:</span>
+        <span id="pending_withdraw_partner">...</span>
+      </div>
+    </div>
+
+    <h2>Game icon CF</h2>
+    <div>
+      <div>
+        <span>Participants:</span>
+        <span id="participants_cf">...</span>
+      </div>
+
+      <div>
+        <span>In:</span>
+        <span id="in_cf">...</span>
+      </div>
     </div>
   </div>
 
-  <h2>Playing now</h2>
   <div>
-    <span id="playing_now_cf">...</span>
+    <h2>Staking</h2>
+    <div>
+      <span>Available to stake:</span>
+      <span id="available_to_stake">...</span>
+    </div>
+
+    <div>
+      <span>Add stake:</span>
+      <div>
+        <input type="number" id="approve_stake" placeholder="PMC amount">
+        <button onclick="window.Index.approvePMCStakeClick()">Approve</button>
+      </div>
+
+      <input type="number" id="add_stake" placeholder="PMC amount">
+      <button onclick="window.Index.addStakeClick()">Stake</button>
+    </div>
+
+    <div>
+      <span>Available to withdraw:</span>
+      <span id="available_to_withdraw">...</span>
+      <button onclick="window.Index.withdrawStakingRewardClick()">Withdraw</button>
+    </div>
+
+    <div>
+      <span>Total staken:</span>
+      <span id="total_staken">...</span>
+    </div>
+
+    <div>
+      <span>Your stake:</span>
+      <span id="your_stake">...</span>
+      <span>( <span id="your_stake_perc">...</span>% )</span>
+      <button onclick="window.Index.unstakeClick()">Unstake</button>
+    </div>
+
   </div>
 
-  <h2>Total in</h2>
-  <div>
-    <h4 id="acc_total_in">...</h4>
-  </div>
-
-  <h2>Total out</h2>
-  <div>
-    <h4 id="acc_total_out">...</h4>
-
-    <div>
-      <span>Gameplay:</span>
-      <span id="out_gameplay">...</span>
-    </div>
-
-    <div>
-      <span>Referral:</span>
-      <span id="out_referral">...</span>
-    </div>
-
-    <div>
-      <span>Raffle:</span>
-      <span id="out_raffle">...</span>
-    </div>
-
-    <div>
-      <span>Staking:</span>
-      <span id="out_staking">...</span>
-    </div>
-
-    <div>
-      <span>Partnership:</span>
-      <span id="out_partnership">...</span>
-    </div>
-  </div>
-
-  <h2>Pending withdraw</h2>
-  <div>
-    <div>
-      <span>CF:</span>
-      <span id="pending_withdraw_cf">...</span>
-    </div>
-
-    <div>
-      <span>Partner:</span>
-      <span id="pending_withdraw_partner">...</span>
-    </div>
-  </div>
-
-  <h2>Game icon CF</h2>
-  <div>
-    <div>
-      <span>Participants:</span>
-      <span id="participants_cf">...</span>
-    </div>
-
-    <div>
-      <span>In:</span>
-      <span id="in_cf">...</span>
-    </div>
-  </div>
 
 </body>
 
