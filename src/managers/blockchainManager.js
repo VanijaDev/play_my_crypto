@@ -3,8 +3,8 @@ import {
   PMCtData,
   StakingData
 }
-from "../contracts/contracts";
-import MetaMaskManager from "../managers/metamaskManager";
+from "../blockchain/contracts";
+import MetaMaskManager from "./metamaskManager";
 
 const BlockchainManager = {
   ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
