@@ -4,7 +4,7 @@ import {
   StakingData
 }
 from "../blockchain/contracts";
-import MetaMaskManager from "./metamaskManager";
+//import MetaMaskManager from "./metamaskManager";
 
 const BlockchainManager = {
   ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
@@ -93,50 +93,6 @@ const BlockchainManager = {
     return this.gameInst.gamesStarted(_token);
   },
 
-  api_game_gameInfo: async function (_token, _idx) {
-    return this.gameInst.gameInfo(_token, _idx);
-  },
-
-  api_game_getGamesParticipatedToCheckPrize: async function (_token) {
-    return this.gameInst.getGamesParticipatedToCheckPrize(_token);
-  },
-
-  api_game_getPlayerStakeTotal: async function (_token) {
-    return this.gameInst.getPlayerStakeTotal(_token);
-  },
-
-  api_game_getPlayerWithdrawedTotal: async function (_token) {
-    return this.gameInst.getPlayerWithdrawedTotal(_token);
-  },
-
-  api_game_getReferralFeeWithdrawn: async function (_token) {
-    return this.gameInst.getReferralFeeWithdrawn(_token);
-  },
-
-  api_game_getReferralFeePending: async function (_token) {
-    return this.gameInst.getReferralFeePending(_token);
-  },
-
-  api_game_getRaffleJackpotWithdrawn: async function (_token, _acc) {
-    return this.gameInst.getRaffleJackpotWithdrawn(_token, _acc);
-  },
-
-  api_game_getRaffleJackpotPending: async function (_token, _acc) {
-    return this.gameInst.getRaffleJackpotPending(_token, _acc);
-  },
-
-  api_game_getPartnerFeeWithdrawn: async function (_token) {
-    return this.gameInst.getPartnerFeeWithdrawn(_token);
-  },
-
-  api_game_getPartnerFeePending: async function (_token) {
-    return this.gameInst.getPartnerFeePending(_token);
-  },
-
-  api_game_pendingPrizeToWithdraw: async function (_token, _maxLoop) {
-    return this.gameInst.pendingPrizeToWithdraw(_token, _maxLoop);
-  },
-
 
 
   /**
@@ -154,7 +110,7 @@ const BlockchainManager = {
     return this.stakingInst.pendingRewardOf(_acc);
   },
 
-  api_staking_tokensStaked: async function (_acc) {
+  api_staking_tokensStaked: async function () {
     return this.stakingInst.tokensStaked();
   },
 

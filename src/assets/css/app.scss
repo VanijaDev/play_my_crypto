@@ -241,7 +241,7 @@ button:hover {
 .__content-block {
   padding: 1em;
   border-radius: $_content_block_border_radius;
-
+  height: 100%;
   &.__cb_blue {
     @extend .__gradient_violet;
     color: white;

@@ -5,7 +5,7 @@
         <div class="d-flex align-items-center __user_profile">
           <div class="d-flex flex-column __up_text mr-2">
             <span class="__strong-text __blue_text">{{ $t('profile') }}:</span>
-            <span class="__strong-text text-monospace">0xE4Cf...2dEf</span>              
+            <span class="__strong-text text-monospace">{{user.accountAddress | addressShort}}</span>              
           </div> 
           <div class="d-flex align-items-center">              
             <a class="d-flex flex-column justify-content-center align-items-center" href="#">
@@ -19,9 +19,15 @@
           <li class="list-group-item d-flex justify-content-between align-items-center __list_item">
             <div class="__blue_text">Balance:</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">              
-              <span id="up_1" class="mr-2">1.11111</span>
-              <b-tooltip target="up_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+              
+              <img class="__currency_img" src="/img/ethereum_icon.svg" height="30" alt="Telegram logo">              
+              
+              <span id="up_1" class="mr-2">{{user.balance.ETH | formatBalanceShort}}</span>
+              
+              <b-tooltip target="up_1" custom-class="__tooltip" >{{user.balance.ETH | formatBalance}}</b-tooltip>
+              
+              
+              
               <img class="__currency_img" src="/img/logo.svg" height="30" alt="Logo">
               <span id="up_2">1.23456</span>
               <b-tooltip target="up_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
@@ -32,21 +38,11 @@
           <li class="list-group-item __list_item">
             <div class="__blue_text">Playing now:</div>
             <div class="__card_list d-flex justify-content-end">              
-              <div class="__card_block __img_button __shadow_filter">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
+              
+              <div class="__card_block __img_button __shadow_filter" v-for="(game, $index) in user.gamesStarted" :key="'gs_'+$index">
+                <img :src="'/img/'+ game.image" height="30" alt="Game image">
               </div>
-              <div class="__card_block  __img_button __shadow_filter">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>              
+                          
             </div>
           </li>      
         </ul>

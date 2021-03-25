@@ -1,3 +1,5 @@
+import { ethers, BigNumber } from "ethers";
+
 export default {
   data () {      
     return {  
@@ -7,7 +9,8 @@ export default {
     };
   }, 
   computed: {     
-    //user: () => store.getters['auth/user'], 
+    user() { return  this.$store.getters['user/user'] }, 
+    game() { return  this.$store.getters['game/game'] },
     //checkAccess: (role) => store.getters['auth/checkAccess'](role), 
     //isAuthenticated: () => store.getters['auth/isAuthenticated'],  
     headerHeight() { return this.$store.getters.uiHeaderHeight },
@@ -15,6 +18,8 @@ export default {
       return this.$store.getters.breakPoint(bp, condition)   
     }},  
     isBlockContent() { return this.blockContent },
+    blockchain() { return this.$store.getters['blockchain/blockchain'] },
+    currentGame() { return this.$store.getters['games/currentGame'] },
   },
   methods: {
     cleanObject: obj => cleanObject(obj),
@@ -76,7 +81,21 @@ export default {
       })
     },
 
-  }
+  },
+  filters: {
+    addressShort(tokenAddress) {  
+      if (tokenAddress) return tokenAddress.replace(tokenAddress.substring(6,36), "...")
+      return '...' 
+    },
+    formatBalance(val) {
+      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
+      return '...' 
+    },  
+    formatBalanceShort(val) {        
+      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
+      return '...' 
+    },  
+  },
 }
 
 function copyTextToClipboard(text) {

@@ -4,14 +4,14 @@
       <b-container :class="{'px-0': breakPoint('sm', 'lt')}">
         <b-row no-gutters class="w-100">
           <b-col class=" d-flex justify-content-between">
+            <!-- logo -->
             <div class="d-flex align-items-center">
               <a class="align-self-center" href="/">
                 <img src="/img/logo.svg" :height="breakPoint('sm', 'gte') ? 80 : 50" alt="Logo">
               </a>              
             </div>
-            <!--div>
-              {{breakPoint()}} <LocaleChange/>
-            </div-->
+            
+            <!-- contact us -->
             <div class="d-flex align-items-center" v-if="breakPoint('lg', 'gte')">
               <div class="__strong-text mr-2">
                 {{ $t('contact_us') }}
@@ -22,21 +22,22 @@
               </div>
                          
             </div>
+
+            <!-- choose crypto -->
             <div class="d-flex align-items-center">
               <div class="__strong-text mr-2" v-if="breakPoint('md', 'gte')">
                 {{ $t('choose_crypto') }}
               </div>
-              <div class="__currency_select_block d-flex align-items-center">              
-                <div class="d-flex flex-column justify-content-center  align-items-center mr-3 __img_button " @click="selectedCurrency = 'ETH'" :class="{'__selected' : selectedCurrency === 'ETH'}">
-                  <img src="/img/ethereum_icon.svg" height="40"  width="40" alt="Telegram logo">
-                  <div class="mt-1" v-if="breakPoint('sm', 'gte')">ETHEREUM</div>
-                </div>
-                <div class="d-flex flex-column justify-content-center  align-items-center __img_button" @click="selectedCurrency = 'BNC'" :class="{'__selected' : selectedCurrency === 'BNC'}">
-                  <img src="/img/binance_icon.svg" height="40" width="40" alt="Telegram logo">
-                  <div class="mt-1" v-if="breakPoint('sm', 'gte')">BINANCE</div>
-                </div>
-              </div> 
-                         
+              <div class="__currency_select_block d-flex align-items-center">
+                <div v-for="network in blockchain.networks" :key="'network_select_' + network.id"
+                  class="d-flex flex-column justify-content-center align-items-center mr-3 __img_button " 
+                  :class="{'__selected' : blockchain.network.id === network.id}"
+                  @click="selectNetwork(network)" 
+                  >
+                  <img :src="network.icon" height="40" width="40" :alt="network.id">
+                  <div class="mt-1" v-if="breakPoint('sm', 'gte')">{{network.name}}</div>
+                </div> 
+              </div>                          
             </div>
             
             <UserProfileMenu/>
@@ -49,9 +50,6 @@
   </header>  
 </template>
 
-<style lang="scss">  
-  
-</style>
 <style lang="scss" scoped>  
   @import '@/assets/css/variables.scss';
   header{
@@ -72,8 +70,7 @@
             filter: opacity(100%) saturate(100%);
           }          
         }
-      }
-      
+      }      
     }    
   }
 </style>
@@ -111,7 +108,10 @@
         if (this.$refs?.header?.clientHeight) {
           this.$store.dispatch('UI_HEADER_HEIGHT_SET', this.$refs.header.clientHeight) 
         }                   
-      }
+      },
+      selectNetwork(network) {
+        this.$store.dispatch('blockchain/SET_NETWORK', network) 
+      },
     },
     i18n: {
       messages: {

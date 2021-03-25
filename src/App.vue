@@ -1,5 +1,6 @@
 <template>
   <div id="app" :style="{ 'padding-top': `${headerHeight}px` }">
+    
     <Header/>
 
     <div class="__content_container w-100">
@@ -42,7 +43,7 @@
         </b-row>
       </b-container>
       
-      <div class="__blocked_content" v-if="isBlockContent"></div>
+      <div class="__blocked_content" v-if="!blockchain.chainId"></div>
       
       <Footer/>    
     </div>   
@@ -116,42 +117,89 @@
       GovernanceStats
     },
     methods: {
+      load: async function () {        
+        console.log('page is fully loaded');
 
-    },
-    created() {
-       
-      setTimeout(function(){
-        if (window.ethereum) {          
-                    
-          window.addEventListener('load', async () => {
-            console.log('page is fully loaded');
-
-            if (!MetaMaskManager.isEthereum()) {
-              alert("load - isEthereum");
-              return;
-            }
-
-            if (!(await MetaMaskManager.getAccount()).length) {
-              alert("load - getAccount");
-              return;
-            }
-
-            if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
-              alert("load - Wrong Network");
-              return;
-            }
-
-            if (!MetaMaskManager.init(window.ethereum.chainId)) {
-              alert("load - MetaMaskManager.init");
-              return;
-            }
-            
-          });
-
-           
+        if (!MetaMaskManager.isEthereum()) {
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
+          return;
         }
-        //self.$store.dispatch('user/GET')
-      }, 100)      
+
+        const accountAddress = await MetaMaskManager.getAccount()
+        if (!accountAddress.length) {
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)  
+          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)  
+          return;
+        } 
+
+        if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
+          return;
+        }
+
+        if (!MetaMaskManager.init(window.ethereum.chainId)) {
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
+          return;
+        }
+        
+        this.$store.dispatch('blockchain/SET_CHAIN_ID', window.ethereum.chainId) 
+        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accountAddress) 
+      },
+
+      chainChanged: async function (chainId) {
+         
+        console.log('chainChanged: ', chainId);
+        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null) 
+
+        if (!MetaMaskManager.isChainIDValid(chainId)) {
+          MetaMaskManager.deinit();
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
+          return;
+        }
+
+        if (!MetaMaskManager.init(chainId)) {
+          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
+          return;
+        }
+        
+        this.$store.dispatch('blockchain/SET_CHAIN_ID', chainId)   
+        const accountAddress = await MetaMaskManager.getAccount() 
+        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accountAddress) 
+        
+      },
+      
+      accountsChanged: async function (accounts) {
+        console.log('accountsChanged: ', accounts);
+
+        if (accounts.length == 0) {
+          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)    
+          MetaMaskManager.deinit();
+          return;
+        }
+
+        if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
+          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)          
+          MetaMaskManager.deinit();
+          return;
+        }
+
+        if (!MetaMaskManager.init(window.ethereum.chainId)) {
+          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)       
+          return;
+        }
+
+        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accounts[0])  
+      },
+      
+  
+    },
+
+    created() {
+      if (window.ethereum) {
+        window.addEventListener('load', this.load)   
+        window.ethereum.on('chainChanged', this.chainChanged)    
+        window.ethereum.on('accountsChanged', this.accountsChanged)     
+      }  
     }, 
   }
 </script>

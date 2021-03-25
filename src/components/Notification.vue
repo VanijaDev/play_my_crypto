@@ -1,7 +1,7 @@
 <template> 
-  <div class="__notification" v-if="show">
+  <div class="__notification" v-if="!blockchain.chainId">
     <b-container>
-      Please connect MetaMask to use PlayMyCrypto platform       
+      Please connect MetaMask to use PlayMyCrypto platform        
     </b-container>  
   </div>       
 </template>
@@ -24,7 +24,8 @@
       return {  
         show: 0,      
       };
-    },  
+    }, 
+
   }
 </script>
 
