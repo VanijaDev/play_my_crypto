@@ -10,6 +10,7 @@
   "dependencies": {
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
+    "ethers": "^5.0.32",
     "vue": "^2.6.11",
     "vue-fragment": "^1.5.2",
     "vue-i18n": "^8.24.2",
