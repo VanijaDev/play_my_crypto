@@ -1,5 +1,10 @@
 const state = { 
-  user: {},
+  user: {
+    balance: {
+      PMC: {},
+      ETH: {}
+    }
+  },
 };
 
 const getters = {
