@@ -96,6 +96,8 @@
   import Stats from '@/components/Stats.vue';
   import Governance from '@/components/Governance.vue';
   import GovernanceStats from '@/components/GovernanceStats.vue';
+
+  import MetaMaskManager from '@/managers/metamaskManager.js';
  
   export default {
     name: 'App',
@@ -112,6 +114,44 @@
       BreakPoint,
       Governance,
       GovernanceStats
-    }
+    },
+    methods: {
+
+    },
+    created() {
+       
+      setTimeout(function(){
+        if (window.ethereum) {          
+                    
+          window.addEventListener('load', async () => {
+            console.log('page is fully loaded');
+
+            if (!MetaMaskManager.isEthereum()) {
+              alert("load - isEthereum");
+              return;
+            }
+
+            if (!(await MetaMaskManager.getAccount()).length) {
+              alert("load - getAccount");
+              return;
+            }
+
+            if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
+              alert("load - Wrong Network");
+              return;
+            }
+
+            if (!MetaMaskManager.init(window.ethereum.chainId)) {
+              alert("load - MetaMaskManager.init");
+              return;
+            }
+            
+          });
+
+           
+        }
+        //self.$store.dispatch('user/GET')
+      }, 100)      
+    }, 
   }
 </script>

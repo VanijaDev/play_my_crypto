@@ -22,7 +22,7 @@ const MetaMaskManager = {
 
   isEthereum: function () {
     try {
-      return (ethereum != null && typeof ethereum !== 'undefined');
+      return (window.ethereum != null && typeof window.ethereum !== 'undefined');
     } catch (error) {
       return false;
     }
@@ -71,7 +71,7 @@ const MetaMaskManager = {
   init: function (_chainId) {
     console.log("MetaMaskManager - init");
 
-    ethereum.autoRefreshOnNetworkChange = false;
+    window.ethereum.autoRefreshOnNetworkChange = false;
 
     if (!this.isChainIDValid(_chainId)) {
       console.error("MetaMaskManager - !isChainIDValid");
@@ -80,7 +80,7 @@ const MetaMaskManager = {
       return false;
     }
 
-    this.provider = new ethers.providers.Web3Provider(ethereum);
+    this.provider = new ethers.providers.Web3Provider(window.ethereum);
     this.chainId = _chainId;
 
     return true;
@@ -94,7 +94,7 @@ const MetaMaskManager = {
   },
 
   getAccount: async function () {
-    const accounts = await ethereum.request({
+    const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts'
     });
     return accounts[0];
