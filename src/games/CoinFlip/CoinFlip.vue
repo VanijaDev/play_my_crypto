@@ -380,7 +380,7 @@
   export default {
     name: 'CoinFlipGame', 
     data: () => ({
-      id: 'CFP',
+      id: 'CF',
       ready: false, 
       selectedCoin: 'BTC',
       view: 0, 

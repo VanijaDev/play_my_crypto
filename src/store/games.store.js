@@ -1,17 +1,17 @@
 const state = { 
   list: [
     { 
-      id: 'CFP', 
+      id: 'CF', 
       name: 'Coin Flip', 
       routeName: 'coin-flip', 
       filesFolder: 'CoinFlip', 
       image: 'game_coin_flip.svg' 
     },
     { 
-      id: 'SPS', 
-      name: 'Stone Paper Scissors', 
-      routeName: 'stone-paper-scissors', 
-      filesFolder: 'StonePaperScissors', 
+      id: 'RPS', 
+      name: 'Rock Paper Scissors', 
+      routeName: 'rock-paper-scissors', 
+      filesFolder: 'RockPaperScissors', 
       image: 'game_coin_flip.svg' 
     },
     { id: null, name: 'NEW GAME', routePath: null, image: 'no_game.png' },

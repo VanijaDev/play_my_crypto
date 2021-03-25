@@ -3,7 +3,7 @@ import {
   PMCtData,
   StakingData
 }
-from "../blockchain/contracts";
+from "../blockchain/pmc.contract";
 //import MetaMaskManager from "./metamaskManager";
 
 const BlockchainManager = {
