@@ -5,7 +5,7 @@ import MetaMaskManager from "../managers/metamaskManager";
 
 let PMCtData = {
   address_eth: "0x5C77675421cE6cF05fBD8B3a33fEC78Ca09E67D8", //    Ganache
-  address_ropsten: "", //    Ropsten
+  address_ropsten: "0xAe5A667d84f8E277479d6F9E98404042FDB53f6a", //    Ropsten
 
   abi: [{
       "inputs": [{
@@ -361,7 +361,7 @@ let PMCtData = {
 
 let CoinFlipData = {
   address_eth: "0x4B9d7B848791B0791E4B6055Db366Fa43f370799", //    Ganache
-  address_ropsten: "", //    Ropsten
+  address_ropsten: "0x1C0B2fdf6A8836CE3210Eb8B57F5cF90706fC807", //    Ropsten
   abi: [{
       "inputs": [{
         "internalType": "address",
@@ -1455,7 +1455,7 @@ let CoinFlipData = {
 
 let StakingData = {
   address_eth: "0x0E14AEe58cf4A0c8311Eb5728463e658025f49b8", //    Ganache
-  address_ropsten: "", //    Ropsten
+  address_ropsten: "0xD0cC9bc3799CBf5fA5744f686b3b1cbd45924e28", //    Ropsten
   abi: [{
       "inputs": [{
           "internalType": "address",
