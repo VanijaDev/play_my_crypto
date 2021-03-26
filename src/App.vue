@@ -1,5 +1,6 @@
 <template>
   <div id="app" :style="{ 'padding-top': `${headerHeight}px` }">
+    
     <Header/>
 
     <div class="__content_container w-100">
@@ -42,7 +43,7 @@
         </b-row>
       </b-container>
       
-      <div class="__blocked_content" v-if="isBlockContent"></div>
+      <div class="__blocked_content" v-if="!blockchain.network"></div>
       
       <Footer/>    
     </div>   
@@ -96,8 +97,6 @@
   import Stats from '@/components/Stats.vue';
   import Governance from '@/components/Governance.vue';
   import GovernanceStats from '@/components/GovernanceStats.vue';
-
-  import MetaMaskManager from '@/managers/metamaskManager.js';
  
   export default {
     name: 'App',
@@ -116,42 +115,16 @@
       GovernanceStats
     },
     methods: {
-
     },
-    created() {
-       
-      setTimeout(function(){
-        if (window.ethereum) {          
-                    
-          window.addEventListener('load', async () => {
-            console.log('page is fully loaded');
-
-            if (!MetaMaskManager.isEthereum()) {
-              alert("load - isEthereum");
-              return;
-            }
-
-            if (!(await MetaMaskManager.getAccount()).length) {
-              alert("load - getAccount");
-              return;
-            }
-
-            if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
-              alert("load - Wrong Network");
-              return;
-            }
-
-            if (!MetaMaskManager.init(window.ethereum.chainId)) {
-              alert("load - MetaMaskManager.init");
-              return;
-            }
-            
-          });
-
-           
-        }
-        //self.$store.dispatch('user/GET')
-      }, 100)      
+    mounted() {
+      let self = this
+      if (window.ethereum) {
+        setTimeout(function(){
+          window.addEventListener('load', function(){self.$store.dispatch('blockchain/ON_LOAD')}  )
+          window.ethereum.on('chainChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')} )
+          window.ethereum.on('accountsChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')})  
+        }, 100)
+      }  
     }, 
   }
 </script>

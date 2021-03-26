@@ -4,12 +4,16 @@
 
     <div class="w-100 __list d-flex">      
       
-      
-      <div class="__game_card __selected __img_button __shadow_filter">
+      <div v-for="(game, index) in list" :key="'game_'+index"
+        class="__game_card __img_button " 
+        :class="{'__shadow_filter __selected' : game.id === currentGame.id}"
+        @click="selectGame(game)"
+        >
         <div class="__game_image __gradient_violet">
-          <img src="/img/game_coin_flip.svg" height="110" alt="Game image">
+          <img :src="'/img/'+game.image" alt="Game image" :class="{'__ready': game.id}">
         </div>
-        <div class="__info">
+        <!-- if game raedy -->
+        <div class="__info" v-if="game.id">
           <div class="__participiants">
             <div>Participants:</div>
             <div class="text-monospace"> 98</div>  
@@ -20,42 +24,17 @@
               <div>In:</div>
               <div class="text-monospace">0.12345</div>  
             </div>              
-          </div> 
+          </div>
         </div>
-      </div>
-
-      <div class="__game_card">
-        <div class="__game_image">
-          <img src="/img/no_game.png" alt="Game image">
-        </div>  
-        <div class="__info">
+        <!-- if game comming soon -->
+        <div class="__info" v-if="!game.idx">
           <span class="__orange_text">NEW GAME</span>
           <span class="text-truncate">Coming soon...</span>          
         </div>
-        <div class="__corner"></div>
-      </div>
+        <div class="__corner" v-if="!game.id"></div>
 
-      <div class="__game_card"  v-if="!breakPoint('xs')">
-        <div class="__game_image">
-          <img src="/img/no_game.png" alt="Game image">
-        </div>  
-        <div class="__info">
-          <span class="__orange_text">NEW GAME</span>
-          <span class="text-truncate">Coming soon...</span>          
-        </div>
-        <div class="__corner"></div>
       </div>
-
-      <div class="__game_card" v-if="breakPoint('xl', 'gte')">
-        <div class="__game_image">
-          <img src="/img/no_game.png" alt="Game image">
-        </div>  
-        <div class="__info">
-          <span class="__orange_text">NEW GAME</span>
-          <span class="text-truncate">Coming soon...</span>          
-        </div>
-        <div class="__corner"></div>
-      </div>      
+      
     </div>
       
   </div>
@@ -122,28 +101,18 @@
           overflow: hidden;
           img{
             border-radius: ($_content_block_border_radius - .2);  
-          }  
-        }        
-        &:not(.__selected) {
-          .__game_image {            
-            img{              
-              object-fit: cover;
-              overflow: hidden;   
-              width: 100%;           
-            }  
-          }
-        }        
-        &.__selected {          
-          .__game_image {
-             
-            img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            &.__ready{
               padding: .5rem;
-              width: 100%;
-              height: 100%;
-            }       
-          }
+              object-fit: none;
+            }
+          }  
+        }       
+        &.__selected, &.__ready {
           .__corner {            
-            border-bottom: 10px solid $_blue;            
+            display: none;           
           }
         } 
         .__info {
@@ -156,6 +125,9 @@
           .__participiants, .__in {
             line-height: .9rem;
             font-weight: 700;
+            .text-monospace {
+              font-size: .8rem;
+            }
             div:first-child {
               color: $_blue;
             }            
@@ -168,6 +140,8 @@
             align-items: center;
             img {
               margin-right: .3rem;
+              margin-top: .7rem;
+              height: 12px;
             }
           }
         }        
@@ -179,6 +153,22 @@
 <script>
   export default {
     name: 'GamesList',  
+    computed: {     
+      list() { 
+        let list = this.$store.getters['games/list']
+        if (this.breakPoint('xs')) return list.slice(0, 2)
+        if (this.breakPoint('sm')) return list.slice(0, 3)
+        if (this.breakPoint('md')) return list.slice(0, 4)
+        if (this.breakPoint('lg')) return list.slice(0, 3)
+        return list        
+      }, 
+      
+    },
+    methods: {
+      selectGame(game) {
+        if (game.id && this.$route.name !== game.routeName ) this.$router.push(game.routeName)
+      }
+    }
   }
 </script>
 
