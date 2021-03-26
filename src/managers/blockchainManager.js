@@ -3,13 +3,6 @@ const BlockchainManager = {
   BALANCES_LENGTH: 8,
   
   /**
-   * API - CF
-   */
-  api_game_gamesStarted: async function (_token) {
-    return this.gameInst.gamesStarted(_token);
-  },
-
-  /**
    * API - Staking
    */
   api_staking_stakingRewardWithdrawnOf: async function (_acc) {

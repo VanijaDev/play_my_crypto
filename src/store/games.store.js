@@ -1,3 +1,4 @@
+import Vue from "vue";
 import { ethers } from "ethers";
 
 const state = { 
@@ -1082,11 +1083,11 @@ const state = {
       ],
     },
     { 
-      id: 'RPS', 
+      id: null, //'RPS'
       name: 'Rock Paper Scissors', 
       routeName: 'rock-paper-scissors', 
       filesFolder: 'RockPaperScissors', 
-      image: 'game_coin_flip.svg',
+      image: 'no_game.png',
       networks: {
         ETH: {
           '0x2a': "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", //kovan
@@ -2163,38 +2164,56 @@ const state = {
     { id: null, name: 'NEW GAME', routePath: null, image: 'no_game.png' },
     { id: null, name: 'NEW GAME', routePath: null, image: 'no_game.png' },    
   ],
-  currentGame: {},   
+  currentId: null,   
 };
 
 const getters = {
   list: (state) => { return state.list },  
-  currentGame: (state) => { return state.currentGame }, 
+  currentGame: (state) => { return state.list.find(game => game.id === state.currentId) }, 
   getGameById: state => gameId => state.list.find(game => game.id === gameId),  
 };
 
 const actions = {
-  SET_CURRENT_GAME: async ({ commit, state }, gameId) => {
-    let game = {}
-    if (gameId) game = state.list.find(g => g.id === gameId)    
-    commit('SET_CURRENT_GAME', game);     
+  SET_CURRENT_GAME: async ({ commit }, gameId) => {
+    
+    commit('SET_CURRENT_GAME', gameId);     
   },
-  BUILD_CONTRACTS: ({commit}, network) => {    
-    commit('BUILD_CONTRACTS', {network});     
+  BUILD_CONTRACTS: ({ commit, dispatch }, network) => {    
+    commit('BUILD_CONTRACTS', { network }); 
+    dispatch('GET_GAMES_INFO'); 
   },
-  GET_GAMES_DATA: ({commit}, network) => {    
-    commit('SET_GAMES_DATA', {network});     
+  GET_GAMES_INFO: async ({commit, dispatch, state, rootState}) => {    
+    for (const game of state.list) { 
+      if (game.id) {
+        try {
+          const gamesStartedCount = await game.contract.gamesStarted(rootState.blockchain.ZERO_ADDRESS);
+          if (gamesStartedCount.gt(0)) {          
+            const gameInfo = await game.contract.gameInfo(rootState.blockchain.ZERO_ADDRESS, gamesStartedCount - 1);
+            commit('SET_GAME_INFO', { gameId: game.id, gameInfo });
+          }  
+        } catch (error) {
+          console.error('GET_GAMES_INFO', error) 
+        }                  
+      } 
+    } 
+    dispatch('user/GET_GAMES_STARTED', null, { root: true })        
   },
-
 };
 
 const mutations = {  
-  SET_CURRENT_GAME: (state, game) => {
-    state.currentGame = game;  
+  SET_CURRENT_GAME: (state, gameId) => {
+    state.currentId = gameId;  
+    console.log('games/SET_CURRENT_GAME', state.currentId)
   },
   BUILD_CONTRACTS: (state, { network }) => {
     state.list.forEach((game, index) => {
       if (game.id) state.list[index].contract = new ethers.Contract(game.networks[network.id][network.chainId], game.abi, window.pmc.signer)
     })    
+  },
+  SET_GAME_INFO: (state, { gameId, gameInfo }) => {
+    console.log('gameInfo', gameInfo) 
+    let index = state.list.findIndex(game => game.id === gameId)
+    Vue.set(state.list[index], 'info', gameInfo)    
   },  
   
 };

@@ -44,55 +44,51 @@
             </div>
           </li>      
         </ul>
+        
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
             <div class="__blue_text">Total in:</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">
-              
-              <span id="up_3" class="__price_change_up">1.11111</span>
-              <PriceUpDownArrowIcon class="__price_change_icon" direction="up"/>
-
-              <b-tooltip target="up_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+              <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">              
+              <span id="up_3" class="__price_change_up">{{user.totalIn | formatBalanceShort}}</span>              
+              <b-tooltip target="up_3" custom-class="__tooltip" >{{user.totalIn | formatBalance}}</b-tooltip>
             </div>
           </li>     
           <li class="list-group-item __list_item ">
             <div class=" d-flex justify-content-between align-items-center mb-2">
               <div class="__blue_text">Total out:</div>
               <div class="d-flex align-items-center text-monospace">
-                <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">
-                
-                <span id="up_4" class="__price_change_down">1.11111</span>
-                <PriceUpDownArrowIcon class="__price_change_icon" direction="down"/>
-
-                <b-tooltip target="up_4" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">                
+                <span id="up_4" class="__price_change_down">{{user.totalOut | formatBalanceShort}}</span>
+                <PriceUpDownArrowIcon class="__price_change_icon" v-if="totalOutChange" :direction="totalOutChange"/>
+                <b-tooltip target="up_4" custom-class="__tooltip" >{{user.totalOut | formatBalance}}</b-tooltip>
               </div>
             </div>            
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Gameplay:</span>
-                <span id="up_5">1.11111</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span id="up_5">{{user.pendingGameplay.prize | formatBalanceShort}}</span>
+                <b-tooltip target="up_5" custom-class="__tooltip" >{{user.pendingGameplay.prize | formatBalance}}</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Referral:</span>
-                <span id="up_6">1.11111</span>
-                <b-tooltip target="up_6" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span id="up_6">{{user.referral | formatBalanceShort}}</span>
+                <b-tooltip target="up_6" custom-class="__tooltip" >{{user.referral | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Raffle:</span>
-                <span id="up_7">1.11111</span>
-                <b-tooltip target="up_7" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span id="up_7">{{user.pendingRaffle | formatBalanceShort}}</span>
+                <b-tooltip target="up_7" custom-class="__tooltip" >{{user.pendingRaffle | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Staking:</span>
-                <span id="up_8">1.11111</span>
+                <span id="up_8">---</span>
                 <b-tooltip target="up_8" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Partnership:</span>
-                <span id="up_9">1.11111</span>
-                <b-tooltip target="up_9" custom-class="__tooltip" >0.123456789012345678</b-tooltip>                
+                <span id="up_9">{{user.partnership | formatBalanceShort}}</span>
+                <b-tooltip target="up_9" custom-class="__tooltip" >{{user.partnership | formatBalance}}</b-tooltip>                
               </div>
             </div>
           </li>  
@@ -215,6 +211,15 @@
   export default {
     name: 'UserProfileMenu', 
     components: { PriceUpDownArrowIcon },
+    computed: {
+      totalOutChange() { 
+        if (this.user && this.user.totalIn && this.user.totalOut) {
+          if (this.user.totalIn.eq(this.user.totalOut)) return null
+          return this.user.totalIn.gt(this.user.totalOut) ? 'down' : 'up'
+        }
+        return null
+      },
+    },
     i18n: {
       messages: {
         en: {

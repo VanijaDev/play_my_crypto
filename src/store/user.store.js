@@ -3,10 +3,15 @@ import { BigNumber } from "ethers";
 const state = {   
   accountAddress: null,
   balance: {
-    ETH: 0,
-    PMC: 0,    
+    ETH: null,
+    PMC: null,    
   },
   gamesStarted: [],
+  totalIn: null,
+  totalOut: null,
+  referral: null,
+  partnership: null,
+
 };
 
 const userDefaults = Object.assign({}, state);
@@ -28,11 +33,12 @@ async function getAccountBalance(accountAddress) {
 }
 
 const getters = {
-  user: (state) => { return state },   
+  user: (state) => { return state },  
 };
 
 const actions = {
   INIT: async ({ commit, dispatch }, network) => {
+    commit('DESTROY');
     if (network) {
       //console.log('USER_INIT')
       const accountAddress = await getAccountAddress()
@@ -40,53 +46,76 @@ const actions = {
       if (!accountAddress) return commit('DESTROY')
 
       dispatch('blockchain/INIT', accountAddress, { root: true })
-      dispatch('GET_DATA');
+      dispatch('GET_BALANCE');
+      
     } else {
       console.log('USER_DESTROY')
       commit('DESTROY');
     }      
   },
 
-  GET_DATA: async ({ commit, dispatch, state, rootState }) => {    
+  GET_BALANCE: async ({ commit, dispatch, state, rootState }) => {    
     const pmcContract = rootState.blockchain.pmcContract
-    console.log('GET_DATA')
     try {
-      const data = { 
-        balance:{
-          ETH: await getAccountBalance(state.accountAddress),
-          PMC: await pmcContract.balanceOf(state.accountAddress)
-        }
-      }
-      
-      //  playing now
-      data.gamesStarted = []
-      for (const game of rootState.games.list) { 
-        if (game.id) {
-          const gamesStartedCount = await game.contract.gamesStarted(rootState.blockchain.ZERO_ADDRESS);
-          console.log(gamesStartedCount.toString())          
-          if (gamesStartedCount.gt(0)) {
-            data.gamesStarted.push(game.id)
-            const gameInfo = await game.contract.gameInfo(rootState.blockchain.ZERO_ADDRESS, gamesStartedCount - 1); 
-            console.log(gameInfo) 
-            //if (gameInfo.running) {
-            //  const checkPrizeForGames = await window.BlockchainManager.api_game_getGamesParticipatedToCheckPrize(window.BlockchainManager.ZERO_ADDRESS);
-            //  if (checkPrizeForGames.length > 0) {
-            //    const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
-            //    // console.log(lastGameToCheckPrize.toString());
-            //    if ((new BN(gameInfo.idx.toString())).cmp(new BN(lastGameToCheckPrize.toString())) == 0) {
-            //      document.getElementById("playing_now_cf").innerText = "CF";
-            //    }
-            //  }
-            //}
-          } 
-          //data.gamesStarted.push(game.id)        
-        } 
+      const balance = {
+        ETH: await getAccountBalance(state.accountAddress),
+        PMC: await pmcContract.balanceOf(state.accountAddress)        
       } 
-      commit('SET_DATA', data)
+      commit('SET_BALANCE', balance)
     } catch (error) {
-      console.log(error)
+      console.error('GET_BALANCE', error)
     }
   },
+
+  GET_GAMES_STARTED: async ({ commit, dispatch, rootState }) => {
+    //console.log('GET_GAMES_STARTED', rootState.games.list)
+    let gamesStarted = []
+    for (const game of rootState.games.list) { 
+      if (game.id && game.info && game.info.running) {
+        try {
+          const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(rootState.blockchain.ZERO_ADDRESS);
+          //console.log('checkPrizeForGames', checkPrizeForGames);
+          if (checkPrizeForGames.length > 0) {
+            const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
+            //console.log('lastGameToCheckPrize', lastGameToCheckPrize);
+            if (game.info.idx.eq(lastGameToCheckPrize) ) {
+              gamesStarted.push(game.id)
+              
+              // if current game
+              console.log('rootState.games.currentId === game.id', rootState.games.currentId, game.id);
+              if (rootState.games.currentId === game.id) {
+                dispatch('GET_PROFILE_GAME_DATA', game);
+              }
+            
+            }
+          }          
+        } catch (error) {
+          console.error('GET_GAMES_STARTED', error);
+        }                      
+      } 
+    } 
+    commit('SET_GAMES_STARTED', gamesStarted)     
+  },
+
+  GET_PROFILE_GAME_DATA: async ({ commit, state, rootState }, game) => {
+    try {
+      const data = {
+        totalIn: await game.contract.getPlayerStakeTotal(rootState.blockchain.ZERO_ADDRESS),
+        totalOut: await game.contract.getPlayerWithdrawedTotal(rootState.blockchain.ZERO_ADDRESS),
+        referral: await game.contract.getReferralFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
+        partnership: await game.contract.getPartnerFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
+
+        pendingGameplay: await game.contract.pendingPrizeToWithdraw(rootState.blockchain.ZERO_ADDRESS, 0),        
+        pendingReferral: await game.contract.getReferralFeePending(rootState.blockchain.ZERO_ADDRESS),
+        
+        pendingRaffle: await game.contract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
+        pendingPartner: await game.contract.getPartnerFeePending(rootState.blockchain.ZERO_ADDRESS),
+      }
+      commit('SET_PROFILE_GAME_DATA', data) 
+    } catch (error) {
+      console.error('GET_PROFILE_GAME_DATA', error);
+    }   
+  }, 
   
   GET_PMC_ALLOWANCE: async ({ state, rootState }) => {
     return await rootState.blockchain.pmcContract.allowance(state.accountAddress);     
@@ -105,16 +134,34 @@ const mutations = {
   SET_GAMES_STARTED: (state, gamesStarted) => {
     state.gamesStarted = gamesStarted;  
   },
-  SET_DATA: (state, data) => {
-    console.log('SET_DATA', data)
-    state.balance = data.balance
-    state.gamesStarted = data.gamesStarted
+  SET_BALANCE: (state, balance) => {
+    state.balance = balance
+  },
+  SET_PROFILE_GAME_DATA: (state, data) => {    
+    state.totalIn = data.totalIn
+    state.totalOut = data.totalOut
+    state.referral = data.referral
+    state.partnership = data.partnership
+    state.pendingGameplay = data.pendingGameplay
+    state.pendingReferral = data.pendingReferral
+    state.pendingRaffle = data.pendingRaffle
+    state.pendingPartner = data.pendingPartner
+    console.info('SET_PROFILE_GAME_DATA', data);
   },
   DESTROY: (state) => {
     state.accountAddress = null
-    state.balance.ETH = 0
-    state.balance.PMC = 0
+    state.balance.ETH = null
+    state.balance.PMC = null
     state.gamesStarted = []
+    state.totalIn = null
+    state.totalOut = null
+    state.referral = null
+    state.partnership = null
+    state.pendingGameplay = null
+    state.pendingReferral = null
+    state.pendingRaffle = null
+    state.pendingPartner = null
+
     window.pmc.signer = null;
   }
 };
