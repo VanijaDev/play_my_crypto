@@ -11,6 +11,7 @@ export default {
   computed: {     
     user() { return  this.$store.getters['user/user'] }, 
     game() { return  this.$store.getters['game/game'] },
+    getGameById() { return function (gameId) { return this.$store.getters['games/getGameById'](gameId) }},
     //checkAccess: (role) => store.getters['auth/checkAccess'](role), 
     //isAuthenticated: () => store.getters['auth/isAuthenticated'],  
     headerHeight() { return this.$store.getters.uiHeaderHeight },

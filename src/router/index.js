@@ -1,32 +1,27 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import store from "../store";
-
-const gamesList = () => store.getters['games/gamesList']; 
-
 Vue.use(VueRouter);
+import store from "../store";
 
 const routes = [
   {
     path: "/",
     redirect: '/coin-flip',    
   },
-    
 ];
 
-gamesList().forEach(game => {
+const list = () => store.getters['games/list'];
+list().forEach(game => {
   if (game.id) routes.push({ 
     path: `/${game.routeName}`,
     name: game.routeName,
-    component: () => import( /* webpackChunkName: "[request]" */  `../games/${game.filesFolder}/${game.filesFolder}.vue`), 
+    component: () => import( /* webpackChunkName: "[request]" */ `../games/${game.filesFolder}/${game.filesFolder}.vue`), 
     meta: {
       game: true,
       //store: require(`@/games/${game.filesFolder}/game.store.js`)
     }    
   })  
 });
-
-console.log(routes)
 
 const router = new VueRouter({
   mode: "history",

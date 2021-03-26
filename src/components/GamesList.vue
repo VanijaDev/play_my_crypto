@@ -4,7 +4,7 @@
 
     <div class="w-100 __list d-flex">      
       
-      <div v-for="(game, index) in gamesList" :key="'game_'+index"
+      <div v-for="(game, index) in list" :key="'game_'+index"
         class="__game_card __img_button " 
         :class="{'__shadow_filter __selected' : game.id === currentGame.id}"
         @click="selectGame(game)"
@@ -154,8 +154,8 @@
   export default {
     name: 'GamesList',  
     computed: {     
-      gamesList() { 
-        let list = this.$store.getters['games/gamesList']
+      list() { 
+        let list = this.$store.getters['games/list']
         if (this.breakPoint('xs')) return list.slice(0, 2)
         if (this.breakPoint('sm')) return list.slice(0, 3)
         if (this.breakPoint('md')) return list.slice(0, 4)

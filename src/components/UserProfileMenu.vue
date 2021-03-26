@@ -25,12 +25,10 @@
               <span id="up_1" class="mr-2">{{user.balance.ETH | formatBalanceShort}}</span>
               
               <b-tooltip target="up_1" custom-class="__tooltip" >{{user.balance.ETH | formatBalance}}</b-tooltip>
-              
-              
-              
+                            
               <img class="__currency_img" src="/img/logo.svg" height="30" alt="Logo">
-              <span id="up_2">1.23456</span>
-              <b-tooltip target="up_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+              <span id="up_2">{{user.balance.PMC | formatBalanceShort}}</span>
+              <b-tooltip target="up_2" custom-class="__tooltip" >{{user.balance.PMC | formatBalance}}</b-tooltip>
             </div>
           </li>      
         </ul>
@@ -39,8 +37,8 @@
             <div class="__blue_text">Playing now:</div>
             <div class="__card_list d-flex justify-content-end">              
               
-              <div class="__card_block __img_button __shadow_filter" v-for="(game, $index) in user.gamesStarted" :key="'gs_'+$index">
-                <img :src="'/img/'+ game.image" height="30" alt="Game image">
+              <div class="__card_block __img_button __shadow_filter" v-for="(gameId, $index) in user.gamesStarted" :key="'gs_'+$index">
+                <img :src="'/img/'+ getGameById(gameId).image" height="30" alt="Game image">
               </div>
                           
             </div>

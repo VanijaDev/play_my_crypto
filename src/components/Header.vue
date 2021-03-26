@@ -31,7 +31,7 @@
               <div class="__currency_select_block d-flex align-items-center">
                 <div v-for="network in blockchain.networks" :key="'network_select_' + network.id"
                   class="d-flex flex-column justify-content-center align-items-center mr-3 __img_button " 
-                  :class="{'__selected' : blockchain.network.id === network.id}"
+                  :class="{'__selected' : blockchain.network && blockchain.network.id === network.id}"
                   @click="selectNetwork(network)" 
                   >
                   <img :src="network.icon" height="40" width="40" :alt="network.id">
@@ -87,11 +87,8 @@
       Notification,
       //LocaleChange,
     },
-    data () {      
-      return {
-        selectedCurrency: 'ETH'        
-      };
-    },    
+    data: () => ({      
+    }),    
     mounted () {
       setInterval(() => { this.detectHeight() }, 100)
       //setTimeout(() => { this.detectHeight() }, 100)
@@ -110,7 +107,7 @@
         }                   
       },
       selectNetwork(network) {
-        this.$store.dispatch('blockchain/SET_NETWORK', network) 
+        //this.$store.dispatch('blockchain/SET_NETWORK', network) 
       },
     },
     i18n: {

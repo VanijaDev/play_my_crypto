@@ -43,7 +43,7 @@
         </b-row>
       </b-container>
       
-      <div class="__blocked_content" v-if="!blockchain.chainId"></div>
+      <div class="__blocked_content" v-if="!blockchain.network"></div>
       
       <Footer/>    
     </div>   
@@ -97,8 +97,6 @@
   import Stats from '@/components/Stats.vue';
   import Governance from '@/components/Governance.vue';
   import GovernanceStats from '@/components/GovernanceStats.vue';
-
-  import MetaMaskManager from '@/managers/metamaskManager.js';
  
   export default {
     name: 'App',
@@ -117,88 +115,15 @@
       GovernanceStats
     },
     methods: {
-      load: async function () {        
-        console.log('page is fully loaded');
-
-        if (!MetaMaskManager.isEthereum()) {
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
-          return;
-        }
-
-        const accountAddress = await MetaMaskManager.getAccount()
-        if (!accountAddress.length) {
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)  
-          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)  
-          return;
-        } 
-
-        if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
-          return;
-        }
-
-        if (!MetaMaskManager.init(window.ethereum.chainId)) {
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
-          return;
-        }
-        
-        this.$store.dispatch('blockchain/SET_CHAIN_ID', window.ethereum.chainId) 
-        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accountAddress) 
-      },
-
-      chainChanged: async function (chainId) {
-         
-        console.log('chainChanged: ', chainId);
-        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null) 
-
-        if (!MetaMaskManager.isChainIDValid(chainId)) {
-          MetaMaskManager.deinit();
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
-          return;
-        }
-
-        if (!MetaMaskManager.init(chainId)) {
-          this.$store.dispatch('blockchain/SET_CHAIN_ID', null)   
-          return;
-        }
-        
-        this.$store.dispatch('blockchain/SET_CHAIN_ID', chainId)   
-        const accountAddress = await MetaMaskManager.getAccount() 
-        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accountAddress) 
-        
-      },
-      
-      accountsChanged: async function (accounts) {
-        console.log('accountsChanged: ', accounts);
-
-        if (accounts.length == 0) {
-          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)    
-          MetaMaskManager.deinit();
-          return;
-        }
-
-        if (!MetaMaskManager.isChainIDValid(window.ethereum.chainId)) {
-          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)          
-          MetaMaskManager.deinit();
-          return;
-        }
-
-        if (!MetaMaskManager.init(window.ethereum.chainId)) {
-          this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', null)       
-          return;
-        }
-
-        this.$store.dispatch('user/SET_ACCOUNT_ADDRESS', accounts[0])  
-      },
-      
-  
     },
-
-    created() {
+    mounted() {
+      let self = this
       if (window.ethereum) {
-        window.addEventListener('load', this.load)   
-        window.ethereum.on('chainChanged', this.chainChanged)    
-        window.ethereum.on('accountsChanged', this.accountsChanged)     
+        setTimeout(function(){
+          window.addEventListener('load', function(){self.$store.dispatch('blockchain/ON_LOAD')}  )
+          window.ethereum.on('chainChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')} )
+          window.ethereum.on('accountsChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')})  
+        }, 100)
       }  
     }, 
   }

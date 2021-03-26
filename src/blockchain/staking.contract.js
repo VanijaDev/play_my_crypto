@@ -1,10 +1,11 @@
-
-import { networks } from "./networks";
-
-let Staking = {
-  // address_eth: "0x0E14AEe58cf4A0c8311Eb5728463e658025f49b8", //    Ganache
-  [networks.ETH.chains.kovan]: "0xaD6E52A5C06b2dBD86D51DAC43b1e2b9A77712dc", 
-  [networks.ETH.chains.ropsten]: "0xD0cC9bc3799CBf5fA5744f686b3b1cbd45924e28",
+export default {
+  networks: {
+    ETH: {
+      '0x2a': "0xaD6E52A5C06b2dBD86D51DAC43b1e2b9A77712dc", //kovan
+      '0x3': "0xD0cC9bc3799CBf5fA5744f686b3b1cbd45924e28", //ropsten
+      //[networks.ETH.chains.ganache]: "0x0E14AEe58cf4A0c8311Eb5728463e658025f49b8", 
+    }  
+  },  
   abi: [{
       "inputs": [{
           "internalType": "address",
@@ -288,8 +289,3 @@ let Staking = {
     }
   ],
 }
-
-
-export {
-  Staking
-};

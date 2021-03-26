@@ -1,5 +1,5 @@
 <template> 
-  <div class="__notification" v-if="!blockchain.chainId">
+  <div class="__notification" v-if="!blockchain.network">
     <b-container>
       Please connect MetaMask to use PlayMyCrypto platform        
     </b-container>  

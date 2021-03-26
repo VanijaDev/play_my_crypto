@@ -1,7 +1,10 @@
-const CF = {
-  // address_eth: "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", //    Ganache
-  address_eth: "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", //    Kovan
-  address_ropsten: "0x1C0B2fdf6A8836CE3210Eb8B57F5cF90706fC807", //    Ropsten
+const CF = {  
+  networks: {
+    ETH: {
+      kovan: "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631",
+      ropsten: "0x1C0B2fdf6A8836CE3210Eb8B57F5cF90706fC807",
+    }  
+  },
   abi: [{
       "inputs": [{
         "internalType": "address",
@@ -1066,31 +1069,7 @@ const CF = {
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ],
-
-  build: function (_chainID, _signer) {
-    switch (_chainID) {
-      case MetaMaskManager.ChainIDs.TEST_Ganache:
-        try {
-          return new ethers.Contract(this.address_eth, this.abi, _signer);
-        } catch (error) {
-          console.error(error);
-        }
-        break;
-
-      case MetaMaskManager.ChainIDs.TEST_Ropsten:
-        try {
-          return new ethers.Contract(this.address_ropsten, this.abi, _signer);
-        } catch (error) {
-          console.error(error);
-        }
-        break;
-
-      default:
-        console.error("setup - disable page");
-        return;
-    }
-  }
+  ],  
 }
 
 export default {

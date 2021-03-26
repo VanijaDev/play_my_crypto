@@ -14,7 +14,7 @@
   export default {
     name: 'StonePaperScissorsGame', 
     data: () => ({
-      id: 'SPS',
+      id: 'RPS',
       ready: false
     }),
     computed: {
