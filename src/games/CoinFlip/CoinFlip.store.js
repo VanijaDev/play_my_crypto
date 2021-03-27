@@ -43,19 +43,7 @@ const api = {
     return this.gameInst.getRaffleJackpotWithdrawn(_token, _acc);
   },
 
-  api_game_getRaffleJackpotPending: async function (_token, _acc) {
-    return this.gameInst.getRaffleJackpotPending(_token, _acc);
-  },
-
   
-
-  api_game_getPartnerFeePending: async function (_token) {
-    return this.gameInst.getPartnerFeePending(_token);
-  },
-
-  api_game_pendingPrizeToWithdraw: async function (_token, _maxLoop) {
-    return this.gameInst.pendingPrizeToWithdraw(_token, _maxLoop);
-  },
 }
 
 

@@ -67,8 +67,8 @@
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Gameplay:</span>
-                <span id="up_5">{{user.pendingGameplay.prize | formatBalanceShort}}</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >{{user.pendingGameplay.prize | formatBalance}}</b-tooltip>
+                <span id="up_5">{{user.pendingGameplay | formatBalanceShort}}</span>
+                <b-tooltip target="up_5" custom-class="__tooltip" >{{user.pendingGameplay | formatBalance}}</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Referral:</span>

@@ -16,13 +16,13 @@
         <div class="__info" v-if="game.id">
           <div class="__participiants">
             <div>Participants:</div>
-            <div class="text-monospace"> 98</div>  
+            <div class="text-monospace">{{game.participants}}</div>  
           </div>
           <div class="__in">
             <img src="/img/ethereum_icon.svg" height="20" alt="ETH">
             <div>
               <div>In:</div>
-              <div class="text-monospace">0.12345</div>  
+              <div class="text-monospace">{{game.stakes | formatBalanceShort}}</div>  
             </div>              
           </div>
         </div>

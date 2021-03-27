@@ -16,6 +16,8 @@ const state = {
         }  
       },
       contract: null,
+      participants: 0,
+      stakes: 0,
       abi: [{
           "inputs": [{
             "internalType": "address",
@@ -2189,7 +2191,7 @@ const actions = {
           const gamesStartedCount = await game.contract.gamesStarted(rootState.blockchain.ZERO_ADDRESS);
           if (gamesStartedCount.gt(0)) {          
             const gameInfo = await game.contract.gameInfo(rootState.blockchain.ZERO_ADDRESS, gamesStartedCount - 1);
-            commit('SET_GAME_INFO', { gameId: game.id, gameInfo });
+            commit('SET_GAME_INFO', { gameId: game.id, gameInfo });            
           }  
         } catch (error) {
           console.error('GET_GAMES_INFO', error) 
@@ -2211,9 +2213,14 @@ const mutations = {
     })    
   },
   SET_GAME_INFO: (state, { gameId, gameInfo }) => {
-    console.log('gameInfo', gameInfo) 
+    console.log('gameInfo', gameInfo)     
     let index = state.list.findIndex(game => game.id === gameId)
-    Vue.set(state.list[index], 'info', gameInfo)    
+    Vue.set(state.list[index], 'info', gameInfo) 
+    if (gameInfo.running) {
+      const participants = gameInfo.heads.add(gameInfo.tails).add(1)
+      state.list[index].participants = participants
+      state.list[index].stakes = participants.mul(gameInfo.stake)
+    }          
   },  
   
 };

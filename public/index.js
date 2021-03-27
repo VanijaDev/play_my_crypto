@@ -65,26 +65,47 @@ const Index = {
     document.getElementById("your_stake_perc").innerText = "...";
 
 
+
+    
+
+
+    //  total out  - user
+    //  gameplay
+    //const gameplayOut = await window.BlockchainManager.api_game_getPlayerWithdrawedTotal(window.BlockchainManager.ZERO_ADDRESS);
+    //document.getElementById("out_gameplay").innerText = ethers.utils.formatEther(gameplayOut.toString());
+
+    //  referral  - user
+    //const referralOut = await window.BlockchainManager.api_game_getReferralFeeWithdrawn(window.BlockchainManager.ZERO_ADDRESS);
+    //document.getElementById("out_referral").innerText = ethers.utils.formatEther(referralOut.toString());
+
+    //  raffle  - user
+    //const raffleOut = await window.BlockchainManager.api_game_getRaffleJackpotWithdrawn(window.BlockchainManager.ZERO_ADDRESS, acc);
+    //document.getElementById("out_raffle").innerText = ethers.utils.formatEther(raffleOut.toString());
+
     //  staking  - user
     const stakingOut = await window.BlockchainManager.api_staking_stakingRewardWithdrawnOf(acc);
     document.getElementById("out_staking").innerText = ethers.utils.formatEther(stakingOut.toString());
-   
+
+    //  partnership  - user
+    //const partnershipOut = await window.BlockchainManager.api_game_getPartnerFeeWithdrawn(window.BlockchainManager.ZERO_ADDRESS);
+    //document.getElementById("out_partnership").innerText = ethers.utils.formatEther(partnershipOut.toString());
+
     //  total out  - user -  if < total in (red)  > total in (green) 
-    document.getElementById("acc_total_out").innerText = ethers.utils.formatEther(gameplayOut.add(referralOut).add(raffleOut).add(stakingOut).add(partnershipOut).toString());
+    //document.getElementById("acc_total_out").innerText = ethers.utils.formatEther(gameplayOut.add(referralOut).add(raffleOut).add(stakingOut).add(partnershipOut).toString());
 
 
     //  pending withdraw - user +  My stats block (Pending withdrawal)
       //  gameplay
-        const pendingGameplay = await window.BlockchainManager.api_game_pendingPrizeToWithdraw(window.BlockchainManager.ZERO_ADDRESS, 0);
+        //const pendingGameplay = await window.BlockchainManager.api_game_pendingPrizeToWithdraw(window.BlockchainManager.ZERO_ADDRESS, 0);
         // console.log("pendingGameplay.prize: ", pendingGameplay.prize.toString());
         // console.log("pendingGameplay.pmc_tokens: ", pendingGameplay.pmc_tokens.toString());
 
         //  referral
-        const pendingReferral = await window.BlockchainManager.api_game_getReferralFeePending(window.BlockchainManager.ZERO_ADDRESS);
+        //const pendingReferral = await window.BlockchainManager.api_game_getReferralFeePending(window.BlockchainManager.ZERO_ADDRESS);
         // console.log("pendingReferral: ", pendingReferral.toString());
 
         //  raffle
-        const pendingRaffle = await window.BlockchainManager.api_game_getRaffleJackpotPending(window.BlockchainManager.ZERO_ADDRESS, acc);
+        //const pendingRaffle = await window.BlockchainManager.api_game_getRaffleJackpotPending(window.BlockchainManager.ZERO_ADDRESS, acc);
         // console.log("pendingRaffle: ", pendingRaffle.toString());
 
         //  gameplay
@@ -97,7 +118,7 @@ const Index = {
         }
 
       //  partner
-        const pendingPartner = await window.BlockchainManager.api_game_getPartnerFeePending(window.BlockchainManager.ZERO_ADDRESS);
+        //const pendingPartner = await window.BlockchainManager.api_game_getPartnerFeePending(window.BlockchainManager.ZERO_ADDRESS);
         // console.log("pendingPartner: ", pendingPartner.toString());
         if ((new BN(pendingPartner.toString())).cmp(new BN("0")) > 0) {
           document.getElementById("pending_withdraw_partner").innerText = "CF";
