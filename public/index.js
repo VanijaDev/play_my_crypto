@@ -7,40 +7,6 @@ import {
 
 const Index = {
 
-  setup: async function () {
-    const acc = await window.MetaMaskManager.getAccount();
-
-    switch (MetaMaskManager.chainId) {
-
-      // case MetaMaskManager.ChainIDs.ETH:
-      //   // console.log("setup ETH");
-      //   window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
-      //   break;
-
-      // case MetaMaskManager.ChainIDs.BSC:
-      //   // console.log("setup BSC");
-      //   window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf);
-      //   break;
-
-      case MetaMaskManager.ChainIDs.TEST_Ganache:
-        // console.log("setup Ganache");
-        window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf, acc);
-        await this.updateData();
-        break;
-
-      case MetaMaskManager.ChainIDs.TEST_Ropsten:
-        // console.log("setup Ropsten");
-        window.BlockchainManager.init(MetaMaskManager.chainId, BlockchainManager.Game.cf, acc);
-        break;
-
-      default:
-        console.error("setup - disable page");
-        MetaMaskManager.deinit();
-        alert("setup - Wrong Network");
-        return;
-    }
-  },
-
   updateData: async function () {
     //  clear
     
@@ -65,10 +31,6 @@ const Index = {
     document.getElementById("your_stake_perc").innerText = "...";
 
 
-
-    
-
-
     //  total out  - user
     //  gameplay
     //const gameplayOut = await window.BlockchainManager.api_game_getPlayerWithdrawedTotal(window.BlockchainManager.ZERO_ADDRESS);
@@ -83,8 +45,8 @@ const Index = {
     //document.getElementById("out_raffle").innerText = ethers.utils.formatEther(raffleOut.toString());
 
     //  staking  - user
-    const stakingOut = await window.BlockchainManager.api_staking_stakingRewardWithdrawnOf(acc);
-    document.getElementById("out_staking").innerText = ethers.utils.formatEther(stakingOut.toString());
+    //const stakingOut = await window.BlockchainManager.api_staking_stakingRewardWithdrawnOf(acc);
+    //document.getElementById("out_staking").innerText = ethers.utils.formatEther(stakingOut.toString());
 
     //  partnership  - user
     //const partnershipOut = await window.BlockchainManager.api_game_getPartnerFeeWithdrawn(window.BlockchainManager.ZERO_ADDRESS);
@@ -129,43 +91,42 @@ const Index = {
       // const gamesStarted = await window.BlockchainManager.api_game_gamesStarted(window.BlockchainManager.ZERO_ADDRESS);
       // const gameInfo = await window.BlockchainManager.api_game_gameInfo(window.BlockchainManager.ZERO_ADDRESS, gamesStarted - 1);
       // console.log(gameInfo.idx.toString());
-      if (gameInfo.running) {
-        const participants = (new BN(gameInfo.heads.toString())).add(new BN(gameInfo.tails.toString())).add(new BN("1"));
-        const stakes = participants.mul(new BN(gameInfo.stake.toString()));
-
-        document.getElementById("participants_cf").innerText = participants.toString();
-        document.getElementById("in_cf").innerText = ethers.utils.formatEther(stakes.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
-      } else {
-        document.getElementById("participants_cf").innerText = "0";
-        document.getElementById("in_cf").innerText = "0";
-      }
+      //if (gameInfo.running) {
+      //  const participants = (new BN(gameInfo.heads.toString())).add(new BN(gameInfo.tails.toString())).add(new BN("1"));
+      //  const stakes = participants.mul(new BN(gameInfo.stake.toString()));
+      //  document.getElementById("participants_cf").innerText = participants.toString();
+      //  document.getElementById("in_cf").innerText = ethers.utils.formatEther(stakes.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
+      //} else {
+      //  document.getElementById("participants_cf").innerText = "0";
+      //  document.getElementById("in_cf").innerText = "0";
+      //}
     // ------------------------------------------------
 
 
     //  staking --------------------------------
     //  available to stake
-    document.getElementById("available_to_stake").innerText = balance_pmc.slice(0, window.BlockchainManager.BALANCES_LENGTH);
+    //document.getElementById("available_to_stake").innerText = balance_pmc.slice(0, window.BlockchainManager.BALANCES_LENGTH);
 
     //  available to withdraw
-    const stakingToWithdraw = (await window.BlockchainManager.api_staking_calculateRewardAndStartIncomeIdx(0, acc)).reward;
-    const pendingWithdraw = (await window.BlockchainManager.api_staking_pendingRewardOf(acc));
-    document.getElementById("available_to_withdraw").innerText = ethers.utils.formatEther(stakingToWithdraw.add(pendingWithdraw).toString());
+    //const stakingToWithdraw = (await window.BlockchainManager.api_staking_calculateRewardAndStartIncomeIdx(0, acc)).reward;
+    //const pendingWithdraw = (await window.BlockchainManager.api_staking_pendingRewardOf(acc));
+    //document.getElementById("available_to_withdraw").innerText = ethers.utils.formatEther(stakingToWithdraw.add(pendingWithdraw).toString());
 
     //  Total staken
-    const totalStaken = (await window.BlockchainManager.api_staking_tokensStaked());
-    document.getElementById("total_staken").innerText = ethers.utils.formatEther(totalStaken.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
+    //const totalStaken = (await window.BlockchainManager.api_staking_tokensStaked());
+    //document.getElementById("total_staken").innerText = ethers.utils.formatEther(totalStaken.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
 
     //  Your stake
-    const yourStake = await window.BlockchainManager.api_staking_stakeOf(acc);
-    document.getElementById("your_stake").innerText = ethers.utils.formatEther(yourStake.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
-    if ((new BN(yourStake.toString())).cmp(new BN("0")) == 0) {
-      document.getElementById("your_stake_perc").innerText = "0";
-    } else {
-      const dec_18 = 1000000000000000000;
-      const perc = (new BN(yourStake.toString())).mul(new BN(dec_18.toString())).div(new BN(totalStaken.toString()));
-      document.getElementById("your_stake_perc").innerText = (parseFloat(perc) / dec_18).toFixed(2);
-      console.log("full  perc:", ethers.utils.formatEther(perc.toString()));
-    }
+    //const yourStake = await window.BlockchainManager.api_staking_stakeOf(acc);
+    //document.getElementById("your_stake").innerText = ethers.utils.formatEther(yourStake.toString()).slice(0, window.BlockchainManager.BALANCES_LENGTH);
+    //if ((new BN(yourStake.toString())).cmp(new BN("0")) == 0) {
+    //  document.getElementById("your_stake_perc").innerText = "0";
+    //} else {
+    //  const dec_18 = 1000000000000000000;
+    //  const perc = (new BN(yourStake.toString())).mul(new BN(dec_18.toString())).div(new BN(totalStaken.toString()));
+    //  document.getElementById("your_stake_perc").innerText = (parseFloat(perc) / dec_18).toFixed(2);
+    //  console.log("full  perc:", ethers.utils.formatEther(perc.toString()));
+    //}
 
   },
 

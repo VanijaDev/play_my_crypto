@@ -7,7 +7,7 @@
         <div class="__text_line">
           <span>My in:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_1">3.12345</span>
             <b-tooltip target="my_stat_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
@@ -16,7 +16,7 @@
         <div class="__text_line">
           <span>My out:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_2">3.12345</span>
             <b-tooltip target="my_stat_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
@@ -28,7 +28,7 @@
         <div class="__text_line">
           <span>Jackpot:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_3">3.12345</span>
             <b-tooltip target="my_stat_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
@@ -36,7 +36,7 @@
         <!-- Participants -->
         <div class="__text_line">
           <span>Participants:</span>
-          <span class="text-monospace">9</span>                
+          <span class="text-monospace">{{currentGame.participants}}</span>                
         </div>
       </b-col>
       <b-col cols="12" class="mt-5">
@@ -46,9 +46,9 @@
           <span class="w-25">Gameplay:</span>
           
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
-            <span id="my_stat_4">3.12345</span>
-            <b-tooltip target="my_stat_4" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <span id="my_stat_4">???????</span>
+            <b-tooltip target="my_stat_4" custom-class="__tooltip" >???????</b-tooltip>  
           </div>
 
           <button type="button" class="btn btn-primary __blue_button ml-1">Withdraw</button> 
@@ -60,8 +60,8 @@
           
           <div class="__img_value_block">
             <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
-            <span id="my_stat_7">3.12345</span>
-            <b-tooltip target="my_stat_7" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
+            <span id="my_stat_7">???????</span>
+            <b-tooltip target="my_stat_7" custom-class="__tooltip" >???????</b-tooltip>  
           </div>
           <button type="button" class="btn btn-primary __blue_button ml-1">Withdraw</button> 
 
@@ -71,9 +71,9 @@
           <span class="w-25">Referral:</span>
           
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
-            <span id="my_stat_5">3.12345</span>
-            <b-tooltip target="my_stat_5" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <span id="my_stat_5">{{user.pendingReferral | formatBalanceShort}}</span>
+            <b-tooltip target="my_stat_5" custom-class="__tooltip" >{{user.pendingReferral | formatBalance}}</b-tooltip>  
           </div>
                      
           <button type="button" class="btn btn-primary __blue_button ml-1">Withdraw</button>  
@@ -83,9 +83,9 @@
           <span class="w-25">Raffle:</span>
           
             <div class="__img_value_block">
-              <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
-              <span id="my_stat_6">3.12345</span>
-              <b-tooltip target="my_stat_6" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
+              <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+              <span id="my_stat_6">{{user.pendingRaffle | formatBalanceShort}}</span>
+              <b-tooltip target="my_stat_6" custom-class="__tooltip" >{{user.pendingRaffle | formatBalance}}</b-tooltip>  
             </div>
           
           <button type="button" class="btn btn-primary __blue_button ml-1">Withdraw</button>  

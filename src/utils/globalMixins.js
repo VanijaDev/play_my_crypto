@@ -20,9 +20,13 @@ export default {
     }},  
     isBlockContent() { return this.blockContent },
     blockchain() { return this.$store.getters['blockchain/blockchain'] },
+    currentNetworkIcon() { return this.blockchain.network ? this.blockchain.network.icon : this.blockchain.networks[0].icon },
     currentGame() { return this.$store.getters['games/currentGame'] },
   },
   methods: {
+    gSelectGame(game) {
+      if (game.id && this.$route.name !== game.routeName ) this.$router.push(game.routeName)
+    },
     cleanObject: obj => cleanObject(obj),
     copyToClipboard(text) {
       if (!text) return;

@@ -7,7 +7,7 @@
       <div v-for="(game, index) in list" :key="'game_'+index"
         class="__game_card __img_button " 
         :class="{'__shadow_filter __selected' : game.id === currentGame.id}"
-        @click="selectGame(game)"
+        @click="gSelectGame(game)"
         >
         <div class="__game_image __gradient_violet">
           <img :src="'/img/'+game.image" alt="Game image" :class="{'__ready': game.id}">
@@ -19,7 +19,7 @@
             <div class="text-monospace">{{game.participants}}</div>  
           </div>
           <div class="__in">
-            <img src="/img/ethereum_icon.svg" height="20" alt="ETH">
+            <img :src="currentNetworkIcon" height="20" alt="ETH">
             <div>
               <div>In:</div>
               <div class="text-monospace">{{game.stakes | formatBalanceShort}}</div>  
@@ -165,9 +165,7 @@
       
     },
     methods: {
-      selectGame(game) {
-        if (game.id && this.$route.name !== game.routeName ) this.$router.push(game.routeName)
-      }
+      
     }
   }
 </script>

@@ -20,7 +20,7 @@
             <div class="__blue_text">Balance:</div>
             <div class="d-flex align-items-center text-monospace">
               
-              <img class="__currency_img" src="/img/ethereum_icon.svg" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
               
               <span id="up_1" class="mr-2">{{user.balance.ETH | formatBalanceShort}}</span>
               
@@ -37,7 +37,10 @@
             <div class="__blue_text">Playing now:</div>
             <div class="__card_list d-flex justify-content-end">              
               
-              <div class="__card_block __img_button __shadow_filter" v-for="(gameId, $index) in user.gamesStarted" :key="'gs_'+$index">
+              <div v-for="(gameId, $index) in user.gamesStarted" :key="'gs_'+$index"
+                class="__card_block __img_button __shadow_filter" 
+                @click="gSelectGame(getGameById(gameId))"
+                >
                 <img :src="'/img/'+ getGameById(gameId).image" height="30" alt="Game image">
               </div>
                           
@@ -49,7 +52,7 @@
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
             <div class="__blue_text">Total in:</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
               <span id="up_3" class="__price_change_up">{{user.totalIn | formatBalanceShort}}</span>              
               <b-tooltip target="up_3" custom-class="__tooltip" >{{user.totalIn | formatBalance}}</b-tooltip>
             </div>
@@ -58,7 +61,7 @@
             <div class=" d-flex justify-content-between align-items-center mb-2">
               <div class="__blue_text">Total out:</div>
               <div class="d-flex align-items-center text-monospace">
-                <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">                
+                <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">                
                 <span id="up_4" class="__price_change_down">{{user.totalOut | formatBalanceShort}}</span>
                 <PriceUpDownArrowIcon class="__price_change_icon" v-if="totalOutChange" :direction="totalOutChange"/>
                 <b-tooltip target="up_4" custom-class="__tooltip" >{{user.totalOut | formatBalance}}</b-tooltip>

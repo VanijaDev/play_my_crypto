@@ -7,7 +7,7 @@
         <div class="__text_line">
           <span>Jackpots won:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_1">3.12345</span>
             <b-tooltip target="p_stat_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
@@ -16,7 +16,7 @@
         <div class="__text_line">
           <span>Total in:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_2">20.12345</span>  
             <b-tooltip target="p_stat_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
           </div>              
@@ -28,7 +28,7 @@
         <div class="__text_line">
           <span>Jackpots:</span>
           <div class="__img_value_block">
-            <img src="/img/ethereum_icon.svg" height="30"  width="30" alt="ETH">
+            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_3">20.12345</span>  
             <b-tooltip target="p_stat_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
           </div>              
@@ -36,7 +36,7 @@
         <!-- Participants -->
         <div class="__text_line">
           <span>Participants:</span>
-          <span class="text-monospace">9</span>              
+          <span class="text-monospace">{{currentGame.participants}}</span>              
         </div>              
       
       </b-col>

@@ -11,7 +11,19 @@ const state = {
   totalOut: null,
   referral: null,
   partnership: null,
-
+  pendingGameplay: null,
+  pendingReferral: null,
+  pendingRaffle: null,
+  pendingPartner: null,
+  
+  stakingToWithdraw: null,  
+  pendingWithdraw: null,
+  availableToWithdraw: null,
+  totalStaken: null,
+  stakingOut: null,
+  stake: null,
+  stakePercent: null,
+  stakePercentShort: null,
 };
 
 const userDefaults = Object.assign({}, state);
@@ -84,7 +96,7 @@ const actions = {
               // if current game
               console.log('rootState.games.currentId === game.id', rootState.games.currentId, game.id);
               if (rootState.games.currentId === game.id) {
-                dispatch('GET_PROFILE_GAME_DATA', game);
+                dispatch('GET_GAME_DATA', game.contract);
               }
             
             }
@@ -97,25 +109,49 @@ const actions = {
     commit('SET_GAMES_STARTED', gamesStarted)     
   },
 
-  GET_PROFILE_GAME_DATA: async ({ commit, state, rootState }, game) => {
+  GET_GAME_DATA: async ({ commit, state, rootState }, gameContract) => {
     try {
       const data = {
-        totalIn: await game.contract.getPlayerStakeTotal(rootState.blockchain.ZERO_ADDRESS),
-        totalOut: await game.contract.getPlayerWithdrawedTotal(rootState.blockchain.ZERO_ADDRESS),
-        referral: await game.contract.getReferralFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
-        partnership: await game.contract.getPartnerFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
+        totalIn: await gameContract.getPlayerStakeTotal(rootState.blockchain.ZERO_ADDRESS),
+        totalOut: await gameContract.getPlayerWithdrawedTotal(rootState.blockchain.ZERO_ADDRESS),
+        referral: await gameContract.getReferralFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
+        partnership: await gameContract.getPartnerFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
 
-        pendingGameplay: await game.contract.pendingPrizeToWithdraw(rootState.blockchain.ZERO_ADDRESS, 0),        
-        pendingReferral: await game.contract.getReferralFeePending(rootState.blockchain.ZERO_ADDRESS),
+        pendingGameplay: await gameContract.pendingPrizeToWithdraw(rootState.blockchain.ZERO_ADDRESS, 0),        
+        pendingReferral: await gameContract.getReferralFeePending(rootState.blockchain.ZERO_ADDRESS),
         
-        pendingRaffle: await game.contract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
-        pendingPartner: await game.contract.getPartnerFeePending(rootState.blockchain.ZERO_ADDRESS),
+        pendingRaffle: await gameContract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
+        pendingPartner: await gameContract.getPartnerFeePending(rootState.blockchain.ZERO_ADDRESS),
       }
-      commit('SET_PROFILE_GAME_DATA', data) 
+      commit('SET_GAME_DATA', data) 
     } catch (error) {
-      console.error('GET_PROFILE_GAME_DATA', error);
+      console.error('GET_GAME_DATA', error);
     }   
   }, 
+  GET_STAKING_DATA: async ({ commit, state, rootState }, stakingContract) => {
+    try {
+      const stakingToWithdraw = await stakingContract.calculateRewardAndStartIncomeIdx(state.accountAddress)
+      const pendingWithdraw = await stakingContract.pendingRewardOf(state.accountAddress)
+      const totalStaken = await stakingContract.tokensStaked()
+      const stake = await stakingContract.stakeOf(state.accountAddress)
+      let stakePercent = 0
+      if (stake.gt(0)) stakePercent = stake.mul(BigNumber.from('1000000000000000000')).div(totalStaken)
+            
+      const data = {
+        stakingToWithdraw: stakingToWithdraw.reward,
+        pendingWithdraw: pendingWithdraw,
+        availableToWithdraw: stakingToWithdraw.reward.add(pendingWithdraw),
+        totalStaken: totalStaken,
+        stakingOut: await stakingContract.stakingRewardWithdrawnOf(state.accountAddress),
+        stake: stake,
+        stakePercent: stakePercent,
+        stakePercentShort: (parseFloat(stakePercent) / 1000000000000000000).toFixed(2), 
+      }
+      commit('SET_STAKING_DATA', data) 
+    } catch (error) {
+      console.error('GET_STAKING_DATA', error);
+    }   
+  },
   
   GET_PMC_ALLOWANCE: async ({ state, rootState }) => {
     return await rootState.blockchain.pmcContract.allowance(state.accountAddress);     
@@ -137,7 +173,7 @@ const mutations = {
   SET_BALANCE: (state, balance) => {
     state.balance = balance
   },
-  SET_PROFILE_GAME_DATA: (state, data) => {    
+  SET_GAME_DATA: (state, data) => {    
     state.totalIn = data.totalIn
     state.totalOut = data.totalOut
     state.referral = data.referral
@@ -148,6 +184,18 @@ const mutations = {
     state.pendingPartner = data.pendingPartner
     console.info('SET_PROFILE_GAME_DATA', data);
   },
+  SET_STAKING_DATA: (state, data) => {    
+    state.stakingToWithdraw = data.stakingToWithdraw
+    state.pendingWithdraw = data.pendingWithdraw
+    state.availableToWithdraw = data.availableToWithdraw
+    state.totalStaken = data.totalStaken
+    state.stakingOut = data.stakingOut
+    state.stake = data.stake
+    state.stakePercent = data.stakePercent
+    state.stakePercentShort = data.stakePercentShort
+    console.info('SET_STAKING_DATA', data);
+  },
+  
   DESTROY: (state) => {
     state.accountAddress = null
     state.balance.ETH = null
@@ -161,6 +209,14 @@ const mutations = {
     state.pendingReferral = null
     state.pendingRaffle = null
     state.pendingPartner = null
+    state.stakingToWithdraw = null
+    state.pendingWithdraw = null
+    state.availableToWithdraw = null
+    state.totalStaken = null
+    state.stakingOut = null
+    state.stake = null
+    state.stakePercent = null
+    state.stakePercentShort = null
 
     window.pmc.signer = null;
   }
