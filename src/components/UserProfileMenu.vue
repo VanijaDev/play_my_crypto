@@ -53,7 +53,7 @@
             <div class="__blue_text">Total in:</div>
             <div class="d-flex align-items-center text-monospace">
               <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
-              <span id="up_3" class="__price_change_up">{{user.totalIn | formatBalanceShort}}</span>              
+              <span id="up_3" >{{user.totalIn | formatBalanceShort}}</span>              
               <b-tooltip target="up_3" custom-class="__tooltip" >{{user.totalIn | formatBalance}}</b-tooltip>
             </div>
           </li>     
@@ -70,7 +70,7 @@
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Gameplay:</span>
-                <span id="up_5">???????</span>
+                <span id="up_5">{{user.pendingGameplay | formatBalanceShort}}</span>
                 <b-tooltip target="up_5" custom-class="__tooltip" >???????</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
@@ -85,8 +85,8 @@
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Staking:</span>
-                <span id="up_8">???????</span>
-                <b-tooltip target="up_8" custom-class="__tooltip" >???????</b-tooltip>
+                <span id="up_8">{{user.stakingOut | formatBalanceShort}}</span>
+                <b-tooltip target="up_8" custom-class="__tooltip" >{{user.stakingOut | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Partnership:</span>
@@ -106,12 +106,7 @@
               <div class="__card_block  __img_button __shadow_filter ">
                 <img src="/img/game_shake_hands.svg" height="30" alt="Game image">
               </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_shake_hands.svg" height="30" alt="Game image">
-              </div>                           
+                                        
             </div> 
           </li>  
         </ul>

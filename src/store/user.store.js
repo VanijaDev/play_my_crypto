@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { ethers, BigNumber } from "ethers";
 
 const state = {   
   accountAddress: null,
@@ -119,10 +119,15 @@ const actions = {
 
         pendingGameplay: await gameContract.pendingPrizeToWithdraw(rootState.blockchain.ZERO_ADDRESS, 0),        
         pendingReferral: await gameContract.getReferralFeePending(rootState.blockchain.ZERO_ADDRESS),
-        
-        pendingRaffle: await gameContract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
         pendingPartner: await gameContract.getPartnerFeePending(rootState.blockchain.ZERO_ADDRESS),
+
+        pendingRaffle: await gameContract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
+        raffleJackpot: await gameContract.getRaffleJackpot(rootState.blockchain.ZERO_ADDRESS),
+        raffleParticipants: await gameContract.getRaffleParticipants(rootState.blockchain.ZERO_ADDRESS), // .length
+        raffleTotalIn: await gameContract.betsTotal(rootState.blockchain.ZERO_ADDRESS),
       }
+      console.log('GET_GAME_DATA raffleParticipants', data.raffleParticipants);
+
       commit('SET_GAME_DATA', data) 
     } catch (error) {
       console.error('GET_GAME_DATA', error);
@@ -152,10 +157,24 @@ const actions = {
       console.error('GET_STAKING_DATA', error);
     }   
   },
+  GET_PMC_DATA: async ({ commit, state, rootState }, pmcContract) => {
+    
+  },
   
   GET_PMC_ALLOWANCE: async ({ state, rootState }) => {
     return await rootState.blockchain.pmcContract.allowance(state.accountAddress);     
-  },  
+  }, 
+  
+  APPROVE_PCM_STAKE: async ({ state, rootState }) => {
+    const pmcAmount = 1//document.getElementById("approve_stake").value;
+
+    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.utils.parseEther(pmcAmount));
+    console.log("tx:", tx);
+    console.log("mining...");
+
+    const receipt = await tx.wait();    
+  },
+  
 
 };
 
@@ -209,6 +228,7 @@ const mutations = {
     state.pendingReferral = null
     state.pendingRaffle = null
     state.pendingPartner = null
+    
     state.stakingToWithdraw = null
     state.pendingWithdraw = null
     state.availableToWithdraw = null

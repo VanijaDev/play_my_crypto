@@ -96,9 +96,10 @@ export default {
       if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
       return '...' 
     },  
-    formatBalanceShort(val) {        
+    formatBalanceShort(val) { 
+      if (val === null) return '...'       
       if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
-      return '...' 
+      return 0 
     },  
   },
 }

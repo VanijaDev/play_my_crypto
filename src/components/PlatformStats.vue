@@ -8,8 +8,8 @@
           <span>Jackpots won:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_1">???????</span>
-            <b-tooltip target="p_stat_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
+            <span id="p_stat_1">{{user.raffleJackpotsWonTotal | formatBalanceShort}}</span>
+            <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{user.raffleJackpotsWonTotal | formatBalance}}</b-tooltip>  
           </div>              
         </div>
         <!-- Total in -->
@@ -17,8 +17,8 @@
           <span>Total in:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_2">???????</span>  
-            <b-tooltip target="p_stat_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+            <span id="p_stat_2">{{user.raffleTotalIn | formatBalanceShort}}</span>  
+            <b-tooltip target="p_stat_2" custom-class="__tooltip" >{{user.raffleTotalIn | formatBalance}}</b-tooltip>
           </div>              
         </div>
       </b-col>
@@ -29,14 +29,14 @@
           <span>Jackpots:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_3">???????</span>  
-            <b-tooltip target="p_stat_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+            <span id="p_stat_3">+++</span>  
+            <b-tooltip target="p_stat_3" custom-class="__tooltip" ></b-tooltip>
           </div>              
         </div>
         <!-- Participants -->
         <div class="__text_line">
           <span>Participants:</span>
-          <span class="text-monospace">{{currentGame.participants}}</span>              
+          <span class="text-monospace">+++</span>              
         </div>              
       
       </b-col>
