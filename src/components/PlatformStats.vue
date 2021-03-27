@@ -8,7 +8,7 @@
           <span>Jackpots won:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_1">3.12345</span>
+            <span id="p_stat_1">???????</span>
             <b-tooltip target="p_stat_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
         </div>
@@ -17,7 +17,7 @@
           <span>Total in:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_2">20.12345</span>  
+            <span id="p_stat_2">???????</span>  
             <b-tooltip target="p_stat_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
           </div>              
         </div>
@@ -29,7 +29,7 @@
           <span>Jackpots:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_3">20.12345</span>  
+            <span id="p_stat_3">???????</span>  
             <b-tooltip target="p_stat_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
           </div>              
         </div>

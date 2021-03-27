@@ -8,7 +8,7 @@
           <span>My in:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="my_stat_1">3.12345</span>
+            <span id="my_stat_1">???????</span>
             <b-tooltip target="my_stat_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
         </div>
@@ -17,7 +17,7 @@
           <span>My out:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="my_stat_2">3.12345</span>
+            <span id="my_stat_2">???????</span>
             <b-tooltip target="my_stat_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
         </div>
@@ -29,7 +29,7 @@
           <span>Jackpot:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="my_stat_3">3.12345</span>
+            <span id="my_stat_3">???????</span>
             <b-tooltip target="my_stat_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>  
           </div>              
         </div>

@@ -70,8 +70,8 @@
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Gameplay:</span>
-                <span id="up_5">{{user.pendingGameplay | formatBalanceShort}}</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >{{user.pendingGameplay | formatBalance}}</b-tooltip>
+                <span id="up_5">???????</span>
+                <b-tooltip target="up_5" custom-class="__tooltip" >???????</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Referral:</span>
@@ -85,8 +85,8 @@
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Staking:</span>
-                <span id="up_8">---</span>
-                <b-tooltip target="up_8" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span id="up_8">???????</span>
+                <b-tooltip target="up_8" custom-class="__tooltip" >???????</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>Partnership:</span>
