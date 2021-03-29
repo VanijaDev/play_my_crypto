@@ -1,6 +1,7 @@
 <template>
+  <!-- TODO : list scroll -->
   <div class="h-100 __games_list">
-    <h2>Games</h2>
+    <h2>{{ $t('games') }}</h2>
 
     <div class="w-100 __list d-flex">      
       
@@ -14,22 +15,24 @@
         </div>
         <!-- if game raedy -->
         <div class="__info" v-if="_game.id">
+          <!-- Participants -->
           <div class="__participiants">
-            <div>Participants:</div>
+            <div>{{ $t('participants') }}</div>
             <div class="text-monospace">{{_game.statistics.participants}}</div>  
           </div>
+          <!-- In -->
           <div class="__in">
             <img :src="currentNetworkIcon" height="20" alt="ETH">
             <div>
-              <div>In:</div>
+              <div>{{ $t('in') }}</div>
               <div class="text-monospace">{{_game.statistics.stakes | formatBalanceShort}}</div>  
             </div>              
           </div>
         </div>
         <!-- if game comming soon -->
         <div class="__info" v-if="!_game.id">
-          <span class="__orange_text">NEW GAME</span>
-          <span class="text-truncate">Coming soon...</span>          
+          <span class="__orange_text">{{ $t('new_game') }}</span>
+          <span class="text-truncate">{{ $t('coming_soon') }}</span>          
         </div>
         <div class="__corner" v-if="!_game.id"></div>
 
@@ -39,6 +42,33 @@
       
   </div>
 </template>
+
+<script>
+  export default {
+    name: 'GamesList',  
+    computed: {     
+      list() { 
+        let list = this.$store.getters['games/list']
+        if (this.breakPoint('xs')) return list.slice(0, 2)
+        if (this.breakPoint('sm')) return list.slice(0, 3)
+        if (this.breakPoint('md')) return list.slice(0, 4)
+        if (this.breakPoint('lg')) return list.slice(0, 3)
+        return list        
+      },      
+    },    
+    i18n: {
+      messages: {
+        en: {
+          games: 'Games',
+          participants: 'Participants:',          
+          in: 'In:',
+          new_game: 'NEW GAME',
+          coming_soon: 'Coming soon...',
+        },          
+      }      
+    }
+  }
+</script>
 
 <style lang="scss" scoped>  
   @import '@/assets/css/variables.scss';
@@ -149,24 +179,3 @@
     }    
   }
 </style>
-
-<script>
-  export default {
-    name: 'GamesList',  
-    computed: {     
-      list() { 
-        let list = this.$store.getters['games/list']
-        if (this.breakPoint('xs')) return list.slice(0, 2)
-        if (this.breakPoint('sm')) return list.slice(0, 3)
-        if (this.breakPoint('md')) return list.slice(0, 4)
-        if (this.breakPoint('lg')) return list.slice(0, 3)
-        return list        
-      }, 
-      
-    },
-    methods: {
-      
-    }
-  }
-</script>
-

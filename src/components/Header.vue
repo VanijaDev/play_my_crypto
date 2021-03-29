@@ -1,4 +1,5 @@
 <template>
+
   <header ref="header">    
     <nav class="navbar navbar-light bg-light">
       <b-container :class="{'px-0': breakPoint('sm', 'lt')}">
@@ -12,6 +13,7 @@
             </div>
             
             <!-- contact us -->
+            <!-- TODO :  click methods -->
             <div class="d-flex align-items-center" v-if="breakPoint('lg', 'gte')">
               <div class="__strong-text mr-2">
                 {{ $t('contact_us') }}
@@ -24,6 +26,7 @@
             </div>
 
             <!-- choose crypto -->
+            <!-- TODO :  click methods -->
             <div class="d-flex align-items-center">
               <div class="__strong-text mr-2" v-if="breakPoint('md', 'gte')">
                 {{ $t('choose_crypto') }}

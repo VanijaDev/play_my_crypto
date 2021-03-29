@@ -9,6 +9,7 @@ const state = {
       routeName: 'coin-flip', 
       filesFolder: 'CoinFlip', 
       image: '/img/game_coin_flip.svg',
+      imagePartner: '/img/game_coin_flip_partner.svg',
       networks: {
         ETH: {
           '0x2a': "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", //kovan
@@ -16,7 +17,7 @@ const state = {
         }  
       },
       contract: null,      
-      statistics: {},
+      statistics: {},      
       data: {},
       abi: [{
           "inputs": [{
@@ -1094,7 +1095,8 @@ const state = {
 };
 
 const getters = {
-  list: (state) => { return state.list },  
+  list: (state) => { return state.list }, 
+  listOfGames: (state) => { return state.list.filter(g => g.id !== null ) },
   currentGame: state => state.currentIndex !== null ? state.list[state.currentIndex] : {},   
   getGameById: state => gameId => state.list.find(game => game.id === gameId),  
 };

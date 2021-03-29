@@ -28,11 +28,7 @@
         en: {
           tmyp: 'THE MORE YOU PLAY',
           tmyw: 'THE MORE YOU WIN',
-        },
-        ch: {
-          tmyp: '您玩的更多',
-          tmyw: '您贏了更多',
-        },  
+        },         
       }      
     } 
   }

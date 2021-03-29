@@ -4,7 +4,7 @@
       <template #button-content>
         <div class="d-flex align-items-center __user_profile">
           <div class="d-flex flex-column __up_text mr-2">
-            <span class="__strong-text __blue_text">{{ $t('profile') }}:</span>
+            <span class="__strong-text __blue_text">{{ $t('profile') }}</span>
             <span class="__strong-text text-monospace">{{user.accountAddress | addressShort}}</span>              
           </div> 
           <div class="d-flex align-items-center">              
@@ -17,7 +17,7 @@
       <div class="__drop_down_menu">
         <ul class="list-group __list_group">
           <li class="list-group-item d-flex justify-content-between align-items-center __list_item">
-            <div class="__blue_text">Balance:</div>
+            <div class="__blue_text">{{ $t('balance') }}</div>
             <div class="d-flex align-items-center text-monospace">
               
               <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
@@ -34,9 +34,8 @@
         </ul>
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item">
-            <div class="__blue_text">Playing now:</div>
-            <div class="__card_list d-flex justify-content-end">              
-              
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span> <span class="text-monospace" v-if="!gamesStarted.length">{{ $t('no_games_playing') }}</span></div>
+            <div class="__card_list d-flex justify-content-end" v-if="gamesStarted.length">              
               <div v-for="(gameId, $index) in gamesStarted" :key="'gs_'+$index"
                 class="__card_block __img_button __shadow_filter" 
                 @click="gSelectGame(getGameById(gameId))"
@@ -50,7 +49,7 @@
         
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
-            <div class="__blue_text">Total in:</div>
+            <div class="__blue_text">{{ $t('total_in') }}</div>
             <div class="d-flex align-items-center text-monospace">
               <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
               <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>              
@@ -59,7 +58,7 @@
           </li>     
           <li class="list-group-item __list_item ">
             <div class=" d-flex justify-content-between align-items-center mb-2">
-              <div class="__blue_text">Total out:</div>
+              <div class="__blue_text">{{ $t('total_out') }}</div>
               <div class="d-flex align-items-center text-monospace">
                 <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">                
                 <span id="up_4" :class="{'__price_change_down' : totalOutChange === 'down', '__price_change_up' : totalOutChange === 'up' }">
@@ -71,27 +70,27 @@
             </div>            
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Gameplay:</span>
+                <span>{{ $t('gameplay') }}</span>
                 <span id="up_5">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
                 <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Referral:</span>
+                <span>{{ $t('referral') }}</span>
                 <span id="up_6">{{gGameData.referralFeeWithdrawn | formatBalanceShort}}</span>
                 <b-tooltip target="up_6" custom-class="__tooltip" >{{gGameData.referralFeeWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Raffle:</span>
+                <span>{{ $t('raffle') }}</span>
                 <span id="up_7">{{gGameData.raffleJackpotPending | formatBalanceShort}}</span>
                 <b-tooltip target="up_7" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Staking:</span>
+                <span>{{ $t('staking') }}</span>
                 <span id="up_8">{{user.stakingData.stakingRewardWithdrawn | formatBalanceShort}}</span>
                 <b-tooltip target="up_8" custom-class="__tooltip" >{{user.stakingData.stakingRewardWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Partnership:</span>
+                <span>{{ $t('partnership') }}</span>
                 <span id="up_9">{{gGameData.partnerFeeWithdrawn | formatBalanceShort}}</span>
                 <b-tooltip target="up_9" custom-class="__tooltip" >{{gGameData.partnerFeeWithdrawn | formatBalance}}</b-tooltip>                
               </div>
@@ -100,15 +99,17 @@
         </ul>  
         <ul class="list-group __list_group">          
           <li class="list-group-item __list_item">
-            <div class="__blue_text">Pending withdrawal:</div>
-            <div class="__card_list d-flex justify-content-end">          
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_shake_hands.svg" height="30" alt="Game image">
-              </div>
-                                        
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('pending_withdrawal') }}</span> <span class="text-monospace" v-if="!userGameplayOrPartnerPendingWithdrawal">{{ $t('not_available') }}</span></div>
+            
+            <div class="__card_list d-flex justify-content-end" v-if="userGameplayOrPartnerPendingWithdrawal">    
+              <template  v-for="(game, index) in listOfGames">     
+                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userGameplayPendingWithdrawal(game)">
+                  <img :src="game.image" height="30" alt="Gameplay">
+                </div> 
+                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userPartnerPendingWithdrawal(game)">
+                  <img :src="game.imagePartner" height="30" alt="Partner">
+                </div> 
+              </template>                                      
             </div> 
           </li>  
         </ul>
@@ -219,15 +220,48 @@
         }
         return null
       },
-      gamesStarted() {         
-        return this.$store.state['games/started']
+      gamesStarted() {  
+        console.log('this.listOfGames', this.listOfGames)       
+        return this.$store.state['games/started'] ? this.$store.state['games/started'] : []
       },
-      
+      listOfGames() {         
+        return this.$store.getters['games/listOfGames']
+      },
+      userGameplayPendingWithdrawal() { return function(game) {
+        if (!game.data) return false
+        if ( (game.data.pendingPrizeToWithdrawPrize && game.data.pendingPrizeToWithdrawPrize.gt(0)) 
+          || (game.data.referralFeePending && game.data.referralFeePending.gt(0))
+          || (game.data.raffleJackpotPending && game.data.raffleJackpotPending.gt(0))
+        ) return true
+        return false
+      }},
+      userPartnerPendingWithdrawal() { return function(game) {
+        if (!game.data) return false
+        if (game.data.partnerFeePending && game.data.partnerFeePending.gt(0)) return true
+        return false
+      }},
+      userGameplayOrPartnerPendingWithdrawal() {
+        return this.listOfGames.find(game => {
+          return this.userGameplayPendingWithdrawal(game) || this.userPartnerPendingWithdrawal(game)
+        })
+      }
     },
     i18n: {
       messages: {
         en: {
-          profile: 'Profile',
+          profile: 'Profile:',
+          balance: 'Balance:',
+          playing_now: 'Playing now:',
+          total_in: 'Total in:',
+          total_out: 'Total out:',
+          gameplay: 'Gameplay:',
+          referral: 'Referral:',
+          raffle: 'Raffle:',
+          staking: 'Staking:',
+          partnership: 'Partnership:',
+          pending_withdrawal: 'Pending withdrawal:',
+          no_games_playing: 'no games playing',     
+          not_available: 'not available',     
         },          
       }      
     } 

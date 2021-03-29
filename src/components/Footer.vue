@@ -16,6 +16,7 @@
               <a href="" @click.prevent="$eventBus.$emit('partnership-modal::open')">{{ $t('partnership') }}</a>  
             </div>
             <div class="d-flex align-items-center">
+              <!-- TODO :  click method -->
               <div class="__strong-text mr-2 d-none d-md-block">
                 {{ $t('contact_us') }}
               </div>

@@ -397,9 +397,9 @@
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
     },
     async created() {
-      if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game')
-      let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default
-      this.$store.registerModule("game", store)
+      //if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game')
+      //let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default
+      //this.$store.registerModule("game", store)
       
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id)  
     }

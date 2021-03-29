@@ -5,33 +5,8 @@ const state = {
   accountAddress: null,  
   balanceETH: null,
   balancePMC: null,
-
   gamesStarted: [],
-
-  pmcAllowance: null,  
-
-  
-  totalIn: null, //
-  playerWithdrawedTotal: null,
-  referralFeeWithdrawn: null,
-  partnerFeeWithdrawn: null,
-  pendingPrizeToWithdrawPrize: null,
-  pendingGameplayPmcTokens: null,
-  referralFeePending: null,
-  raffleJackpotPending: null,
-  partnerFeePending: null,
-  raffleParticipants: [],
-  raffleJackpot: null,
-  
-  calculateRewardAndStartIncomeIdxReward: null,  
-  pendingRewardOf: null,
-  availableToWithdraw: null,
-  tokensStaked: null,
-  stakingRewardWithdrawn: null,
-  stake: null,
-  stakePercent: null,
-  stakePercentShort: null,
-
+  pmcAllowance: null,
   stakingData: {},
 };
 
@@ -45,13 +20,7 @@ async function getAccountAddress() {
    return null;
   }
 }
-async function getAccountBalance(accountAddress) {
-  try {
-    return await window.pmc.provider.getBalance(accountAddress);
-  } catch (error) {
-    return 0;
-  }
-}
+
 
 const getters = {
   user: (state) => { return state },  
@@ -80,7 +49,7 @@ const actions = {
   GET_BALANCE: async ({ commit, state, rootState }) => {    
     try {
       const balance = {
-        balanceETH: await getAccountBalance(state.accountAddress),
+        balanceETH: await window.pmc.provider.getBalance(state.accountAddress),
         balancePMC: await rootState.blockchain.pmcContract.balanceOf(state.accountAddress)        
       } 
       commit('SET_BALANCE', balance)
@@ -127,7 +96,7 @@ const actions = {
   }, 
   
   APPROVE_PCM_STAKE: async ({ dispatch, state, rootState }) => {
-    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256); //ethers.utils.parseEther(Number.MAX_SAFE_INTEGER.toString())
+    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256)
     console.log("tx:", tx);
     console.log("mining...");
     const receipt = await tx.wait(); 

@@ -1,11 +1,12 @@
 <template>
   <div class="__content-block __cb_white h-100">
     <b-row>      
+      <!-- Platform stats -->
       <b-col md="6" lg="12" class="">
-        <h3>Platform stats</h3>
+        <h3>{{ $t('platform_stats') }}</h3>
         <!-- Jackpots won -->
         <div class="__text_line">
-          <span>Jackpots won:</span>
+          <span>{{ $t('jackpots_won') }}</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_1">{{raffleJackpotsWonTotalTotal | formatBalanceShort}}</span>
@@ -14,7 +15,7 @@
         </div>
         <!-- Total in -->
         <div class="__text_line">
-          <span>Total in:</span>
+          <span>{{ $t('total_in') }}</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_2">{{betsTotalTotal | formatBalanceShort}}</span>  
@@ -22,11 +23,12 @@
           </div>              
         </div>
       </b-col>
+      <!-- Ongoing raffles -->
       <b-col md="6" lg="12" class="mt-3 mt-sm-3 mt-md-0 mt-lg-3">
-        <h3>Ongoing raffles</h3>
+        <h3>{{ $t('ongoing_raffles') }}</h3>
         <!-- Jackpots -->
         <div class="__text_line">
-          <span>Jackpots:</span>
+          <span>{{ $t('jackpots') }}</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_3">{{raffleJackpotTotal | formatBalanceShort}}</span>  
@@ -35,7 +37,7 @@
         </div>
         <!-- Participants -->
         <div class="__text_line">
-          <span>Participants:</span>
+          <span>{{ $t('participants') }}</span>
           <span class="text-monospace">{{raffleParticipantsTotal}}</span>              
         </div> 
       </b-col>
@@ -72,6 +74,18 @@
         }, 0)
       },
     },
+    i18n: {
+      messages: {
+        en: {
+          platform_stats: 'Platform stats',
+          jackpots_won: 'Jackpots won:',
+          total_in: 'Total in:',          
+          ongoing_raffles: 'Ongoing raffles',
+          jackpots: 'Jackpots:',
+          participants: 'Participants:',            
+        },          
+      }      
+    }
   }
 </script>
 
