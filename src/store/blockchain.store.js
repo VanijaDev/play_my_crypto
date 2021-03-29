@@ -57,7 +57,7 @@ const actions = {
     commit('BUILD_CONTRACTS') 
     dispatch('games/BUILD_CONTRACTS', state.network, { root: true })
     //dispatch('user/GET_PMC_DATA', state.pmcContract, { root: true })
-    dispatch('user/GET_STAKING_DATA', state.stakingContract, { root: true })
+    
     
   },
   SET_CHAIN_ID: ({ commit }, chainId) => { 

@@ -36,7 +36,7 @@ const Index = {
     //const gameplayOut = await window.BlockchainManager.api_game_getPlayerWithdrawedTotal(window.BlockchainManager.ZERO_ADDRESS);
     //document.getElementById("out_gameplay").innerText = ethers.utils.formatEther(gameplayOut.toString());
 
-    //  referral  - user
+    //  referralFeeWithdrawn  - user
     //const referralOut = await window.BlockchainManager.api_game_getReferralFeeWithdrawn(window.BlockchainManager.ZERO_ADDRESS);
     //document.getElementById("out_referral").innerText = ethers.utils.formatEther(referralOut.toString());
 
@@ -48,7 +48,7 @@ const Index = {
     //const stakingOut = await window.BlockchainManager.api_staking_stakingRewardWithdrawnOf(acc);
     //document.getElementById("out_staking").innerText = ethers.utils.formatEther(stakingOut.toString());
 
-    //  partnership  - user
+    //  partnerFeeWithdrawn  - user
     //const partnershipOut = await window.BlockchainManager.api_game_getPartnerFeeWithdrawn(window.BlockchainManager.ZERO_ADDRESS);
     //document.getElementById("out_partnership").innerText = ethers.utils.formatEther(partnershipOut.toString());
 
@@ -59,10 +59,10 @@ const Index = {
     //  pending withdraw - user +  My stats block (Pending withdrawal)
       //  gameplay
         //const pendingGameplay = await window.BlockchainManager.api_game_pendingPrizeToWithdraw(window.BlockchainManager.ZERO_ADDRESS, 0);
-        // console.log("pendingGameplay.prize: ", pendingGameplay.prize.toString());
-        // console.log("pendingGameplay.pmc_tokens: ", pendingGameplay.pmc_tokens.toString());
+        console.log("pendingGameplay.prize: ", pendingGameplay.prize.toString()); //-> Gameplay
+        //console.log("pendingGameplay.pmc_tokens: ", pendingGameplay.pmc_tokens.toString());
 
-        //  referral
+        //  referralFeeWithdrawn
         //const pendingReferral = await window.BlockchainManager.api_game_getReferralFeePending(window.BlockchainManager.ZERO_ADDRESS);
         // console.log("pendingReferral: ", pendingReferral.toString());
 
@@ -70,7 +70,7 @@ const Index = {
         //const pendingRaffle = await window.BlockchainManager.api_game_getRaffleJackpotPending(window.BlockchainManager.ZERO_ADDRESS, acc);
         // console.log("pendingRaffle: ", pendingRaffle.toString());
 
-        //  gameplay
+      //  gameplay
         if ((new BN(pendingGameplay.prize.toString())).cmp(new BN("0")) > 0) {
           document.getElementById("pending_withdraw_cf").innerText = "CF";
         } else if ((new BN(pendingReferral.toString())).cmp(new BN("0")) > 0) {
@@ -78,6 +78,7 @@ const Index = {
         } else if ((new BN(pendingRaffle.toString())).cmp(new BN("0")) > 0) {
           document.getElementById("pending_withdraw_cf").innerText = "CF";
         }
+        
 
       //  partner
         //const pendingPartner = await window.BlockchainManager.api_game_getPartnerFeePending(window.BlockchainManager.ZERO_ADDRESS);
@@ -130,55 +131,47 @@ const Index = {
 
   },
 
-  approvePMCStakeClick: async function () {
-    const pmcAmount = document.getElementById("approve_stake").value;
+  //approvePMCStakeClick: async function () {
+    //const pmcAmount = document.getElementById("approve_stake").value;
+    //const tx = await window.BlockchainManager.pmctInst.approve(window.BlockchainManager.stakingInst.address, ethers.utils.parseEther(pmcAmount));
+    //console.log("tx:", tx);
+    //console.log("mining...");
+    //const receipt = await tx.wait();
+    //// console.log("receipt:", receipt);
+    //console.log("success:", receipt.status == 1);
+  //},
 
-    const tx = await window.BlockchainManager.pmctInst.approve(window.BlockchainManager.stakingInst.address, ethers.utils.parseEther(pmcAmount));
-    console.log("tx:", tx);
-    console.log("mining...");
+  //addStakeClick: async function () {
+  //  const pmcAmount = document.getElementById("add_stake").value;
+  //  // console.log(pmcAmount);
+  //  const tx = await window.BlockchainManager.stakingInst.stake(pmcAmount);
+  //  console.log("tx:", tx);
+  //  console.log("mining...");
+  //  const receipt = await tx.wait();
+  //  // console.log("receipt:", receipt);
+  //  console.log("success:", receipt.status == 1);
+  //  await this.updateData();
+  //},
 
-    const receipt = await tx.wait();
-    // console.log("receipt:", receipt);
-    console.log("success:", receipt.status == 1);
-  },
+  //withdrawStakingRewardClick: async function () {
+  //  const tx = await window.BlockchainManager.stakingInst.withdrawReward(0);
+  //  console.log("tx:", tx);
+  //  console.log("mining...");
+  //  const receipt = await tx.wait();
+  //  // console.log("receipt:", receipt);
+  //  console.log("success:", receipt.status == 1);
+  //  await this.updateData();
+  //},
 
-  addStakeClick: async function () {
-    const pmcAmount = document.getElementById("add_stake").value;
-    // console.log(pmcAmount);
-    const tx = await window.BlockchainManager.stakingInst.stake(pmcAmount);
-    console.log("tx:", tx);
-    console.log("mining...");
-
-    const receipt = await tx.wait();
-    // console.log("receipt:", receipt);
-    console.log("success:", receipt.status == 1);
-
-    await this.updateData();
-  },
-
-  withdrawStakingRewardClick: async function () {
-    const tx = await window.BlockchainManager.stakingInst.withdrawReward(0);
-    console.log("tx:", tx);
-    console.log("mining...");
-
-    const receipt = await tx.wait();
-    // console.log("receipt:", receipt);
-    console.log("success:", receipt.status == 1);
-
-    await this.updateData();
-  },
-
-  unstakeClick: async function () {
-    const tx = await window.BlockchainManager.stakingInst.unstake();
-    console.log("tx:", tx);
-    console.log("mining...");
-
-    const receipt = await tx.wait();
-    // console.log("receipt:", receipt);
-    console.log("success:", receipt.status == 1);
-
-    await this.updateData();
-  },
+  //unstakeClick: async function () {
+  //  const tx = await window.BlockchainManager.stakingInst.unstake();
+  //  console.log("tx:", tx);
+  //  console.log("mining...");
+  //  const receipt = await tx.wait();
+  //  // console.log("receipt:", receipt);
+  //  console.log("success:", receipt.status == 1);
+  //  await this.updateData();
+  //},
 
 
   // buttonClick: async function () {
@@ -195,13 +188,13 @@ const Index = {
 
 
 
-ethereum.on('message', function (message) {
-  console.log('message: ', message);
-});
-
-ethereum.on('disconnect', function (chainId) {
-  console.log('disconnect: ', chainId);
-});
+//ethereum.on('message', function (message) {
+//  console.log('message: ', message);
+//});
+//
+//ethereum.on('disconnect', function (chainId) {
+//  console.log('disconnect: ', chainId);
+//});
 
 
 window.Index = Index;

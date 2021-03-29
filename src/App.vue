@@ -123,6 +123,8 @@
           window.addEventListener('load', function(){self.$store.dispatch('blockchain/ON_LOAD')}  )
           window.ethereum.on('chainChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')} )
           window.ethereum.on('accountsChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')})  
+          //window.ethereum.on('message', function(){self.$store.dispatch('blockchain/ON_MESSAGE')})  
+          //window.ethereum.on('message', function(){self.$store.dispatch('blockchain/ON_DISCONNECT')}) 
         }, 100)
       }  
     }, 

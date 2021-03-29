@@ -7,20 +7,20 @@
         <span>Total staken:</span>
         <div class="__img_value_block">
           <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
-          <span id="stats_1">{{user.totalStaken | formatBalanceShort}}</span>
-          <b-tooltip target="stats_1" custom-class="__tooltip" >{{user.totalStaken | formatBalance}}</b-tooltip>  
+          <span id="stats_1">{{user.stakingData.tokensStaked | formatBalanceShort}}</span>
+          <b-tooltip target="stats_1" custom-class="__tooltip" >{{user.stakingData.tokensStaked | formatBalance}}</b-tooltip>  
         </div>              
       </div>
       <!-- Your stake -->
       <div class="__text_line">
         <span>Your stake:</span>
-        <span>({{user.stakePercentShort}}%)</span>
+        <span>({{user.stakingData.stakePercentShort}}%)</span>
         <div class="__img_value_block">
           <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
-          <span id="stats_2">{{user.stake | formatBalanceShort}}</span>
-          <b-tooltip target="stats_2" custom-class="__tooltip" >{{user.stake | formatBalance}}</b-tooltip>  
+          <span id="stats_2">{{user.stakingData.stake | formatBalanceShort}}</span>
+          <b-tooltip target="stats_2" custom-class="__tooltip" >{{user.stakingData.stake | formatBalance}}</b-tooltip>  
         </div> 
-        <button type="button" class="btn btn-primary __blue_button ml-2">Unstake</button>        
+        <button type="button" class="btn btn-primary __blue_button ml-2" :disabled="unStakeDisabled">Unstake</button>        
       </div>
     </div>
     
@@ -43,7 +43,20 @@
     components: {
       HowToStakeModal, 
       GameFAQStatsModal
-    }, 
+    },
+     computed: {
+      unStakeDisabled() { 
+        if (!this.user.stakingData.stake) return true
+        if (this.user.stakingData.stake.lte(0)) return true
+        return false  
+      },       
+    },
+    methods: {
+      unStake() {
+        this.$store.dispatch('user/UNSTAKE')  
+      },
+      
+    }
   }
 </script>
 

@@ -1,6 +1,7 @@
 <template>
   <div class="__content-block __cb_white">
-    <div class="h-100 d-flex flex-column" v-if="currentGame.id">
+    
+    <div class="h-100 d-flex flex-column" v-if="gGame.id">
 
       <h2 class="__blue_text text-center mb-4">{{viewTitles[view]}}</h2>
 

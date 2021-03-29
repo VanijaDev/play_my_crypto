@@ -1,32 +1,41 @@
+import Vue from "vue";
 import { ethers, BigNumber } from "ethers";
 
 const state = {   
-  accountAddress: null,
-  balance: {
-    ETH: null,
-    PMC: null,    
-  },
+  accountAddress: null,  
+  balanceETH: null,
+  balancePMC: null,
+
   gamesStarted: [],
-  totalIn: null,
-  totalOut: null,
-  referral: null,
-  partnership: null,
-  pendingGameplay: null,
-  pendingReferral: null,
-  pendingRaffle: null,
-  pendingPartner: null,
+
+  pmcAllowance: null,  
+
   
-  stakingToWithdraw: null,  
-  pendingWithdraw: null,
+  totalIn: null, //
+  playerWithdrawedTotal: null,
+  referralFeeWithdrawn: null,
+  partnerFeeWithdrawn: null,
+  pendingPrizeToWithdrawPrize: null,
+  pendingGameplayPmcTokens: null,
+  referralFeePending: null,
+  raffleJackpotPending: null,
+  partnerFeePending: null,
+  raffleParticipants: [],
+  raffleJackpot: null,
+  
+  calculateRewardAndStartIncomeIdxReward: null,  
+  pendingRewardOf: null,
   availableToWithdraw: null,
-  totalStaken: null,
-  stakingOut: null,
+  tokensStaked: null,
+  stakingRewardWithdrawn: null,
   stake: null,
   stakePercent: null,
   stakePercentShort: null,
+
+  stakingData: {},
 };
 
-const userDefaults = Object.assign({}, state);
+const stateDefaults = JSON.parse(JSON.stringify(state));
 
 async function getAccountAddress() {
   try {
@@ -59,6 +68,8 @@ const actions = {
 
       dispatch('blockchain/INIT', accountAddress, { root: true })
       dispatch('GET_BALANCE');
+      dispatch('GET_STAKING_DATA')
+      dispatch('CHECK_PMC_ALLOWANCE');
       
     } else {
       console.log('USER_DESTROY')
@@ -66,12 +77,11 @@ const actions = {
     }      
   },
 
-  GET_BALANCE: async ({ commit, dispatch, state, rootState }) => {    
-    const pmcContract = rootState.blockchain.pmcContract
+  GET_BALANCE: async ({ commit, state, rootState }) => {    
     try {
       const balance = {
-        ETH: await getAccountBalance(state.accountAddress),
-        PMC: await pmcContract.balanceOf(state.accountAddress)        
+        balanceETH: await getAccountBalance(state.accountAddress),
+        balancePMC: await rootState.blockchain.pmcContract.balanceOf(state.accountAddress)        
       } 
       commit('SET_BALANCE', balance)
     } catch (error) {
@@ -79,100 +89,71 @@ const actions = {
     }
   },
 
-  GET_GAMES_STARTED: async ({ commit, dispatch, rootState }) => {
-    //console.log('GET_GAMES_STARTED', rootState.games.list)
-    let gamesStarted = []
-    for (const game of rootState.games.list) { 
-      if (game.id && game.info && game.info.running) {
-        try {
-          const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(rootState.blockchain.ZERO_ADDRESS);
-          //console.log('checkPrizeForGames', checkPrizeForGames);
-          if (checkPrizeForGames.length > 0) {
-            const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
-            //console.log('lastGameToCheckPrize', lastGameToCheckPrize);
-            if (game.info.idx.eq(lastGameToCheckPrize) ) {
-              gamesStarted.push(game.id)
-              
-              // if current game
-              console.log('rootState.games.currentId === game.id', rootState.games.currentId, game.id);
-              if (rootState.games.currentId === game.id) {
-                dispatch('GET_GAME_DATA', game.contract);
-              }
-            
-            }
-          }          
-        } catch (error) {
-          console.error('GET_GAMES_STARTED', error);
-        }                      
-      } 
-    } 
-    commit('SET_GAMES_STARTED', gamesStarted)     
-  },
-
-  GET_GAME_DATA: async ({ commit, state, rootState }, gameContract) => {
+  GET_STAKING_DATA: async ({ commit, state, rootState }) => {
+    const stakingContract = rootState.blockchain.stakingContract
+    console.log('GET_STAKING_DATA');
     try {
-      const data = {
-        totalIn: await gameContract.getPlayerStakeTotal(rootState.blockchain.ZERO_ADDRESS),
-        totalOut: await gameContract.getPlayerWithdrawedTotal(rootState.blockchain.ZERO_ADDRESS),
-        referral: await gameContract.getReferralFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
-        partnership: await gameContract.getPartnerFeeWithdrawn(rootState.blockchain.ZERO_ADDRESS),
-
-        pendingGameplay: await gameContract.pendingPrizeToWithdraw(rootState.blockchain.ZERO_ADDRESS, 0),        
-        pendingReferral: await gameContract.getReferralFeePending(rootState.blockchain.ZERO_ADDRESS),
-        pendingPartner: await gameContract.getPartnerFeePending(rootState.blockchain.ZERO_ADDRESS),
-
-        pendingRaffle: await gameContract.getRaffleJackpotPending(rootState.blockchain.ZERO_ADDRESS, state.accountAddress),
-        raffleJackpot: await gameContract.getRaffleJackpot(rootState.blockchain.ZERO_ADDRESS),
-        raffleParticipants: await gameContract.getRaffleParticipants(rootState.blockchain.ZERO_ADDRESS), // .length
-        raffleTotalIn: await gameContract.betsTotal(rootState.blockchain.ZERO_ADDRESS),
-      }
-      console.log('GET_GAME_DATA raffleParticipants', data.raffleParticipants);
-
-      commit('SET_GAME_DATA', data) 
-    } catch (error) {
-      console.error('GET_GAME_DATA', error);
-    }   
-  }, 
-  GET_STAKING_DATA: async ({ commit, state, rootState }, stakingContract) => {
-    try {
-      const stakingToWithdraw = await stakingContract.calculateRewardAndStartIncomeIdx(state.accountAddress)
-      const pendingWithdraw = await stakingContract.pendingRewardOf(state.accountAddress)
-      const totalStaken = await stakingContract.tokensStaked()
+      const calculateRewardAndStartIncomeIdx = await stakingContract.calculateRewardAndStartIncomeIdx(state.accountAddress)
+      const pendingRewardOf = await stakingContract.pendingRewardOf(state.accountAddress) // Staking - Available to withdraw
+      const tokensStaked = await stakingContract.tokensStaked()
       const stake = await stakingContract.stakeOf(state.accountAddress)
       let stakePercent = 0
-      if (stake.gt(0)) stakePercent = stake.mul(BigNumber.from('1000000000000000000')).div(totalStaken)
+      if (stake.gt(0)) stakePercent = stake.mul(BigNumber.from('1000000000000000000')).div(tokensStaked)
             
-      const data = {
-        stakingToWithdraw: stakingToWithdraw.reward,
-        pendingWithdraw: pendingWithdraw,
-        availableToWithdraw: stakingToWithdraw.reward.add(pendingWithdraw),
-        totalStaken: totalStaken,
-        stakingOut: await stakingContract.stakingRewardWithdrawnOf(state.accountAddress),
-        stake: stake,
-        stakePercent: stakePercent,
+      const stakingData = {
+        calculateRewardAndStartIncomeIdxReward: calculateRewardAndStartIncomeIdx.reward, // Staking - Available to withdraw
+        pendingRewardOf: pendingRewardOf,
+        availableToWithdraw: calculateRewardAndStartIncomeIdx.reward.add(pendingRewardOf), // ?????????????????
+        tokensStaked: tokensStaked, // Stats - Total staken
+        stakingRewardWithdrawn: await stakingContract.stakingRewardWithdrawnOf(state.accountAddress), // User Profile - Staking
+        stake: stake, // Stats - Your stake
+        stakePercent: stakePercent, // Stats - Your stake Percent
         stakePercentShort: (parseFloat(stakePercent) / 1000000000000000000).toFixed(2), 
       }
-      commit('SET_STAKING_DATA', data) 
+      commit('SET_STAKING_DATA', stakingData) 
     } catch (error) {
       console.error('GET_STAKING_DATA', error);
     }   
   },
-  GET_PMC_DATA: async ({ commit, state, rootState }, pmcContract) => {
     
-  },
-  
-  GET_PMC_ALLOWANCE: async ({ state, rootState }) => {
-    return await rootState.blockchain.pmcContract.allowance(state.accountAddress);     
+  CHECK_PMC_ALLOWANCE: async ({ commit, state, rootState }) => {     
+    try {      
+      const pmcAllowance = await rootState.blockchain.pmcContract.allowance(state.accountAddress, rootState.blockchain.stakingContract.address)
+      console.log('games/CHECK_PMC_ALLOWANCE', pmcAllowance)
+      commit('SET_PMC_ALLOWANCE', pmcAllowance) 
+    } catch (error) {
+      console.error('CHECK_PMC_ALLOWANCE', error);
+    }   
   }, 
   
-  APPROVE_PCM_STAKE: async ({ state, rootState }) => {
-    const pmcAmount = 1//document.getElementById("approve_stake").value;
-
-    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.utils.parseEther(pmcAmount));
+  APPROVE_PCM_STAKE: async ({ dispatch, state, rootState }) => {
+    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256); //ethers.utils.parseEther(Number.MAX_SAFE_INTEGER.toString())
     console.log("tx:", tx);
     console.log("mining...");
-
-    const receipt = await tx.wait();    
+    const receipt = await tx.wait(); 
+    console.log("receipt:", receipt); 
+    dispatch('CHECK_PMC_ALLOWANCE');  
+  },
+  ADD_STAKE: async ({ state, rootState }, addStakeAmount) => {
+    const tx = await rootState.blockchain.stakingContract.stake(addStakeAmount);
+    console.log("tx:", tx);
+    console.log("mining...");
+    const receipt = await tx.wait();
+    console.log("success:", receipt);   
+  },
+  WITHDRAW_STAKING_REWARD: async ({ state, rootState }) => {
+    const tx = await rootState.blockchain.stakingContract.withdrawReward(0);
+    console.log("tx:", tx);
+    console.log("mining...");
+    const receipt = await tx.wait();
+    console.log("success:", receipt); 
+  },
+  UNSTAKE: async ({ state, rootState }) => {
+    const tx = await rootState.blockchain.stakingContract.unstake();
+    console.log("tx:", tx);
+    console.log("mining...");
+    const receipt = await tx.wait();
+    console.log("success:", receipt);
   },
   
 
@@ -182,62 +163,20 @@ const mutations = {
   SET_ACCOUNT_ADDRESS: (state, accountAddress) => {    
     state.accountAddress = accountAddress;  
     window.pmc.signer = window.pmc.provider.getSigner();
-  },
-  SET_ETH_BALANCE: (state, ethBalance) => {
-    state.balance.ETH = ethBalance;  
-  },
-  SET_GAMES_STARTED: (state, gamesStarted) => {
-    state.gamesStarted = gamesStarted;  
-  },
-  SET_BALANCE: (state, balance) => {
-    state.balance = balance
-  },
-  SET_GAME_DATA: (state, data) => {    
-    state.totalIn = data.totalIn
-    state.totalOut = data.totalOut
-    state.referral = data.referral
-    state.partnership = data.partnership
-    state.pendingGameplay = data.pendingGameplay
-    state.pendingReferral = data.pendingReferral
-    state.pendingRaffle = data.pendingRaffle
-    state.pendingPartner = data.pendingPartner
-    console.info('SET_PROFILE_GAME_DATA', data);
-  },
-  SET_STAKING_DATA: (state, data) => {    
-    state.stakingToWithdraw = data.stakingToWithdraw
-    state.pendingWithdraw = data.pendingWithdraw
-    state.availableToWithdraw = data.availableToWithdraw
-    state.totalStaken = data.totalStaken
-    state.stakingOut = data.stakingOut
-    state.stake = data.stake
-    state.stakePercent = data.stakePercent
-    state.stakePercentShort = data.stakePercentShort
-    console.info('SET_STAKING_DATA', data);
-  },
+  },  
   
+  SET_BALANCE: (state, balance) => {
+    Object.keys(balance).forEach(key => Vue.set(state, key, balance[key]))
+  },
+  SET_PMC_ALLOWANCE: (state, pmcAllowance) => {    
+    state.pmcAllowance = pmcAllowance;  
+  }, 
+  
+  SET_STAKING_DATA: (state, stakingData) => {    
+    Object.keys(stakingData).forEach(key => Vue.set(state.stakingData, key, stakingData[key]))
+  },  
   DESTROY: (state) => {
-    state.accountAddress = null
-    state.balance.ETH = null
-    state.balance.PMC = null
-    state.gamesStarted = []
-    state.totalIn = null
-    state.totalOut = null
-    state.referral = null
-    state.partnership = null
-    state.pendingGameplay = null
-    state.pendingReferral = null
-    state.pendingRaffle = null
-    state.pendingPartner = null
-    
-    state.stakingToWithdraw = null
-    state.pendingWithdraw = null
-    state.availableToWithdraw = null
-    state.totalStaken = null
-    state.stakingOut = null
-    state.stake = null
-    state.stakePercent = null
-    state.stakePercentShort = null
-
+    Object.keys(stateDefaults).forEach(key => Vue.set(state, key, stateDefaults[key]))
     window.pmc.signer = null;
   }
 };

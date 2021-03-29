@@ -8,8 +8,8 @@
           <span>Jackpots won:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_1">{{user.raffleJackpotsWonTotal | formatBalanceShort}}</span>
-            <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{user.raffleJackpotsWonTotal | formatBalance}}</b-tooltip>  
+            <span id="p_stat_1">{{raffleJackpotsWonTotalTotal | formatBalanceShort}}</span>
+            <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{raffleJackpotsWonTotalTotal | formatBalance}}</b-tooltip>  
           </div>              
         </div>
         <!-- Total in -->
@@ -17,8 +17,8 @@
           <span>Total in:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_2">{{user.raffleTotalIn | formatBalanceShort}}</span>  
-            <b-tooltip target="p_stat_2" custom-class="__tooltip" >{{user.raffleTotalIn | formatBalance}}</b-tooltip>
+            <span id="p_stat_2">{{betsTotalTotal | formatBalanceShort}}</span>  
+            <b-tooltip target="p_stat_2" custom-class="__tooltip" >{{betsTotalTotal | formatBalance}}</b-tooltip>
           </div>              
         </div>
       </b-col>
@@ -29,16 +29,15 @@
           <span>Jackpots:</span>
           <div class="__img_value_block">
             <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_3">+++</span>  
-            <b-tooltip target="p_stat_3" custom-class="__tooltip" ></b-tooltip>
+            <span id="p_stat_3">{{raffleJackpotTotal | formatBalanceShort}}</span>  
+            <b-tooltip target="p_stat_3" custom-class="__tooltip" >{{raffleJackpotTotal | formatBalance}}</b-tooltip>
           </div>              
         </div>
         <!-- Participants -->
         <div class="__text_line">
           <span>Participants:</span>
-          <span class="text-monospace">+++</span>              
-        </div>              
-      
+          <span class="text-monospace">{{raffleParticipantsTotal}}</span>              
+        </div> 
       </b-col>
     </b-row>
   </div>
@@ -47,6 +46,32 @@
 <script>
   export default {
     name: 'PlatformStats',  
+    computed: {
+      raffleParticipantsTotal() { 
+        return this.$store.getters['games/list'].reduce((total, game) => {
+          if (game.id && game.data.raffleParticipants) total += game.data.raffleParticipants
+          return total
+        }, 0)        
+      },
+      raffleJackpotTotal() {         
+        return this.$store.getters['games/list'].reduce((total, game) => {
+          if (game.id && game.data.raffleJackpot) total = game.data.raffleJackpot.add(total)
+          return total
+        }, 0)
+      },     
+      raffleJackpotsWonTotalTotal() {         
+        return this.$store.getters['games/list'].reduce((total, game) => {
+          if (game.id && game.data.raffleJackpotsWonTotal) total = game.data.raffleJackpotsWonTotal.add(total)
+          return total
+        }, 0)
+      }, 
+      betsTotalTotal() {         
+        return this.$store.getters['games/list'].reduce((total, game) => {
+          if (game.id && game.data.betsTotal) total = game.data.betsTotal.add(total)
+          return total
+        }, 0)
+      },
+    },
   }
 </script>
 

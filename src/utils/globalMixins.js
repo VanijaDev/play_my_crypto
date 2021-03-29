@@ -9,19 +9,15 @@ export default {
     };
   }, 
   computed: {     
-    user() { return  this.$store.getters['user/user'] }, 
-    game() { return  this.$store.getters['game/game'] },
+    user() { return  this.$store.getters['user/user'] },     
+    gGame() { return this.$store.getters['games/currentGame'] },
+    gGameData() { return this.gGame.id ? this.gGame.data : {} },
     getGameById() { return function (gameId) { return this.$store.getters['games/getGameById'](gameId) }},
-    //checkAccess: (role) => store.getters['auth/checkAccess'](role), 
-    //isAuthenticated: () => store.getters['auth/isAuthenticated'],  
     headerHeight() { return this.$store.getters.uiHeaderHeight },
-    breakPoint() { return function (bp, condition) { 
-      return this.$store.getters.breakPoint(bp, condition)   
-    }},  
+    breakPoint() { return function (bp, condition) { return this.$store.getters.breakPoint(bp, condition) }},  
     isBlockContent() { return this.blockContent },
     blockchain() { return this.$store.getters['blockchain/blockchain'] },
-    currentNetworkIcon() { return this.blockchain.network ? this.blockchain.network.icon : this.blockchain.networks[0].icon },
-    currentGame() { return this.$store.getters['games/currentGame'] },
+    currentNetworkIcon() { return this.blockchain.network ? this.blockchain.network.icon : this.blockchain.networks[0].icon },    
   },
   methods: {
     gSelectGame(game) {
@@ -93,13 +89,14 @@ export default {
       return '...' 
     },
     formatBalance(val) {
+      if (val === null) return '.......'
       if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
-      return '...' 
+      return '0.00000' 
     },  
     formatBalanceShort(val) { 
-      if (val === null) return '...'       
+      if (val === null) return '.......'       
       if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
-      return 0 
+      return '0.00000' 
     },  
   },
 }
