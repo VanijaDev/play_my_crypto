@@ -26,15 +26,15 @@
             </div>
 
             <!-- choose crypto -->
-            <!-- TODO :  click methods -->
+            
             <div class="d-flex align-items-center">
               <div class="__strong-text mr-2" v-if="breakPoint('md', 'gte')">
                 {{ $t('choose_crypto') }}
               </div>
               <div class="__currency_select_block d-flex align-items-center">
-                <div v-for="network in blockchain.networks" :key="'network_select_' + network.id"
+                <div v-for="network in gBlockchain.networks" :key="'network_select_' + network.id"
                   class="d-flex flex-column justify-content-center align-items-center mr-3 __img_button " 
-                  :class="{'__selected' : blockchain.network && blockchain.network.id === network.id}"
+                  :class="{'__selected' : gNetwork.id === network.id}"
                   @click="selectNetwork(network)" 
                   >
                   <img :src="network.icon" height="40" width="40" :alt="network.id">
@@ -110,7 +110,8 @@
         }                   
       },
       selectNetwork(network) {
-        //this.$store.dispatch('blockchain/SET_NETWORK', network) 
+        console.log(network.id)
+        //<!-- TODO : click on inactive network notification -->
       },
     },
     i18n: {

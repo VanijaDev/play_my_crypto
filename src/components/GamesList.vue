@@ -2,16 +2,14 @@
   <!-- TODO : list scroll -->
   <div class="h-100 __games_list">
     <h2>{{ $t('games') }}</h2>
-
-    <div class="w-100 __list d-flex">      
-      
+    <div class="w-100 __list d-flex">
       <div v-for="(_game, _index) in list" :key="'game_' + _index"
         class="__game_card __img_button " 
         :class="{'__shadow_filter __selected' : _game.id === gGame.id}"
         @click="gSelectGame(_game)"
         >
         <div class="__game_image __gradient_violet">
-          <img :src="_game.image" alt="Game image" :class="{'__ready': _game.id}">
+          <img :src="_game.image" alt="Game image" class="" :class="{'__ready __shadow_filter': _game.id}">
         </div>
         <!-- if game raedy -->
         <div class="__info" v-if="_game.id">
@@ -35,11 +33,8 @@
           <span class="text-truncate">{{ $t('coming_soon') }}</span>          
         </div>
         <div class="__corner" v-if="!_game.id"></div>
-
-      </div>
-      
-    </div>
-      
+      </div>      
+    </div>      
   </div>
 </template>
 

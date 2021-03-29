@@ -10,10 +10,10 @@
 
 <script>
 export default {
-  name: 'LocaleChange',
-  data () {
-    return { langs: ['en', 'ch'] }
-  },
+  name: 'LocaleChange',  
+  data: () => ({  
+    langs: ['en', 'ch']    
+  }),
   mounted () {  
     let locale = localStorage.getItem('PMC_LOCALE')
     if (!locale) {

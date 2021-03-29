@@ -50,6 +50,7 @@
     name: 'PlatformStats',  
     computed: {
       raffleParticipantsTotal() { 
+        if (!this.user.accountAddress) return '...'
         return this.$store.getters['games/list'].reduce((total, game) => {
           if (game.id && game.data.raffleParticipants) total += game.data.raffleParticipants
           return total

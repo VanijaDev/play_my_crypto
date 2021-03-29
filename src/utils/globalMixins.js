@@ -5,19 +5,21 @@ export default {
     return {  
       $loader: null,
       isLoading: false, 
-      blockContent: 0, 
+      
     };
   }, 
   computed: {     
-    user() { return  this.$store.getters['user/user'] },     
+    user() { return  this.$store.getters['user/user'] }, 
+    gNetwork() { return  this.$store.getters['blockchain/network'] },
+    gBlockchain() { return this.$store.getters['blockchain/blockchain'] },
+    currentNetworkIcon() { return this.gNetwork.id ? this.gNetwork.icon : this.gBlockchain.networks[0].icon },
+
     gGame() { return this.$store.getters['games/currentGame'] },
     gGameData() { return this.gGame.id ? this.gGame.data : {} },
     getGameById() { return function (gameId) { return this.$store.getters['games/getGameById'](gameId) }},
-    headerHeight() { return this.$store.getters.uiHeaderHeight },
+    //blockchain() { return this.$store.getters['blockchain/blockchain'] },
+        
     breakPoint() { return function (bp, condition) { return this.$store.getters.breakPoint(bp, condition) }},  
-    isBlockContent() { return this.blockContent },
-    blockchain() { return this.$store.getters['blockchain/blockchain'] },
-    currentNetworkIcon() { return this.blockchain.network ? this.blockchain.network.icon : this.blockchain.networks[0].icon },    
   },
   methods: {
     gSelectGame(game) {
@@ -89,13 +91,13 @@ export default {
       return '...' 
     },
     formatBalance(val) {
-      if (val === null) return '.......'
-      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
+      if (!BigNumber.isBigNumber(val)) return '.......'
+      if (BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
       return '0.00000' 
     },  
     formatBalanceShort(val) { 
-      if (val === null) return '.......'       
-      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
+      if (!BigNumber.isBigNumber(val)) return '.......'       
+      if (BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
       return '0.00000' 
     },  
   },

@@ -18,7 +18,7 @@
       <div class="__text_line">
         <span class="__stats_col_1">{{ $t('your_stake') }}:</span>
         <!-- Percent -->
-        <span class="__stats_col_2">({{user.stakingData.stakePercentShort}}%)</span>
+        <span class="__stats_col_2"><span v-if="user.stakingData.stakePercentShort >= 0">{{user.stakingData.stakePercentShort}}%</span></span>
         <div class="__img_value_block __stats_col_3">
           <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
           <span id="stats_2">{{user.stakingData.stake | formatBalanceShort}}</span>
@@ -49,7 +49,7 @@
       HowToStakeModal, 
       GameFAQStatsModal
     },
-     computed: {
+    computed: {
       unStakeDisabled() { 
         if (!this.user.stakingData.stake) return true
         if (this.user.stakingData.stake.lte(0)) return true

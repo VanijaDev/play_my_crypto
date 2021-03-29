@@ -37,7 +37,7 @@
         <!-- Participants -->
         <div class="__text_line">
           <span>{{ $t('participants') }}</span>
-          <span class="text-monospace">{{gGameData.raffleParticipants}}</span>                
+          <span class="text-monospace">{{gGameData.raffleParticipants >= 0 ? gGameData.raffleParticipants : '...'}}</span>                
         </div>
       </b-col>
       <b-col cols="12" class="mt-5">

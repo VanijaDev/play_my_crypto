@@ -43,7 +43,7 @@
         </b-row>
       </b-container>
       
-      <div class="__blocked_content" v-if="!blockchain.network"></div>
+      <div class="__blocked_content" v-if="!gNetwork.id"></div>
       
       <Footer/>    
     </div>   
@@ -114,19 +114,21 @@
       Governance,
       GovernanceStats
     },
-    methods: {
+    data: () => ({ 
+            
+    }),
+    computed: {
+      headerHeight() { return this.$store.getters.uiHeaderHeight },
     },
     mounted() {
       let self = this
-      if (window.ethereum) {
-        setTimeout(function(){
-          window.addEventListener('load', function(){self.$store.dispatch('blockchain/ON_LOAD')}  )
-          window.ethereum.on('chainChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')} )
-          window.ethereum.on('accountsChanged', function(){self.$store.dispatch('blockchain/ON_CHAIN_CANGE')})  
-          //window.ethereum.on('message', function(){self.$store.dispatch('blockchain/ON_MESSAGE')})  
-          //window.ethereum.on('message', function(){self.$store.dispatch('blockchain/ON_DISCONNECT')}) 
-        }, 100)
-      }  
-    }, 
+      setTimeout(function(){ window.addEventListener('load', function() { self.$store.dispatch('blockchain/ON_LOAD') } )}, 100)  
+    },
+    
+    methods: {
+    },
+
+    
+     
   }
 </script>

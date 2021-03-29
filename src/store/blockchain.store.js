@@ -1,7 +1,9 @@
-import Vue from "vue";
+//import Vue from "vue";
+//import { cleanObject } from "@/utils/globalMixins";
 import { ethers } from "ethers";
 import  PMC  from '@/blockchain/pmc.contract.js';
 import  Staking  from '@/blockchain/staking.contract.js';
+
 
 const state = { 
   networks: [
@@ -9,7 +11,6 @@ const state = {
       id: 'ETH',
       name: 'ETHEREUM',
       icon: '/img/ethereum_icon.svg', 
-      chainId: null,
       chains: [
         //{ id: '0x1', name: 'Mainnet' },
         { id: '0x3', name: 'Ropsten' },
@@ -20,70 +21,128 @@ const state = {
       id: 'BSC',
       name: 'BINANCE',
       icon: '/img/binance_icon.svg', 
-      chainId: null,
       chains: [
         { id: '0x56', name: 'Mainnet' },
         { id: '0x97', name: 'Chapel' },
       ]       
     }
   ],  
-  network: null,
+  networkIndex: null,
+  chainId: null,
   signer: null,
+  provider: null,
   pmcContract: null,
-  stakingContract: null,
-  gamesContracts: {},
-  ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
+  stakingContract: null,  
 };
-
-state.network = state.networks[0]
 
 const getters = {
   blockchain: (state) => { return state },  
+  network: (state) => { return state.networkIndex !== null ? state.networks[state.networkIndex] : {} },  
 };
 
 const actions = {
-  ON_LOAD: ({ dispatch, state }) => {  
+  ON_LOAD: async ({ dispatch, state }) => {  
+    console.log('blockchain/ON_LOAD')
     if (window.ethereum !== null && typeof window.ethereum !== 'undefined') {      
-      window.ethereum.autoRefreshOnNetworkChange = false  
-      window.pmc.provider = new ethers.providers.Web3Provider(window.ethereum)
-      dispatch('SET_NETWORK')
-      dispatch('user/INIT', state.network, { root: true })
-    }
+      window.ethereum.autoRefreshOnNetworkChange = false
+      window.ethereum.on('connect', function() { dispatch('ON_CONNECT') })
+      window.ethereum.on('chainChanged', function() { dispatch('ON_CHAIN_CHANGED') })
+      window.ethereum.on('accountsChanged', function() { dispatch('ON_ACCOUNTS_CHANGED') })
+      window.ethereum.on('message', function() { dispatch('ON_MESSAGE') })  
+      window.ethereum.on('disconnect', function() { dispatch('ON_DISCONNECT') })
+      
+      dispatch('INIT')      
+    } 
   },
-  ON_CHAIN_CANGE: ({ dispatch }) => {     
-    dispatch('ON_LOAD')      
+
+  ON_CONNECT: ({ dispatch }) => {
+    console.log('blockchain/ON_CONNECT')   
+    dispatch('DESTROY')
+    dispatch('INIT')  
   },
-  INIT: ({ commit, dispatch, state }) => {
-    commit('BUILD_CONTRACTS') 
-    dispatch('games/BUILD_CONTRACTS', state.network, { root: true })
-    //dispatch('user/GET_PMC_DATA', state.pmcContract, { root: true })
-    
-    
+  
+  ON_CHAIN_CHANGED: ({ dispatch }) => {
+    console.log('blockchain/ON_CHAIN_CHANGED')   
+    dispatch('DESTROY')
+    dispatch('INIT')  
   },
-  SET_CHAIN_ID: ({ commit }, chainId) => { 
-    commit('SET_CHAIN_ID', chainId) 
+
+  ON_ACCOUNTS_CHANGED: ({ dispatch }) => {
+    console.log('blockchain/ON_ACCOUNTS_CHANGED') 
+    dispatch('DESTROY')
+    dispatch('INIT')  
   },
-  SET_NETWORK: ({ commit }) => {
-    const network = state.networks.find(network => network.chains.find(chain => chain.id === window.ethereum.chainId))
-    console.log('network', network)  
-    commit('SET_NETWORK', network);    
+
+  ON_MESSAGE: (message) => {
+    console.log('blockchain/ON_MESSAGE', message)     
   },
+
+  ON_DISCONNECT: ({ dispatch }) => {
+    console.log('blockchain/ON_DISCONNECT') 
+    dispatch('DESTROY')
+  },
+
+  INIT: async ({ commit, dispatch }) => {
+    console.clear()
+    console.log('blockchain/INIT')    
+    const networkIndex = state.networks.findIndex(network => network.chains.find(chain => chain.id === window.ethereum.chainId))
+    if (networkIndex > -1) {       
+      commit('SET_NETWORK', networkIndex)      
+      try {
+        window.pmc.provider = new ethers.providers.Web3Provider(window.ethereum)
+        window.pmc.signer = window.pmc.provider.getSigner()
+        const accountAddress = await window.pmc.signer.getAddress()
+        if (accountAddress) {
+          dispatch('notification/CLOSE', null, { root: true })
+          dispatch('BUILD_CONTRACTS') 
+          dispatch('games/INIT', null, { root: true })
+          dispatch('user/INIT', accountAddress, { root: true })
+          //dispatch('notification/OPEN', { id: 'MINED_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' }, delay: 300 }, { root: true })
+          return 
+        }        
+      } catch (error) {
+        console.log('blockchain/INIT - ERROR', error)
+        dispatch('notification/OPEN', { id: 'METAMASK_CONNECT_ERROR' }, { root: true })
+        //dispatch('notification/OPEN', { id: 'PENDING_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' } }, { root: true })
+        //dispatch('notification/OPEN', { id: 'MINED_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' }, delay: 300 }, { root: true })
+        dispatch('DESTROY')
+      }   
+    }         
+  },
+
+  BUILD_CONTRACTS: ({ commit }) => {
+    console.log('blockchain/BUILD_CONTRACTS') 
+    commit('BUILD_CONTRACTS')
+  },
+
+  DESTROY: ({ commit, dispatch }) => {
+    console.log('blockchain/DESTROY') 
+    dispatch('user/DESTROY', null, { root: true })
+    dispatch('games/DESTROY', null, { root: true })    
+    commit('DESTROY')
+    window.pmc.signer = null
+    window.pmc.provider = null
+  },
+  
 };
 
-const mutations = {  
-  SET_CHAIN_ID: (state, chainId) => {
-    state.chainId = chainId;  
-  },
-  SET_NETWORK: (state, network) => {
-    state.network = network; 
-    if(state.network) {
-      Vue.set(state.network, 'chainId', window.ethereum.chainId)
-    }    
+const mutations = {    
+  SET_NETWORK: (state, networkIndex) => {
+    state.networkIndex = networkIndex
+    state.chainId = window.ethereum.chainId 
   }, 
+
   BUILD_CONTRACTS: (state) => {    
-    state.pmcContract = new ethers.Contract(PMC.networks[state.network.id][state.network.chainId], PMC.abi, window.pmc.signer)
-    state.stakingContract = new ethers.Contract(Staking.networks[state.network.id][state.network.chainId], Staking.abi, window.pmc.signer)    
+    state.pmcContract = new ethers.Contract(PMC.networks[state.networks[state.networkIndex].id][state.chainId], PMC.abi, window.pmc.signer)
+    state.stakingContract = new ethers.Contract(Staking.networks[state.networks[state.networkIndex].id][state.chainId], Staking.abi, window.pmc.signer)    
   }, 
+
+  DESTROY: (state) => {  
+    state.networkIndex = null
+    state.chainId = null    
+    state.pmcContract = null
+    state.stakingContract = null
+  },
 };
 
 export default {

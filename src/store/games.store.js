@@ -1102,45 +1102,48 @@ const getters = {
 };
 
 const actions = {
+  INIT: async ({ dispatch }) => {
+    console.log('games/INIT') 
+    dispatch('BUILD_CONTRACTS');
+    dispatch('GET_GAMES'); 
+  },
+  
   SET_CURRENT_GAME: async ({ commit }, gameId) => {    
+    console.log('games/SET_CURRENT_GAME')
     commit('SET_CURRENT_GAME', gameId);     
   },
-  BUILD_CONTRACTS: ({ commit, dispatch }, network) => {    
-    commit('BUILD_CONTRACTS', { network }); 
-    dispatch('GET_GAMES_INFO'); 
+
+  BUILD_CONTRACTS: ({ commit, rootState }) => {
+    console.log('games/BUILD_CONTRACTS')
+    commit('BUILD_CONTRACTS', rootState.blockchain);
   },
-  GET_GAMES_INFO: async ({commit, dispatch, state, rootState}) => {    
+  
+  GET_GAMES: async ({commit, dispatch, state}) => {   
+    console.log('games/GET_GAMES')
+
     let gamesStarted = []
     for (const game of state.list) { 
       if (game.id) {
         try {
-          const gamesStartedCount = await game.contract.gamesStarted(rootState.blockchain.ZERO_ADDRESS);
+          const gamesStartedCount = await game.contract.gamesStarted(ethers.constants.AddressZero);
           if (gamesStartedCount.gt(0)) {          
             // GAME INFO
-            const gameInfo = await game.contract.gameInfo(rootState.blockchain.ZERO_ADDRESS, gamesStartedCount - 1);
+            const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
             commit('SET_GAME_INFO', { game, gameInfo });  
             
-            if (gameInfo.running) {
-              // GAME STATISTICS
-              const participants = gameInfo.heads.add(gameInfo.tails).add(1)
-              const gameStatistics = {
-                participants: participants,
-                stakes: participants.mul(gameInfo.stake)
-              }
-              commit('SET_GAME_STATISTICS', { game, gameStatistics }); 
-              
-              const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(rootState.blockchain.ZERO_ADDRESS);
+            if (gameInfo.running) {              
+              dispatch('GET_GAME_STATISTICS', { game, gameInfo });              
+              const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
               if (checkPrizeForGames.length > 0) {
                 const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
                 if (game.info.idx.eq(lastGameToCheckPrize) ) {
                   // GAMES STARTED
-                  gamesStarted.push(game.id)                   
-                  // GAME DATA                 
+                  gamesStarted.push(game.id) 
                   //if (state.currentId === game.id)                    
                 }
               }
               dispatch('GET_GAME_DATA', game);
-              dispatch('GET_RAFFLE_DATA', game);
+              dispatch('GET_GAME_RAFFLE', game);
             }
           }  
         } catch (error) {
@@ -1150,19 +1153,29 @@ const actions = {
     } 
     commit('SET_GAMES_STARTED', gamesStarted)  
   },
-  GET_GAME_DATA: async ({ commit, state, rootState }, game) => {
-    console.log('GET_GAME_DATA');
-    const blockchain = rootState.blockchain
+
+  GET_GAME_STATISTICS: ({ commit }, { game, gameInfo }) => {    
+    console.log('games/GET_GAME_STATISTICS')
+    const participants = gameInfo.heads.add(gameInfo.tails).add(1)
+    const gameStatistics = {
+      participants: participants,
+      stakes: participants.mul(gameInfo.stake)
+    }
+    commit('SET_GAME_STATISTICS', { game, gameStatistics });    
+  },
+
+  GET_GAME_DATA: async ({ commit }, game) => {
+    console.log('games/GET_GAME_DATA')  
     try {
       const gameData = {
-        playerStakeTotal: await game.contract.getPlayerStakeTotal(blockchain.ZERO_ADDRESS), // User Profile - Total in / My stats - My in
-        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(blockchain.ZERO_ADDRESS), // User Profile - Total out / My stats - My out
-        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(blockchain.ZERO_ADDRESS),  // User Profile - Referral 
-        partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(blockchain.ZERO_ADDRESS), // User Profile - Partnership
-        referralFeePending: await game.contract.getReferralFeePending(blockchain.ZERO_ADDRESS), // My Stats - Referral
-        partnerFeePending: await game.contract.getPartnerFeePending(blockchain.ZERO_ADDRESS),
+        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
+        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
+        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero),  // User Profile - Referral 
+        partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
+        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
+        partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
       }      
-      const pendingPrizeToWithdraw = await game.contract.pendingPrizeToWithdraw(blockchain.ZERO_ADDRESS, 0)
+      const pendingPrizeToWithdraw = await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)
       if (pendingPrizeToWithdraw) {
         gameData.pendingPrizeToWithdrawPrize = pendingPrizeToWithdraw.prize // My Stats - Gameplay
         gameData.pendingGameplayPmcTokens = pendingPrizeToWithdraw.pmc_tokens // My Stats - Gameplay PMC
@@ -1172,23 +1185,28 @@ const actions = {
       console.error('GET_GAME_DATA', error);
     }   
   },
-  GET_RAFFLE_DATA: async ({ commit, state, rootState }, game) => {
-    console.log('GET_RAFFLE_DATA');
-    const blockchain = rootState.blockchain    
+
+  GET_GAME_RAFFLE: async ({ commit, rootState }, game) => {
+    console.log('games/GET_GAME_RAFFLE')
     try {
       const raffleData = {        
-        raffleJackpotPending: await game.contract.getRaffleJackpotPending(blockchain.ZERO_ADDRESS, rootState.user.accountAddress),  // My Stats - Raffle /  User Profile - Raffle
-        raffleJackpot: await game.contract.getRaffleJackpot(blockchain.ZERO_ADDRESS), // My Stats - Jackpot
+        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress),  // My Stats - Raffle /  User Profile - Raffle
+        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // My Stats - Jackpot
         raffleParticipants: 0, // My Stats -  Participants .length
-        betsTotal: await game.contract.betsTotal(blockchain.ZERO_ADDRESS), // Platform Stats - Total in
-        raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(blockchain.ZERO_ADDRESS), // Platform Stats - Jackpots won
+        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
+        raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
       }    
-      const raffleParticipants = await game.contract.getRaffleParticipants(blockchain.ZERO_ADDRESS)
+      const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
       if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length     
-      commit('SET_RAFFLE_DATA', { game, raffleData }) 
+      commit('SET_GAME_RAFFLE', { game, raffleData }) 
     } catch (error) {
-      console.error('GET_RAFFLE_DATA', error);
+      console.error('GET_GAME_RAFFLE', error);
     }   
+  },
+
+  DESTROY: async ({ commit }) => {
+    console.log('games/DESTROY')
+    commit('DESTROY')
   },
   
 };
@@ -1197,35 +1215,47 @@ const mutations = {
   SET_CURRENT_GAME: (state, gameId) => {
     state.currentId = gameId;  
     state.currentIndex = state.list.findIndex(_game => _game.id === gameId)    
-    //console.log('games/SET_CURRENT_GAME', state.currentId, state.currentIndex)
   },
-  BUILD_CONTRACTS: (state, { network }) => {
+
+  BUILD_CONTRACTS: (state, blockchain) => {
     state.list.forEach((game, index) => {
-      if (game.id) state.list[index].contract = new ethers.Contract(game.networks[network.id][network.chainId], game.abi, window.pmc.signer)
-    })  
-    
+      if (game.id) state.list[index].contract = new ethers.Contract(game.networks[blockchain.networks[blockchain.networkIndex].id][blockchain.chainId], game.abi, window.pmc.signer)
+    })
   },
+
   SET_GAME_INFO: (state, { game, gameInfo }) => {
     const index = state.list.findIndex(_game => _game.id === game.id)
     Vue.set(state.list[index], 'info', gameInfo)              
   }, 
+
   SET_GAMES_STARTED: (state, gamesStarted) => {
-    state.started = gamesStarted;  
-    console.log('games/SET_GAMES_STARTED', gamesStarted)
+    state.started = gamesStarted;     
   },
+
   SET_GAME_DATA: (state, { game, gameData }) => {  
-    console.log('games/SET_GAME_DATA', gameData)
     const index = state.list.findIndex(_game => _game.id === game.id)  
     Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))    
   },
-  SET_RAFFLE_DATA: (state, { game, raffleData }) => {  
-    console.log('games/SET_RAFFLE_DATA', raffleData)
+
+  SET_GAME_RAFFLE: (state, { game, raffleData }) => {  
     const index = state.list.findIndex(_game => _game.id === game.id)  
     Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))    
   },
+
   SET_GAME_STATISTICS: (state, { game, gameStatistics }) => {  
     const index = state.list.findIndex(_game => _game.id === game.id)  
     Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))    
+  },
+
+  DESTROY: (state) => {     
+    state.list.forEach((game, index) => {
+      if (game.id) {
+        state.list[index].contract = null
+        state.list[index].statistics = {} 
+        state.list[index].data = {} 
+      }
+    })
+    state.started = []
   },
   
 };

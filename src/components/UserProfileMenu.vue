@@ -212,6 +212,8 @@
   export default {
     name: 'UserProfileMenu', 
     components: { PriceUpDownArrowIcon },
+    data: () => ({      
+    }),
     computed: {
       totalOutChange() { 
         if (this.gGameData && this.gGameData.totalIn && this.gGameData.playerWithdrawedTotal) {
@@ -221,7 +223,6 @@
         return null
       },
       gamesStarted() {  
-        console.log('this.listOfGames', this.listOfGames)       
         return this.$store.state['games/started'] ? this.$store.state['games/started'] : []
       },
       listOfGames() {         
