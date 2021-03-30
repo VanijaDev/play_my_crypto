@@ -1,3 +1,4 @@
+import Vue from "vue";
 import { ethers, BigNumber } from "ethers";
 
 export default {
@@ -9,17 +10,17 @@ export default {
     };
   }, 
   computed: {     
-    user() { return  this.$store.getters['user/user'] }, 
+    gUser() { return  this.$store.getters['user/user'] }, 
     gNetwork() { return  this.$store.getters['blockchain/network'] },
     gBlockchain() { return this.$store.getters['blockchain/blockchain'] },
-    currentNetworkIcon() { return this.gNetwork.id ? this.gNetwork.icon : this.gBlockchain.networks[0].icon },
+    gCurrentNetworkIcon() { return this.gNetwork.id ? this.gNetwork.icon : this.gBlockchain.networks[0].icon },
 
     gGame() { return this.$store.getters['games/currentGame'] },
     gGameData() { return this.gGame.id ? this.gGame.data : {} },
     getGameById() { return function (gameId) { return this.$store.getters['games/getGameById'](gameId) }},
     //blockchain() { return this.$store.getters['blockchain/blockchain'] },
         
-    breakPoint() { return function (bp, condition) { return this.$store.getters.breakPoint(bp, condition) }},  
+    gBreakPoint() { return function (bp, condition) { return this.$store.getters.breakPoint(bp, condition) }},  
   },
   methods: {
     gSelectGame(game) {
@@ -117,18 +118,18 @@ function copyTextToClipboard(text) {
     try {
       var successful = document.execCommand('copy');
       var msg = successful ? 'successful' : 'unsuccessful';
-      console.log('Fallback: Copying text command was ' + msg);
+      Vue.$log.info('Fallback: Copying text command was ' + msg);
     } catch (err) {
-      console.error('Fallback: Oops, unable to copy', err);
+      Vue.$log.error('Fallback: Oops, unable to copy', err);
       return false; 
     }
     document.body.removeChild(textArea);
     return true;
   }
   navigator.clipboard.writeText(text).then(function() {
-    console.log('Async: Copying to clipboard was successful!');      
+    Vue.$log.info('Async: Copying to clipboard was successful!');      
   }, function(err) {
-    console.error('Async: Could not copy text: ', err);  
+    Vue.$log.error('Async: Could not copy text: ', err);  
     return false;    
   });
   return true;

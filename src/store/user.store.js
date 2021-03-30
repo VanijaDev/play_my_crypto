@@ -16,7 +16,7 @@ const getters = {
 
 const actions = {
   INIT: async ({ commit, dispatch }, accountAddress) => {  
-    console.log('user/INIT')
+    Vue.$log.debug('user/INIT')
     commit('SET_ACCOUNT_ADDRESS', accountAddress);
     dispatch('GET_BALANCE');
     dispatch('GET_STAKING_DATA')
@@ -24,7 +24,7 @@ const actions = {
   },
 
   GET_BALANCE: async ({ commit, state, rootState }) => {   
-    console.log('user/GET_BALANCE')
+    Vue.$log.debug('user/GET_BALANCE')
     try {
       const balance = {
         balanceETH: await window.pmc.provider.getBalance(state.accountAddress),
@@ -32,12 +32,12 @@ const actions = {
       } 
       commit('SET_BALANCE', balance)
     } catch (error) {
-      console.error('GET_BALANCE', error)
+      Vue.$log.error('GET_BALANCE', error)
     }
   },
 
   GET_STAKING_DATA: async ({ commit, state, rootState }) => {
-    console.log('user/GET_STAKING_DATA')
+    Vue.$log.debug('user/GET_STAKING_DATA')
     const stakingContract = rootState.blockchain.stakingContract    
     try {
       const calculateRewardAndStartIncomeIdx = await stakingContract.calculateRewardAndStartIncomeIdx(state.accountAddress)
@@ -59,63 +59,107 @@ const actions = {
       }
       commit('SET_STAKING_DATA', stakingData) 
     } catch (error) {
-      console.error('GET_STAKING_DATA', error);
+      Vue.$log.error('GET_STAKING_DATA', error);
     }   
   },
     
   CHECK_PMC_ALLOWANCE: async ({ commit, state, rootState }) => {     
-    console.log('user/CHECK_PMC_ALLOWANCE')
+    Vue.$log.debug('user/CHECK_PMC_ALLOWANCE')
     try {      
       const pmcAllowance = await rootState.blockchain.pmcContract.allowance(state.accountAddress, rootState.blockchain.stakingContract.address)
       commit('SET_PMC_ALLOWANCE', pmcAllowance) 
     } catch (error) {
-      console.error('CHECK_PMC_ALLOWANCE', error);
+      Vue.$log.error('CHECK_PMC_ALLOWANCE', error);
     }   
   }, 
   
   APPROVE_PCM_STAKE: async ({ dispatch, rootState }) => {
-    console.log('user/APPROVE_PCM_STAKE')
-    const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256)
-    console.log("tx:", tx);
-    dispatch('notification/OPEN', { id: 'PENDING_TRANSACTION', data: { tx: tx.hash } }, { root: true })
-    
-    const receipt = await tx.wait(); 
-    console.log("receipt:", receipt); 
-    if (receipt.status) {
-      dispatch('notification/OPEN', { id: 'MINED_TRANSACTION', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })      
-    } else {
-      dispatch('notification/OPEN', { id: 'TRANSACTION_ERROR', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })  
-    }
-    
+    Vue.$log.debug('user/APPROVE_PCM_STAKE')
+    //dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: '0x8a7caa0e7587262e1d2aa87ac44b6396e30623059e45f5daec22bb3e5e6f665a' } }, { root: true })
+    try {
+      const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, 21515)//ethers.constants.MaxUint256
+      Vue.$log.debug('user/APPROVE_PCM_STAKE - tx', tx);
+      dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: tx.hash } }, { root: true })
+      const receipt = await tx.wait(); 
+      Vue.$log.debug('user/APPROVE_PCM_STAKE - receipt', receipt)
+      if (receipt.status) {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_MINED', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })      
+      } else {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_ERROR', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })  
+      }      
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', { id: 'ERROR', data: `ERROR: ${error.message}`, delay: 5 }, { root: true }) 
+    }   
+    dispatch('GET_BALANCE');     
     dispatch('CHECK_PMC_ALLOWANCE');  
   },
 
-  ADD_STAKE: async ({ rootState }, addStakeAmount) => {
-    const tx = await rootState.blockchain.stakingContract.stake(addStakeAmount);
-    console.log("tx:", tx);
-    console.log("mining...");
-    const receipt = await tx.wait();
-    console.log("success:", receipt);   
+  ADD_STAKE: async ({ dispatch, rootState }, addStakeAmount) => {
+    Vue.$log.debug('user/ADD_STAKE')
+    try {
+      const tx = await rootState.blockchain.stakingContract.stake(addStakeAmount)
+      Vue.$log.debug('user/ADD_STAKE - tx', tx);
+      dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: tx.hash } }, { root: true })
+      const receipt = await tx.wait(); 
+      Vue.$log.debug('user/ADD_STAKE - receipt', receipt)
+      if (receipt.status) {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_MINED', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })      
+      } else {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_ERROR', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })  
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', { id: 'ERROR', data: `ERROR: ${error.message}`, delay: 5 }, { root: true }) 
+    }
+    dispatch('GET_BALANCE');
+    dispatch('GET_STAKING_DATA'); 
   },
 
-  WITHDRAW_STAKING_REWARD: async ({ rootState }) => {
-    const tx = await rootState.blockchain.stakingContract.withdrawReward(0);
-    console.log("tx:", tx);
-    console.log("mining...");
-    const receipt = await tx.wait();
-    console.log("success:", receipt); 
+  WITHDRAW_STAKING_REWARD: async ({ dispatch, rootState }) => {
+    Vue.$log.debug('user/WITHDRAW_STAKING_REWARD')
+    try {
+      const tx = await rootState.blockchain.stakingContract.withdrawReward(0)
+      Vue.$log.debug('user/WITHDRAW_STAKING_REWARD - tx', tx);
+      dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: tx.hash } }, { root: true })
+      const receipt = await tx.wait(); 
+      Vue.$log.debug('user/WITHDRAW_STAKING_REWARD - receipt', receipt)
+      if (receipt.status) {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_MINED', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })      
+      } else {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_ERROR', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })  
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', { id: 'ERROR', data: `ERROR: ${error.message}`, delay: 5 }, { root: true }) 
+    }
+    dispatch('GET_BALANCE');
+    dispatch('GET_STAKING_DATA');     
   },
 
-  UNSTAKE: async ({ rootState }) => {
-    const tx = await rootState.blockchain.stakingContract.unstake();
-    console.log("tx:", tx);
-    console.log("mining...");
-    const receipt = await tx.wait();
-    console.log("success:", receipt);
+  UNSTAKE: async ({ dispatch, rootState }) => {
+    Vue.$log.debug('user/UNSTAKE')
+    try {
+      const tx = await rootState.blockchain.stakingContract.unstake()
+      Vue.$log.debug('user/UNSTAKE - tx', tx);
+      dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: tx.hash } }, { root: true })
+      const receipt = await tx.wait(); 
+      Vue.$log.debug('user/UNSTAKE - receipt', receipt)
+      if (receipt.status) {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_MINED', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })      
+      } else {
+        dispatch('notification/OPEN', { id: 'TRANSACTION_ERROR', data: { tx: receipt.transactionHash }, delay: 10 }, { root: true })  
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', { id: 'ERROR', data: `ERROR: ${error.message}`, delay: 5 }, { root: true }) 
+    }
+    dispatch('GET_BALANCE');
+    dispatch('GET_STAKING_DATA');    
   }, 
 
   DESTROY: async ({ commit }) => {
-    console.log('user/DESTROY')
+    Vue.$log.debug('user/DESTROY')
     commit('DESTROY')
   },
 };

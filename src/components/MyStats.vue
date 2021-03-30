@@ -8,7 +8,7 @@
         <div class="__text_line">
           <span>{{ $t('my_in') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_1">{{gGameData.playerStakeTotal | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_1" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>  
           </div>              
@@ -17,7 +17,7 @@
         <div class="__text_line">
           <span>{{ $t('my_out') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_2">{{gGameData.playerWithdrawedTotal | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_2" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>  
           </div>              
@@ -29,7 +29,7 @@
         <div class="__text_line">
           <span>{{ $t('jackpot') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_3">{{gGameData.raffleJackpot | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_3" custom-class="__tooltip" >{{gGameData.raffleJackpot | formatBalance}}</b-tooltip>  
           </div>              
@@ -46,7 +46,7 @@
         <div class="__text_line mb-3">
           <span class="w-25">{{ $t('gameplay_eth') }}</span>          
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_4">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_4" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>  
           </div>
@@ -69,7 +69,7 @@
           <span class="w-25">{{ $t('referral') }}</span>
           
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="my_stat_5">{{gGameData.referralFeePending | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_5" custom-class="__tooltip" >{{gGameData.referralFeePending | formatBalance}}</b-tooltip>  
           </div>
@@ -81,7 +81,7 @@
           <span class="w-25">{{ $t('raffle') }}</span>
           
             <div class="__img_value_block">
-              <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+              <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
               <span id="my_stat_6">{{gGameData.raffleJackpotPending | formatBalanceShort}}</span>
               <b-tooltip target="my_stat_6" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>  
             </div>

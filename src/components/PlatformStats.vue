@@ -8,7 +8,7 @@
         <div class="__text_line">
           <span>{{ $t('jackpots_won') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_1">{{raffleJackpotsWonTotalTotal | formatBalanceShort}}</span>
             <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{raffleJackpotsWonTotalTotal | formatBalance}}</b-tooltip>  
           </div>              
@@ -17,7 +17,7 @@
         <div class="__text_line">
           <span>{{ $t('total_in') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_2">{{betsTotalTotal | formatBalanceShort}}</span>  
             <b-tooltip target="p_stat_2" custom-class="__tooltip" >{{betsTotalTotal | formatBalance}}</b-tooltip>
           </div>              
@@ -30,7 +30,7 @@
         <div class="__text_line">
           <span>{{ $t('jackpots') }}</span>
           <div class="__img_value_block">
-            <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
             <span id="p_stat_3">{{raffleJackpotTotal | formatBalanceShort}}</span>  
             <b-tooltip target="p_stat_3" custom-class="__tooltip" >{{raffleJackpotTotal | formatBalance}}</b-tooltip>
           </div>              
@@ -50,7 +50,7 @@
     name: 'PlatformStats',  
     computed: {
       raffleParticipantsTotal() { 
-        if (!this.user.accountAddress) return '...'
+        if (!this.gUser.accountAddress) return '...'
         return this.$store.getters['games/list'].reduce((total, game) => {
           if (game.id && game.data.raffleParticipants) total += game.data.raffleParticipants
           return total

@@ -43,7 +43,7 @@
         </b-row>
       </b-container>
       
-      <div class="__blocked_content" v-if="!gNetwork.id"></div>
+      <div class="__blocked_content" v-if="!gNetwork.id || !gUser.accountAddress"></div>
       
       <Footer/>    
     </div>   

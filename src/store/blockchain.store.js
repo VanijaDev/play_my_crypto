@@ -1,4 +1,4 @@
-//import Vue from "vue";
+import Vue from "vue";
 //import { cleanObject } from "@/utils/globalMixins";
 import { ethers } from "ethers";
 import  PMC  from '@/blockchain/pmc.contract.js';
@@ -42,81 +42,92 @@ const getters = {
 
 const actions = {
   ON_LOAD: async ({ dispatch, state }) => {  
-    console.log('blockchain/ON_LOAD')
+    Vue.$log.debug('blockchain/ON_LOAD')
     if (window.ethereum !== null && typeof window.ethereum !== 'undefined') {      
       window.ethereum.autoRefreshOnNetworkChange = false
       window.ethereum.on('connect', function() { dispatch('ON_CONNECT') })
       window.ethereum.on('chainChanged', function() { dispatch('ON_CHAIN_CHANGED') })
       window.ethereum.on('accountsChanged', function() { dispatch('ON_ACCOUNTS_CHANGED') })
       window.ethereum.on('message', function() { dispatch('ON_MESSAGE') })  
-      window.ethereum.on('disconnect', function() { dispatch('ON_DISCONNECT') })
-      
+      window.ethereum.on('disconnect', function() { dispatch('ON_DISCONNECT') })      
       dispatch('INIT')      
-    } 
+    } else {
+      dispatch('notification/OPEN', { id: 'METAMASK_CONNECT_ERROR' }, { root: true })
+      dispatch('DESTROY')
+    }
   },
 
   ON_CONNECT: ({ dispatch }) => {
-    console.log('blockchain/ON_CONNECT')   
+    Vue.$log.debug('blockchain/ON_CONNECT')   
     dispatch('DESTROY')
     dispatch('INIT')  
   },
   
   ON_CHAIN_CHANGED: ({ dispatch }) => {
-    console.log('blockchain/ON_CHAIN_CHANGED')   
+    Vue.$log.debug('blockchain/ON_CHAIN_CHANGED')   
     dispatch('DESTROY')
     dispatch('INIT')  
   },
 
   ON_ACCOUNTS_CHANGED: ({ dispatch }) => {
-    console.log('blockchain/ON_ACCOUNTS_CHANGED') 
+    Vue.$log.debug('blockchain/ON_ACCOUNTS_CHANGED') 
     dispatch('DESTROY')
     dispatch('INIT')  
   },
 
   ON_MESSAGE: (message) => {
-    console.log('blockchain/ON_MESSAGE', message)     
+    Vue.$log.debug('blockchain/ON_MESSAGE', message)     
   },
 
   ON_DISCONNECT: ({ dispatch }) => {
-    console.log('blockchain/ON_DISCONNECT') 
+    Vue.$log.debug('blockchain/ON_DISCONNECT') 
     dispatch('DESTROY')
   },
 
   INIT: async ({ commit, dispatch }) => {
-    console.clear()
-    console.log('blockchain/INIT')    
+    //console.clear()
+    Vue.$log.debug('blockchain/INIT')    
     const networkIndex = state.networks.findIndex(network => network.chains.find(chain => chain.id === window.ethereum.chainId))
     if (networkIndex > -1) {       
       commit('SET_NETWORK', networkIndex)      
+      let accountAddress = null
       try {
         window.pmc.provider = new ethers.providers.Web3Provider(window.ethereum)
         window.pmc.signer = window.pmc.provider.getSigner()
-        const accountAddress = await window.pmc.signer.getAddress()
-        if (accountAddress) {
-          dispatch('notification/CLOSE', null, { root: true })
-          dispatch('BUILD_CONTRACTS') 
-          dispatch('games/INIT', null, { root: true })
-          dispatch('user/INIT', accountAddress, { root: true })
-          //dispatch('notification/OPEN', { id: 'MINED_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' }, delay: 300 }, { root: true })
-          return 
-        }        
+        accountAddress = await window.pmc.signer.getAddress()
       } catch (error) {
-        console.log('blockchain/INIT - ERROR', error)
+        Vue.$log.error('blockchain/INIT - ERROR', error)
         dispatch('notification/OPEN', { id: 'METAMASK_CONNECT_ERROR' }, { root: true })
-        //dispatch('notification/OPEN', { id: 'PENDING_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' } }, { root: true })
-        //dispatch('notification/OPEN', { id: 'MINED_TRANSACTION', data: { tx:'0x459b2f38e4148b2c8231225a7cde28001a8ae645b23f7732a1d9e069029be879' }, delay: 300 }, { root: true })
         dispatch('DESTROY')
-      }   
+      }
+
+      if (!accountAddress) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+          if (accounts && accounts[0]) accountAddress = accounts[0]
+        } catch (error) {
+          Vue.$log.error('blockchain/INIT - ERROR', error)
+          dispatch('notification/OPEN', { id: 'METAMASK_CONNECT_ERROR' }, { root: true })
+          dispatch('DESTROY')
+        }
+      }
+
+      if (!accountAddress) return dispatch('DESTROY')
+      
+      dispatch('notification/CLOSE', null, { root: true })
+      dispatch('BUILD_CONTRACTS') 
+      dispatch('games/INIT', null, { root: true })
+      dispatch('user/INIT', accountAddress, { root: true })       
     }         
   },
 
   BUILD_CONTRACTS: ({ commit }) => {
-    console.log('blockchain/BUILD_CONTRACTS') 
+    Vue.$log.debug('blockchain/BUILD_CONTRACTS') 
     commit('BUILD_CONTRACTS')
   },
 
   DESTROY: ({ commit, dispatch }) => {
-    console.log('blockchain/DESTROY') 
+    Vue.$log.debug('blockchain/DESTROY') 
     dispatch('user/DESTROY', null, { root: true })
     dispatch('games/DESTROY', null, { root: true })    
     commit('DESTROY')

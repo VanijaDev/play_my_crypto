@@ -41,7 +41,7 @@ const router = new VueRouter({
 //    if (!Object.prototype.hasOwnProperty.call(store.state, 'game')) {
 //      
 //      store.registerModule('game', to.meta.store);
-//      console.log(store)
+//      Vue.$log.debug(store)
 //    }    
 //  }
 //  next()

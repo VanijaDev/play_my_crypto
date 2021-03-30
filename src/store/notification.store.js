@@ -14,20 +14,17 @@ const getters = {
 };
 
 const actions = {
-  OPEN: ({ commit }, { id, type, closable, delay, data }) => {  
-    console.log('notification/OPEN', { id, type, closable, delay, data })
-    commit('OPEN', { id, type, closable, delay, data })  
+  OPEN: ({ commit, dispatch }, { id, type, closable, delay, data }) => {  
+    Vue.$log.debug('notification/OPEN', { id, type, closable, delay, data })
+    commit('OPEN', { id, type, closable, delay, data })     
     if (delay) {
-      let timer = setTimeout(() => { 
-        console.log('-----------')         
-        commit('CLOSE')
-      }, delay * 1000)
+      const timer = setTimeout(() => { dispatch('CLOSE') }, delay * 1000)
       commit('SET_DELAY_TIMER', timer)
     }
   },
   CLOSE: ({ commit }) => {
-    console.log('notification/CLOSE')   
-    commit('CLOSE')  
+    Vue.$log.debug('notification/CLOSE')   
+    commit('CLOSE')    
   },
 };
 
@@ -38,12 +35,14 @@ const mutations = {
     state.type = type ? type : 'text'
     state.closable = closable ? closable : true    
     state.data = data ? data : 'Notification!'
+    setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 10)    
   },
   SET_DELAY_TIMER: (state, timer) => {
     state.delay = timer
   }, 
   CLOSE: (state) => {
-    state.show = false    
+    state.show = false  
+    setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 10)
     if (state.delay) {
       clearTimeout(state.delay)
       state.delay = false

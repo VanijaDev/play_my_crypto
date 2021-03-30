@@ -1,11 +1,11 @@
 <template>
   <div class="__user_profile_dd d-flex align-items-center">
-    <b-dropdown toggle-tag="div" variant="link"  right toggle-class="text-decoration-none p-0 __up_dd_toggle" no-caret menu-class="__up_dd_menu shadow">
+    <b-dropdown toggle-tag="div" variant="link"  right toggle-class="text-decoration-none p-0 __up_dd_toggle" no-caret menu-class="__up_dd_menu shadow" :disabled="!gUser.accountAddress">
       <template #button-content>
         <div class="d-flex align-items-center __user_profile">
           <div class="d-flex flex-column __up_text mr-2">
             <span class="__strong-text __blue_text">{{ $t('profile') }}</span>
-            <span class="__strong-text text-monospace">{{user.accountAddress | addressShort}}</span>              
+            <span class="__strong-text text-monospace">{{gUser.accountAddress | addressShort}}</span>              
           </div> 
           <div class="d-flex align-items-center">              
             <a class="d-flex flex-column justify-content-center align-items-center" href="#">
@@ -20,15 +20,15 @@
             <div class="__blue_text">{{ $t('balance') }}</div>
             <div class="d-flex align-items-center text-monospace">
               
-              <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
               
-              <span id="up_1" class="mr-2">{{user.balanceETH | formatBalanceShort}}</span>
+              <span id="up_1" class="mr-2">{{gUser.balanceETH | formatBalanceShort}}</span>
               
-              <b-tooltip target="up_1" custom-class="__tooltip" >{{user.balanceETH | formatBalance}}</b-tooltip>
+              <b-tooltip target="up_1" custom-class="__tooltip" >{{gUser.balanceETH | formatBalance}}</b-tooltip>
                             
               <img class="__currency_img" src="/img/logo.svg" height="30" alt="Logo">
-              <span id="up_2">{{user.balancePMC | formatBalanceShort}}</span>
-              <b-tooltip target="up_2" custom-class="__tooltip" >{{user.balancePMC | formatBalance}}</b-tooltip>
+              <span id="up_2">{{gUser.balancePMC | formatBalanceShort}}</span>
+              <b-tooltip target="up_2" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>
             </div>
           </li>      
         </ul>
@@ -51,7 +51,7 @@
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
             <div class="__blue_text">{{ $t('total_in') }}</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
               <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>              
               <b-tooltip target="up_3" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>
             </div>
@@ -60,7 +60,7 @@
             <div class=" d-flex justify-content-between align-items-center mb-2">
               <div class="__blue_text">{{ $t('total_out') }}</div>
               <div class="d-flex align-items-center text-monospace">
-                <img class="__currency_img" :src="currentNetworkIcon" height="30" alt="Telegram logo">                
+                <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">                
                 <span id="up_4" :class="{'__price_change_down' : totalOutChange === 'down', '__price_change_up' : totalOutChange === 'up' }">
                   {{gGameData.playerWithdrawedTotal | formatBalanceShort}}
                 </span>
@@ -86,8 +86,8 @@
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('staking') }}</span>
-                <span id="up_8">{{user.stakingData.stakingRewardWithdrawn | formatBalanceShort}}</span>
-                <b-tooltip target="up_8" custom-class="__tooltip" >{{user.stakingData.stakingRewardWithdrawn | formatBalance}}</b-tooltip>
+                <span id="up_8">{{gUser.stakingData.stakingRewardWithdrawn | formatBalanceShort}}</span>
+                <b-tooltip target="up_8" custom-class="__tooltip" >{{gUser.stakingData.stakingRewardWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('partnership') }}</span>
@@ -122,7 +122,7 @@
   @import '@/assets/css/variables.scss';
   .__user_profile_dd {
     margin-right: -2px;
-    .__user_profile{          
+    .__user_profile{               
       .__up_text{
         span:first-child{
           text-align: right;

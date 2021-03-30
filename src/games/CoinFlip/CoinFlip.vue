@@ -15,7 +15,7 @@
             <div class="__cf_big_coin_circle_wrapper __shadow " :class="{'__selected_btc' : selectedCoin === 'BTC', '__selected_eth' : selectedCoin === 'ETH',}">
               <div class="__question" v-show="!selectedCoin">?</div>
               <img src="/img/bitcoin_icon.svg" alt="BTC" v-show="selectedCoin === 'BTC'">
-              <img :src="currentNetworkIcon" alt="ETH" v-show="selectedCoin === 'ETH'">
+              <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === 'ETH'">
             </div>
 
             <div class="__cf_select_coin d-flex justify-content-between" v-if="view !== 4">
@@ -26,7 +26,7 @@
               </div>
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __eth " @click="selectedCoin = 'ETH'" :class="{'__selected' : selectedCoin === 'ETH'}">
-                  <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
+                  <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
                 </div>
               </div>  
             </div>
@@ -46,7 +46,7 @@
             
           </div>
 
-          <div class="__cf_view_block mr-0 mr-sm-4 order-2 order-sm-1" :class="{'w-100' : breakPoint('xs')}">
+          <div class="__cf_view_block mr-0 mr-sm-4 order-2 order-sm-1" :class="{'w-100' : gBreakPoint('xs')}">
             
             <!-- View 0 -->
             <div class="__cf_view" v-if="view === 0">
@@ -88,14 +88,14 @@
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
 
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Current profit:</span>
-                <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">    
+                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">    
                 <span class="ml-3 text-monospace __blue_text">2.1234</span>
               </div>
 
@@ -129,7 +129,7 @@
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
@@ -170,14 +170,14 @@
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
               
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Current profit:</span>
-                <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">    
+                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">    
                 <span class="ml-3 text-monospace __blue_text">2.1234</span>
               </div>
               
@@ -214,7 +214,7 @@
 
               <div class="__cf_line d-flex align-items-center mb-4">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="currentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>

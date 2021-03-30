@@ -27,8 +27,8 @@
           </div>
         </b-col>        
         <b-col cols="12" lg="4" class="mt-4 mt-lg-0" >
-          <div class="d-flex  align-items-center" :class="breakPoint('lg', 'gte') ? 'justify-content-end': 'justify-content-center'">
-            <img src="/img/logo.svg" height="30" alt="Logo" v-if="breakPoint('lg', 'lt')" class="mr-2">
+          <div class="d-flex  align-items-center" :class="gBreakPoint('lg', 'gte') ? 'justify-content-end': 'justify-content-center'">
+            <img src="/img/logo.svg" height="30" alt="Logo" v-if="gBreakPoint('lg', 'lt')" class="mr-2">
             ©PlayMyCrypto.{{new Date().getFullYear()}}
           </div>
         </b-col>

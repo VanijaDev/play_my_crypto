@@ -4,8 +4,8 @@
     <h2>{{ $t('games') }}</h2>
     <div class="w-100 __list d-flex">
       <div v-for="(_game, _index) in list" :key="'game_' + _index"
-        class="__game_card __img_button " 
-        :class="{'__shadow_filter __selected' : _game.id === gGame.id}"
+        class="__game_card  " 
+        :class="{'__shadow_filter __selected' : _game.id === gGame.id, '__img_button': _game.id}"
         @click="gSelectGame(_game)"
         >
         <div class="__game_image __gradient_violet">
@@ -20,7 +20,7 @@
           </div>
           <!-- In -->
           <div class="__in">
-            <img :src="currentNetworkIcon" height="20" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="20" alt="ETH">
             <div>
               <div>{{ $t('in') }}</div>
               <div class="text-monospace">{{_game.statistics.stakes | formatBalanceShort}}</div>  
@@ -44,10 +44,10 @@
     computed: {     
       list() { 
         let list = this.$store.getters['games/list']
-        if (this.breakPoint('xs')) return list.slice(0, 2)
-        if (this.breakPoint('sm')) return list.slice(0, 3)
-        if (this.breakPoint('md')) return list.slice(0, 4)
-        if (this.breakPoint('lg')) return list.slice(0, 3)
+        if (this.gBreakPoint('xs')) return list.slice(0, 2)
+        if (this.gBreakPoint('sm')) return list.slice(0, 3)
+        if (this.gBreakPoint('md')) return list.slice(0, 4)
+        if (this.gBreakPoint('lg')) return list.slice(0, 3)
         return list        
       },      
     },    

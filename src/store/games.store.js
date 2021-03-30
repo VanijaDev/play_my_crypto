@@ -1103,23 +1103,23 @@ const getters = {
 
 const actions = {
   INIT: async ({ dispatch }) => {
-    console.log('games/INIT') 
+    Vue.$log.debug('games/INIT') 
     dispatch('BUILD_CONTRACTS');
     dispatch('GET_GAMES'); 
   },
   
   SET_CURRENT_GAME: async ({ commit }, gameId) => {    
-    console.log('games/SET_CURRENT_GAME')
+    Vue.$log.debug('games/SET_CURRENT_GAME')
     commit('SET_CURRENT_GAME', gameId);     
   },
 
   BUILD_CONTRACTS: ({ commit, rootState }) => {
-    console.log('games/BUILD_CONTRACTS')
+    Vue.$log.debug('games/BUILD_CONTRACTS')
     commit('BUILD_CONTRACTS', rootState.blockchain);
   },
   
   GET_GAMES: async ({commit, dispatch, state}) => {   
-    console.log('games/GET_GAMES')
+    Vue.$log.debug('games/GET_GAMES')
 
     let gamesStarted = []
     for (const game of state.list) { 
@@ -1147,7 +1147,7 @@ const actions = {
             }
           }  
         } catch (error) {
-          console.error('GET_GAMES_INFO', error) 
+          Vue.$log.error('GET_GAMES_INFO', error) 
         }                  
       } 
     } 
@@ -1155,7 +1155,7 @@ const actions = {
   },
 
   GET_GAME_STATISTICS: ({ commit }, { game, gameInfo }) => {    
-    console.log('games/GET_GAME_STATISTICS')
+    Vue.$log.debug('games/GET_GAME_STATISTICS')
     const participants = gameInfo.heads.add(gameInfo.tails).add(1)
     const gameStatistics = {
       participants: participants,
@@ -1165,7 +1165,7 @@ const actions = {
   },
 
   GET_GAME_DATA: async ({ commit }, game) => {
-    console.log('games/GET_GAME_DATA')  
+    Vue.$log.debug('games/GET_GAME_DATA')  
     try {
       const gameData = {
         playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
@@ -1182,12 +1182,12 @@ const actions = {
       }
       commit('SET_GAME_DATA', { game, gameData }) 
     } catch (error) {
-      console.error('GET_GAME_DATA', error);
+      Vue.$log.error('GET_GAME_DATA', error);
     }   
   },
 
   GET_GAME_RAFFLE: async ({ commit, rootState }, game) => {
-    console.log('games/GET_GAME_RAFFLE')
+    Vue.$log.debug('games/GET_GAME_RAFFLE')
     try {
       const raffleData = {        
         raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress),  // My Stats - Raffle /  User Profile - Raffle
@@ -1200,12 +1200,12 @@ const actions = {
       if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length     
       commit('SET_GAME_RAFFLE', { game, raffleData }) 
     } catch (error) {
-      console.error('GET_GAME_RAFFLE', error);
+      Vue.$log.error('GET_GAME_RAFFLE', error);
     }   
   },
 
   DESTROY: async ({ commit }) => {
-    console.log('games/DESTROY')
+    Vue.$log.debug('games/DESTROY')
     commit('DESTROY')
   },
   

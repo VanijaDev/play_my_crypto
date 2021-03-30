@@ -6,14 +6,14 @@
       <span>{{ $t('available_to_stake') }}</span>
       <div class="__img_value_block">
         <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
-        <span id="staking_1">{{user.balancePMC | formatBalanceShort}}</span>
-        <b-tooltip target="staking_1" custom-class="__tooltip" >{{user.balancePMC | formatBalance}}</b-tooltip>  
+        <span id="staking_1">{{gUser.balancePMC | formatBalanceShort}}</span>
+        <b-tooltip target="staking_1" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>  
       </div>              
     </div>
     <!-- Add stake -->
     <div class="__text_line">
       <span>{{ $t('add_stake') }}</span>
-      <input type="number" min="0" :max="user.balancePMC | formatBalance" class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
+      <input type="number" min="0" :max="gUser.balancePMC | formatBalance" class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
       <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled">{{ $t('max') }}</button> 
       <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>     
       <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePcm()">{{ $t('approve') }}</button>                
@@ -22,9 +22,9 @@
     <div class="__text_line">
       <span>{{ $t('available_to_withdraw') }}</span>
       <div class="__img_value_block">
-        <img :src="currentNetworkIcon" height="30"  width="30" alt="ETH">
-        <span id="staking_2">{{user.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalanceShort}}</span>
-        <b-tooltip target="staking_2" custom-class="__tooltip" >{{user.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalance}}</b-tooltip>  
+        <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
+        <span id="staking_2">{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalanceShort}}</span>
+        <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalance}}</b-tooltip>  
       </div>
       <button type="button" class="btn btn-primary __blue_button ml-2" :disabled="withdrawDisabled">{{ $t('withdraw') }}</button>
                        
@@ -41,26 +41,26 @@ import { ethers, BigNumber } from "ethers";
     }), 
     computed: {
       addStakeAllowed() { 
-        if (!this.user.pmcAllowance ) return false        
-        if (this.user.pmcAllowance.eq(0) ) return false
-        if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.user.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
+        if (!this.gUser.pmcAllowance ) return false        
+        if (this.gUser.pmcAllowance.eq(0) ) return false
+        if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.gUser.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
         return true  
       },
       addStakeDisabled() { 
         if (!this.addStakeAmount) return true
         if (ethers.utils.parseEther(this.addStakeAmount).lte(0)) return true
-        if (this.user.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true        
+        if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true        
         return false  
       },
       maxStakeDisabled() { 
         if (!this.addStakeAmount) return true
-        if (!this.user.balancePMC) return true
-        if (this.user.balancePMC.eq(0)) return true
+        if (!this.gUser.balancePMC) return true
+        if (this.gUser.balancePMC.eq(0)) return true
         return false  
       },
       withdrawDisabled() { 
-        if (!this.user.stakingData.calculateRewardAndStartIncomeIdxReward ) return true
-        if (this.user.stakingData.calculateRewardAndStartIncomeIdxReward.eq(0) ) return true    
+        if (!this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward ) return true
+        if (this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward.eq(0) ) return true    
         return false  
       },  
     },
@@ -72,7 +72,7 @@ import { ethers, BigNumber } from "ethers";
         this.$store.dispatch('user/ADD_STAKE', this.addStakeAmount)  
       },
       setMaxStake() {
-        this.addStakeAmount = this.user.balancePMC
+        this.addStakeAmount = this.gUser.balancePMC
       },
     },
     i18n: {
