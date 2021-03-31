@@ -47,6 +47,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
   mapping(address => uint256) public betsTotal; //  token => amount, 0x0 - ETH.
   mapping(address => mapping(address => uint256)) private playerStakeTotal;    //  token => (player => amount)
   mapping(address => mapping(address => uint256)) private playerWithdrawedTotal;   //  token => (player => amount)
+  mapping(address => uint256) public playerPendingWithdrawalPMC;
   mapping(address => uint256) public playerWithdrawedPMCTotal;
 
   mapping(address => mapping(address => uint256[])) private gamesParticipatedToCheckPrize;    //  token => (player => idx[])
@@ -401,12 +402,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     require(pendingPrize > 0, "No prize");
 
     //  PMC
-    if (pendingPMC > 0) {
-      playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(pendingPMC);
-      
-      PMC(pmcAddr).mint(msg.sender, pendingPMC);
-      PMC(pmcAddr).mint(owner(), pendingPMC.div(100));
-    }
+    distributePMC(pendingPMC);
 
     //  ETH / token
     uint8 feeNumber;  //  5 - ETH, 4 - Token
@@ -454,6 +450,42 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     playerWithdrawedTotal[_token][msg.sender] = playerWithdrawedTotal[_token][msg.sender].add(transferAmount);
     emit CF_PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMC);
   }
+  
+  /***
+   * @dev Distributes PMC tokens.
+   * @param _pmc PMC amount to be distributed;
+   */
+  function distributePMC(uint256 _pmc) private {
+    if (_pmc > 0) {
+      playerPendingWithdrawalPMC[owner()] = playerPendingWithdrawalPMC[owner()].add(_pmc.div(100));
+      
+      uint256 singleAmount = _pmc.div(4);
+      uint256 senderAmount = singleAmount.add(playerPendingWithdrawalPMC[msg.sender]);
+      delete playerPendingWithdrawalPMC[msg.sender];
+      playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(senderAmount);
+      PMC(pmcAddr).mint(msg.sender, senderAmount);
+      
+      address zeroAddr = address(0);
+      if (raffleParticipants[zeroAddr].length > 0) {
+        for (uint8 i = 1; i <= 3; i ++) {
+          uint256 idx = _rand(zeroAddr, i);
+          address winner = raffleParticipants[zeroAddr][idx];
+          playerPendingWithdrawalPMC[winner] = playerPendingWithdrawalPMC[winner].add(singleAmount);
+        }  
+      }
+    }
+  }
+  
+  /***
+   * @dev Withdraws PMC tokens.
+   */
+  function withdrawPendingPMC() external {
+    uint256 pmc = playerPendingWithdrawalPMC[msg.sender];
+    delete playerPendingWithdrawalPMC[msg.sender];
+    PMC(pmcAddr).mint(msg.sender, pmc);
+    playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(pmc);
+  }
+  
   //  PENDING WITHDRAWAL -->
 
 

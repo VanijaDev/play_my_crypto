@@ -272,9 +272,10 @@ contract("PMCStaking", function (accounts) {
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(ether("0.00165"), {
+      await staking.stake(ether("0.0004125"), {
         from: CREATOR_0
       });
+
 
       //  1 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
@@ -302,7 +303,7 @@ contract("PMCStaking", function (accounts) {
       //  check 1
       assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("1")), "Wrong amount, 1");
       assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount, 1");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.00165")), "Wrong tokensStakedAmount, 1");
+      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount, 1");
 
 
       //  2 - ETH
@@ -332,20 +333,20 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("2")), "Wrong amount, 2");
 
       assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount for 0, 2");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.00165")), "Wrong tokensStakedAmount for 0, 2");
+      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 2");
 
       assert.equal(0, (await staking.getIncomeInfo.call(1)).income.cmp(ether("0.0018")), "Wrong amount for 1, 2");
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.00165")), "Wrong tokensStakedAmount for 1, 2");
-
+      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
 
       //  3 - ETH
 
-      // //  make stake
+      //  make stake
       // console.log((await pmc.balanceOf(CREATOR_1)).toString());
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
-      await staking.stake(ether("0.003"), {
+
+      await staking.stake(ether("0.0008325"), {
         from: CREATOR_1
       });
 
@@ -375,13 +376,13 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("3")), "Wrong amount, 3");
 
       assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount for 0, 3");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.00165")), "Wrong tokensStakedAmount for 0, 3");
+      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 3");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).income.cmp(ether("0.0018")), "Wrong amount for 1, 3");
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.00165")), "Wrong tokensStakedAmount for 1, 3");
+      assert.equal(0, (await staking.getIncomeInfo.call(1)).income.cmp(ether("0.0018")), "Wrong amount for 1, 2");
+      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
 
       assert.equal(0, (await staking.getIncomeInfo.call(2)).income.cmp(ether("0.00333")), "Wrong amount for 1, 3");
-      assert.equal(0, (await staking.getIncomeInfo.call(2)).tokensStakedAmount.cmp(ether("0.00465")), "Wrong tokensStakedAmount for 1, 3");
+      assert.equal(0, (await staking.getIncomeInfo.call(2)).tokensStakedAmount.cmp(ether("0.001245")), "Wrong tokensStakedAmount for 1, 3");
     });
   });
 
@@ -489,7 +490,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_0
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -569,7 +570,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_1
       const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0026")), "wrong pmc_tokens_CREATOR_1");
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00065")), "wrong pmc_tokens_CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
@@ -846,7 +847,7 @@ contract("PMCStaking", function (accounts) {
         from: OPPONENT_2
       }); //  0.165 ETH
 
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong pmc for CREATOR_0");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0004125")), "wrong pmc for CREATOR_0");
     });
 
     it("should fail if 0 tokens", async function () {
@@ -855,7 +856,7 @@ contract("PMCStaking", function (accounts) {
 
     it("should transfer tokens to staking contract", async function () {
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -957,7 +958,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_0
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00675")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0016875")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -969,6 +970,9 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake OWNER
+      await game.withdrawPendingPMC({
+        from: OWNER
+      });
       const pmc_tokens_OWNER = await pmc.balanceOf.call(OWNER);
       assert.equal(0, pmc_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmc for OWNER");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
@@ -1071,7 +1075,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_0
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0012375")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -1083,6 +1087,9 @@ contract("PMCStaking", function (accounts) {
 
 
       //  stake OWNER
+      await game.withdrawPendingPMC({
+        from: OWNER
+      });
       const pmc_tokens_OWNER = await pmc.balanceOf.call(OWNER);
       assert.equal(0, pmc_tokens_OWNER.cmp(ether("0.0000675")), "wrong pmc for OWNER");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
@@ -1117,7 +1124,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_1
       const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc for CREATOR_1");
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00045")), "wrong pmc for CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
@@ -1131,7 +1138,7 @@ contract("PMCStaking", function (accounts) {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
       let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -1201,7 +1208,7 @@ contract("PMCStaking", function (accounts) {
 
       //  uncomment for valid intermediary test
       // pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0 1");
+      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0 1");
       // await pmc.approve(staking.address, constants.MAX_UINT256, {
       //   from: CREATOR_0
       // });
@@ -1242,7 +1249,7 @@ contract("PMCStaking", function (accounts) {
 
       //  uncomment for valid intermediary test
       // pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      // assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 2");
       // await pmc.approve(staking.address, constants.MAX_UINT256, {
       //   from: CREATOR_0
       // });
@@ -1255,7 +1262,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_1
       let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00045")), "wrong pmc_tokens_CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
@@ -1293,7 +1300,7 @@ contract("PMCStaking", function (accounts) {
 
 
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00495")), "wrong pmc_tokens_CREATOR_0 3");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0012375")), "wrong pmc_tokens_CREATOR_0 3");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -1301,14 +1308,14 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
-      assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.011778260869565217")))); //  0.0102 + 0.0033 / (0.00165+0.0018) * 0.00165 = 0.01177826087
+      assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.011778260869565217")))); //  0.0102 + 0.0033 / (0.0004125 + 0.00045) * 0.0004125 = 0.01177826087
     });
 
     it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender] if pending stakes present", async function () {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
       let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -1420,11 +1427,11 @@ contract("PMCStaking", function (accounts) {
 
       //  test
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 2");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
-      await staking.stake(ether("0.00165"), {
+      await staking.stake(ether("0.0004125"), {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
@@ -1433,7 +1440,7 @@ contract("PMCStaking", function (accounts) {
 
       //  stake CREATOR_1
       let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00045")), "wrong pmc_tokens_CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
@@ -1472,7 +1479,7 @@ contract("PMCStaking", function (accounts) {
 
       //  test
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 3");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
@@ -1487,14 +1494,14 @@ contract("PMCStaking", function (accounts) {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
       let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
-      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong stakeOf for CREATOR_0 0");
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0004125")), "wrong stakeOf for CREATOR_0 0");
 
 
       //  play game 1
@@ -1516,7 +1523,7 @@ contract("PMCStaking", function (accounts) {
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
       });
-      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0033")), "wrong staking.address balance 0");
 
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_1
@@ -1545,7 +1552,7 @@ contract("PMCStaking", function (accounts) {
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
       });
-      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0069")), "wrong staking.address balance 1");
 
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
@@ -1553,6 +1560,8 @@ contract("PMCStaking", function (accounts) {
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
       }); //  0.165 ETH
+
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0004125")), "wrong stakeOf for CREATOR_0 pn play game 2");
 
 
       //  play game 3
@@ -1574,7 +1583,7 @@ contract("PMCStaking", function (accounts) {
       await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_0
       });
-      // console.log("staking balance 1:", (await balance.current(staking.address, "wei")).toString()); //  0 ETH
+      assert.equal(0, (await balance.current(staking.address, "wei")).cmp(ether("0.0102")), "wrong staking.address balance 2");
 
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
@@ -1585,28 +1594,25 @@ contract("PMCStaking", function (accounts) {
 
 
       //  test
-      pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
-      await pmc.approve(staking.address, constants.MAX_UINT256, {
-        from: CREATOR_0
-      });
-      await staking.stake(ether("0.00165"), {
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.000825")), "wrong stakeOf for CREATOR_0 pn play game 3");
+
+      await staking.stake(ether("0.0004125"), {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
-      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0033")), "wrong stakeOf for CREATOR_0 1");
-
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.000825")), "wrong stakeOf for CREATOR_0 1");
 
       //  stake CREATOR_1
       let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      // console.log((pmc_tokens_CREATOR_1.toString());
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00045")), "wrong pmc_tokens_CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
       await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
-      assert.equal(0, (await staking.stakeOf.call(CREATOR_1)).cmp(ether("0.0018")), "wrong stakeOf for CREATOR_1 0");
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_1)).cmp(ether("0.00045")), "wrong stakeOf for CREATOR_1 0");
 
 
       //  play game 4
@@ -1639,28 +1645,24 @@ contract("PMCStaking", function (accounts) {
 
       //  test
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
-      await pmc.approve(staking.address, constants.MAX_UINT256, {
-        from: CREATOR_0
-      });
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 3");
       await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
-      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0066")), "wrong stakeOf for CREATOR_1 2");
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong stakeOf for CREATOR_1 2");
     });
 
     it("should update tokensStaked", async function () {
       //  stake CREATOR_0
       let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.00165")), "wrong pmc_tokens_CREATOR_0");
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0004125")), "wrong pmc_tokens_CREATOR_0");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_0
       });
       await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00165")), "wrong tokensStaked for 0");
-
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0004125")), "wrong tokensStaked for 0");
 
       //  play game 1
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
@@ -1751,26 +1753,22 @@ contract("PMCStaking", function (accounts) {
 
       //  test
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 2");
-      await pmc.approve(staking.address, constants.MAX_UINT256, {
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 2");
+      await staking.stake(ether("0.0004125"), {
         from: CREATOR_0
       });
-      await staking.stake(ether("0.00165"), {
-        from: CREATOR_0
-      });
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0033")), "wrong tokensStaked for 1");
-
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.000825")), "wrong tokensStaked for 1");
 
       //  stake CREATOR_1
       let pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
-      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.0018")), "wrong pmc_tokens_CREATOR_1");
+      assert.equal(0, pmc_tokens_CREATOR_1.cmp(ether("0.00045")), "wrong pmc_tokens_CREATOR_1");
       await pmc.approve(staking.address, constants.MAX_UINT256, {
         from: CREATOR_1
       });
       await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0051")), "wrong tokensStaked for 2");
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.001275")), "wrong tokensStaked for 2");
 
 
       //  play game 4
@@ -1803,14 +1801,11 @@ contract("PMCStaking", function (accounts) {
 
       //  test
       pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.0033")), "wrong pmc_tokens_CREATOR_0 3");
-      await pmc.approve(staking.address, constants.MAX_UINT256, {
-        from: CREATOR_0
-      });
+      assert.equal(0, pmc_tokens_CREATOR_0.cmp(ether("0.000825")), "wrong pmc_tokens_CREATOR_0 3");
       await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0084")), "wrong tokensStaked for 4");
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0021")), "wrong tokensStaked for 4");
     });
   });
 
@@ -2312,16 +2307,16 @@ contract("PMCStaking", function (accounts) {
       //  play game 3
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
-        value: BET_ETH_0
+        value: BET_ETH_2
       });
 
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
-        value: BET_ETH_0
+        value: BET_ETH_2
       });
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_2,
-        value: BET_ETH_0
+        value: BET_ETH_2
       });
 
       await time.increase(time.duration.minutes(1));
@@ -2331,10 +2326,10 @@ contract("PMCStaking", function (accounts) {
 
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
-      }); //  0.165 ETH
+      }); //  0.195 ETH
       await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: OPPONENT_2
-      }); //  0.165 ETH
+      }); //  0.195 ETH
     });
 
 
@@ -2342,7 +2337,7 @@ contract("PMCStaking", function (accounts) {
       await expectRevert(staking.unstake(), "No stake");
     });
 
-    it("should transfer", async function () {
+    it("should transfer reward", async function () {
       let reward = (await staking.calculateRewardAndStartIncomeIdx.call(0, {
         from: CREATOR_0
       })).reward;
@@ -2365,7 +2360,7 @@ contract("PMCStaking", function (accounts) {
     });
 
     it("should delete stakeOf[msg.sender]", async function () {
-      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.00165")), "wrong before");
+      assert.equal(0, (await staking.stakeOf.call(CREATOR_0)).cmp(ether("0.0004125")), "wrong before");
 
       await staking.unstake({
         from: CREATOR_0
@@ -2375,13 +2370,13 @@ contract("PMCStaking", function (accounts) {
     });
 
     it("should decrease tokensStaked", async function () {
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00345")), "wrong before");
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0008625")), "wrong before");
 
       await staking.unstake({
         from: CREATOR_0
       });
 
-      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.0018")), "wrong after");
+      assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00045")), "wrong after");
     });
 
     it("should set incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount() if no stakes", async function () {
@@ -2402,9 +2397,6 @@ contract("PMCStaking", function (accounts) {
       //  check
       // stake CREATOR_0
       const pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
-      await pmc.approve(staking.address, constants.MAX_UINT256, {
-        from: CREATOR_0
-      });
       await staking.stake(pmc_tokens_CREATOR_0, {
         from: CREATOR_0
       });
@@ -2423,16 +2415,16 @@ contract("PMCStaking", function (accounts) {
       //  play game 1
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
-        value: BET_ETH_1
+        value: ether("0.1234")
       });
 
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0,
-        value: BET_ETH_1
+        value: ether("0.1234")
       });
       await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_2,
-        value: BET_ETH_1
+        value: ether("0.1234")
       });
 
       await time.increase(time.duration.minutes(1));
@@ -2453,7 +2445,7 @@ contract("PMCStaking", function (accounts) {
       });
       // console.log(res.reward.toString());
       // console.log(res._incomeIdxToStartCalculatingRewardOf.toString());
-      assert.equal(0, (ether("0.0033")).cmp(res.reward), "reward should be 0 on 1");
+      assert.equal(0, (ether("0.0039")).cmp(res.reward), "wrong reward on 1");
       assert.equal(0, (new BN("4")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 1");
 
 
@@ -2484,7 +2476,7 @@ contract("PMCStaking", function (accounts) {
       });
       // console.log(res.reward.toString());
       // console.log(res._incomeIdxToStartCalculatingRewardOf.toString());
-      assert.equal(0, (ether("0.0051")).cmp(res.reward), "reward should be 0 on 2");
+      assert.equal(0, (ether("0.005751")).cmp(res.reward), "wrong reward on 2");
       assert.equal(0, (new BN("5")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 2");
     });
 
@@ -2497,7 +2489,7 @@ contract("PMCStaking", function (accounts) {
 
       let balanceAfter = await pmc.balanceOf(CREATOR_0);
 
-      assert.equal(0, balanceBefore.add(ether("0.00165")).cmp(balanceAfter), "wrong after");
+      assert.equal(0, balanceBefore.add(ether("0.0004125")).cmp(balanceAfter), "wrong after");
     });
   });
 });

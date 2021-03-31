@@ -22,7 +22,7 @@ abstract contract PMCRaffle is Ownable {
   mapping(address => uint256) private raffleJackpot; //  token => amount, 0x0 - ETH
   mapping(address => uint256) private raffleJackpotsWonTotal;
 
-  mapping(address => address[]) private raffleParticipants; //  token => addresses, 0x0 - ETH
+  mapping(address => address[]) internal raffleParticipants; //  token => addresses, 0x0 - ETH
   mapping(address => RaffleResult[]) private raffleResults;
 
 
@@ -124,7 +124,7 @@ abstract contract PMCRaffle is Ownable {
    */
   function runRaffle(address _token) internal {
     if (raffleJackpot[_token] > 0 && raffleParticipants[_token].length > 0) {
-      uint256 winnerIdx = _rand(_token);
+      uint256 winnerIdx = _rand(_token, 0);
       address winnerAddr = raffleParticipants[_token][winnerIdx];
       raffleJackpotPending[_token][winnerAddr] = raffleJackpotPending[_token][winnerAddr].add(raffleJackpot[_token]);
       raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
@@ -140,10 +140,11 @@ abstract contract PMCRaffle is Ownable {
   /***
    * @dev Generates random number
    * @param _token Token address.
+   * @param _extraParam Extra value for randomness.
    */
-  function _rand(address _token) private view returns(uint256) {
+  function _rand(address _token, uint8 _extraParam) internal view returns(uint256) {
     if (raffleParticipants[_token].length > 0) {
-      return uint256(keccak256(abi.encodePacked(block.timestamp, raffleJackpot[_token], raffleParticipants[_token].length))) % raffleParticipants[_token].length;
+      return uint256(keccak256(abi.encodePacked(_extraParam, raffleJackpot[_token], raffleJackpotsWonTotal[_token], block.timestamp))) % raffleParticipants[_token].length;
     }
 
     return 0;

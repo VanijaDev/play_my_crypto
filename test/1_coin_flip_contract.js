@@ -1951,7 +1951,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(newGameInfo.creator, CREATOR_1, "Wrong creator for newGameInfo");
       assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
       assert.equal(0, newGameInfo.stake.cmp(ether("0.123").add(BET_ETH_0)), "Wrong stake for newGameInfo");
-      assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
+      // assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
       assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
       assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
       assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
@@ -2174,6 +2174,7 @@ contract("PMCCoinFlipContract", function (accounts) {
 
       await time.increase(time.duration.days(2));
       assert.equal(0, (await game.gamesStarted.call(testToken.address)).cmp(new BN("2")), "should be 2 before");
+
       let startAt = await time.latest();
       await game.finishTimeoutGame(testToken.address, 300, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
@@ -2190,7 +2191,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(newGameInfo.creator, CREATOR_0, "Wrong creator for newGameInfo");
       assert.equal(0, newGameInfo.idx.cmp(new BN("2")), "Wrong idx for newGameInfo");
       assert.equal(0, newGameInfo.stake.cmp(new BN("400")), "Wrong stake for newGameInfo");
-      assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
+      // assert.equal(0, newGameInfo.startTime.cmp(startAt), "Wrong startTime for newGameInfo");
       assert.equal(0, newGameInfo.heads.cmp(new BN("0")), "Wrong heads for newGameInfo");
       assert.equal(0, newGameInfo.tails.cmp(new BN("0")), "Wrong tails for newGameInfo");
       assert.equal(0, newGameInfo.creatorPrize.cmp(new BN("0")), "Wrong creatorPrize for newGameInfo");
@@ -3757,7 +3758,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
       assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
       assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
-      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_5), 0, "Wrong startTime for gameObj_5");
       assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
       assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
       assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0.55")), "Wrong creatorPrize for gameObj_5"); //  0.11 + 0.11 * 4 = 0.55
@@ -4000,7 +4001,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
       assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
       assert.equal(gameObj_5.stake.cmp(new BN("500")), 0, "Wrong stake for gameObj_5");
-      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_5), 0, "Wrong startTime for gameObj_5");
       assert.equal(gameObj_5.heads, 1, "Wrong heads for gameObj_5");
       assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
       assert.equal(0, gameObj_5.creatorPrize.cmp(new BN("2500")), "Wrong creatorPrize for gameObj_5"); //  500 + 500 * 4 = 2500
@@ -4038,7 +4039,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_0.creator, CREATOR_0, "Wrong creator for gameObj_0");
       assert.equal(gameObj_0.idx, 0, "Wrong idx for gameObj_0");
       assert.equal(gameObj_0.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_0");
-      // assert.equal(gameObj_0.startTime.cmp(startAt_0), 0, "Wrong startTime for gameObj_0");
+      assert.equal(gameObj_0.startTime.cmp(startAt_0), 0, "Wrong startTime for gameObj_0");
       assert.equal(gameObj_0.heads, 1, "Wrong heads for gameObj_0");
       assert.equal(gameObj_0.tails, 1, "Wrong tails for gameObj_0");
       assert.equal(0, gameObj_0.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_0"); //  0
@@ -4063,6 +4064,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
+      let startAt_1 = await time.latest();
       await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
         value: BET_ETH_1
@@ -4079,6 +4081,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_1.tails, 3, "Wrong tails for gameObj_1");
       assert.equal(0, gameObj_1.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_1"); //  0
       assert.equal(0, gameObj_1.opponentPrize.cmp(ether("0.15")), "Wrong opponentPrize for gameObj_1"); //  0.12 + 0.12 / 4 = 0.15
+
 
       //  2
       await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
@@ -4099,6 +4102,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
+      let startAt_2 = await time.latest();
       await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
@@ -4131,6 +4135,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
+      let startAt_3 = await time.latest();
       await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: ether("0.123")
@@ -4167,6 +4172,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
+      let startAt_4 = await time.latest();
       await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_0
@@ -4203,6 +4209,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       });
 
       await time.increase(time.duration.days(2));
+      let startAt_5 = await time.latest();
       await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: OTHER,
         value: BET_ETH_0
@@ -4214,7 +4221,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(gameObj_5.creator, CREATOR_1, "Wrong creator for gameObj_5");
       assert.equal(gameObj_5.idx, 5, "Wrong idx for gameObj_5");
       assert.equal(gameObj_5.stake.cmp(BET_ETH_0), 0, "Wrong stake for gameObj_5");
-      // assert.equal(gameObj_5.startTime.cmp(startAt_4), 0, "Wrong startTime for gameObj_5");
+      // assert.equal(gameObj_5.startTime.cmp(startAt_5), 0, "Wrong startTime for gameObj_5");
       assert.equal(gameObj_5.heads, 0, "Wrong heads for gameObj_5");
       assert.equal(gameObj_5.tails, 4, "Wrong tails for gameObj_5");
       assert.equal(0, gameObj_5.creatorPrize.cmp(ether("0")), "Wrong creatorPrize for gameObj_5"); //  0
@@ -4539,13 +4546,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, OPPONENT_1_balance_before_0.add(ether("0.15675")).sub(gasSpent).cmp(OPPONENT_1_balance_after_0), "Wrong OPPONENT_1_balance_after_0"); //  0.11 + 0.11 / 2 = 0.165 * 0.95
 
       //  check - PMC
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00165")), "should be 0.00165 pmc for CREATOR_0, 0");
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0 pmc for CREATOR_1, 0");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 0");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 0");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 0");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 0");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0004125")), "should be 0.0004125 pmc for CREATOR_0, 0"); //  0.00165 / 4 = 0.0004125
 
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.0000165")), "should be 0.0000165 pmc for OWNER, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(CREATOR_1)).cmp(ether("0")), "should be 0 pmc for CREATOR_1, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 0");
 
       //  check - playerWithdrawedTotal, ETH
       assert.equal(0, (await game.getPlayerWithdrawedTotal.call(constants.ZERO_ADDRESS, {
@@ -4859,13 +4867,14 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, balance_token_before.add(new BN("120")).cmp(balance_token_after), "Wrong balance_token_after for OPPONENT_3, 4"); //  125 * 0.96 = 120
 
       //  check - PMC
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00315")), "should be 0.00315 pmc for CREATOR_0, 4");
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0")), "should be 0.15675 pmc for CREATOR_1, 4");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 4");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 4");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 4");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 4");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0007875")), "should be 0.00315 pmc for CREATOR_0, 4"); // 0.00315 / 4 = 0.0007875
 
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.0000315")), "should be 0.0000315 pmc for OWNER, 0");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(CREATOR_1)).cmp(ether("0")), "should be 0 pmc for CREATOR_1, 4");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0")), "should be 0 pmc for OPPONENT_0, 4");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_1)).cmp(ether("0")), "should be 0 pmc for OPPONENT_1, 4");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_2)).cmp(ether("0")), "should be 0 pmc for OPPONENT_2, 4");
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_3)).cmp(ether("0")), "should be 0 pmc for OPPONENT_3, 4");
 
       //  check - playerWithdrawedTotal, ETH
       assert.equal(0, (await game.getPlayerWithdrawedTotal.call(constants.ZERO_ADDRESS, {
@@ -5111,13 +5120,10 @@ contract("PMCCoinFlipContract", function (accounts) {
       // console.log(eth_balance_after.toString());
       assert.equal(0, eth_balance_before.add(ether("0.510625")).sub(gasSpent).cmp(eth_balance_after), "Wrong eth_balance_after for OPPONENT_3, 5"); //  0.5375 * 0.95 = 0.510625
 
+
       //  check - PMC
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.00515")), "should be 0.0055 pmc for CREATOR_0, 5");
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 pmc for CREATOR_1, 5");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_0, 5");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 5");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_2, 5");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_3, 5");
+      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0012875")), "should be 0.0012875 pmc for CREATOR_0, 4"); // 0.00515 / 4 = 0.0012875
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.0001265")), "should be 0.0001265 pmc for OWNER, 0");
 
       //  check - playerWithdrawedTotal, ETH
       assert.equal(0, (await game.getPlayerWithdrawedTotal.call(constants.ZERO_ADDRESS, {
@@ -5457,13 +5463,7 @@ contract("PMCCoinFlipContract", function (accounts) {
         from: OPPONENT_3
       }), "No prize");
 
-      //  check - PMC
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0104")), "should be 0.0104 pmc for CREATOR_0, 7");
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.002")), "should be 0.002 pmc for CREATOR_1, 7");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_0, 7");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 7");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_2, 7");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_3, 7");
+      //  check - PMC in separate test
 
 
       //  check - playerWithdrawedTotal, ETH
@@ -5810,13 +5810,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       }), "No prize");
 
 
-      //  check - pmc
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_0)).cmp(ether("0.0139")), "should be 0.0139 pmc for CREATOR_0, 14");
-      assert.equal(0, (await pmc.balanceOf.call(CREATOR_1)).cmp(ether("0.004")), "should be 0.004 pmc for CREATOR_1, 14");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_0, 14");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_1)).cmp(ether("0.001375")), "should be 0.001375 pmc for OPPONENT_1, 14");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_2)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_2, 14");
-      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_3)).cmp(ether("0.002975")), "should be 0.002975 pmc for OPPONENT_3, 14");
+      //  check - PMC in separate test
 
 
       // check - playerWithdrawedTotal, ETH
@@ -6165,7 +6159,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, CREATOR_0_balance_before_0.add(ether("0.5141")).sub(gasSpent).cmp(CREATOR_0_balance_after_0), "Wrong CREATOR_0_balance_after_0");
 
       let pmc_after = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.0035")), "Wrong pmc after 0");
+      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.000875")), "Wrong pmc after 0"); //  0.0035 / 4 = 0.000875
 
 
       //  check - CREATOR_0: single 3 / 4
@@ -6184,7 +6178,7 @@ contract("PMCCoinFlipContract", function (accounts) {
       assert.equal(0, CREATOR_0_balance_before_1.add(ether("0.16005")).sub(gasSpent).cmp(CREATOR_0_balance_after_1), "Wrong CREATOR_0_balance_after_1");
 
       pmc_after = await pmc.balanceOf.call(CREATOR_0);
-      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.00165")), "Wrong pmc after 1");
+      assert.equal(0, pmc_after.sub(pmc_before).cmp(ether("0.0004125")), "Wrong pmc after 1");
 
 
       //  check - CREATOR_0: single 4 / 4
