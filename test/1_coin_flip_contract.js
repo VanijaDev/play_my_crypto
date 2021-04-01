@@ -4444,6 +4444,83 @@ contract("PMCCoinFlipContract", function (accounts) {
     });
   });
 
+  describe("gamesFinished", function () {
+    it("should increase gamesFinished for ETH", async function () {
+      //  0
+      let startAt_0 = await time.latest();
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+
+      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(1)), "should be 1");
+
+      //  1
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1.add(BET_ETH_0)
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(constants.ZERO_ADDRESS, 2, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(2)), "should be 2");
+    });
+
+    it("should increase gamesFinished for Token", async function () {
+      testToken = await TestToken.new();
+
+      testToken.transfer(CREATOR_0, 10000);
+      testToken.transfer(CREATOR_1, 10000);
+      testToken.transfer(OPPONENT_0, 10000);
+
+      await testToken.approve(game.address, 10000, {
+        from: CREATOR_0
+      });
+      await testToken.approve(game.address, 10000, {
+        from: CREATOR_1
+      });
+      await testToken.approve(game.address, 10000, {
+        from: OPPONENT_0
+      });
+
+      await game.updateGovernanceContract(OWNER);
+      await game.updateGameAddTokenSupported(testToken.address)
+
+      //  0
+      await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0
+      });
+
+      await time.increase(time.duration.days(2));
+      await game.finishTimeoutGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_1
+      });
+
+      assert.equal(0, (await game.gamesFinished.call(testToken.address)).cmp(new BN(1)), "should be 1");
+
+      //  1
+      await game.joinGame(testToken.address, 200, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0
+      });
+
+      await time.increase(time.duration.minutes(2));
+      await game.playGame(testToken.address, 1, CREATOR_SEED_HASH, {
+        from: CREATOR_1
+      });
+
+      assert.equal(0, (await game.gamesFinished.call(testToken.address)).cmp(new BN(2)), "should be 2");
+    });
+  });
+
   describe("withdrawPendingPrizes ETH & Token combined, _maxLoop = 0", function () {
     let testToken;
 
@@ -6221,82 +6298,617 @@ contract("PMCCoinFlipContract", function (accounts) {
       CREATOR_0_balance_after_1 = await testToken.balanceOf(CREATOR_0);
       assert.equal(0, CREATOR_0_balance_before_1.add(new BN("181")).cmp(CREATOR_0_balance_after_1), "Wrong CREATOR_0_balance_after_1");
     });
-  });
 
-  describe("gamesFinished", function () {
-    it("should increase gamesFinished for ETH", async function () {
-      //  0
-      let startAt_0 = await time.latest();
+    it("should update correct playerPendingWithdrawalPMC for owner", async function () {
+      //  0 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
         value: BET_ETH_0
       });
 
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(constants.ZERO_ADDRESS, 0, web3.utils.soliditySha3(2, CREATOR_SEED_HASH), CREATOR_REFERRAL_0, {
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      //  CREATOR_0: 0.11 + 0.11 / 2 = 0.165
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0")), "wrong 0 before");
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.0000165")), "wrong 0 after");
+
+
+      //  1 - ETH
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      //  CREATOR_0: 0.11 + 0.11 / 2 = 0.165
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.000033")), "wrong 1 after");
+
+
+      //  2 - ETH
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_1,
         value: BET_ETH_1
       });
 
-      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(1)), "should be 1");
-
-      //  1
-      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
-        from: OPPONENT_0,
-        value: BET_ETH_1.add(BET_ETH_0)
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
       });
 
-      await time.increase(time.duration.minutes(2));
-      await game.playGame(constants.ZERO_ADDRESS, 2, CREATOR_SEED_HASH, {
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
         from: CREATOR_1
       });
+      //  CREATOR_0: 0.12 + 0.12 / 2 = 0.18
 
-      assert.equal(0, (await game.gamesFinished.call(constants.ZERO_ADDRESS)).cmp(new BN(2)), "should be 2");
-    });
-
-    it("should increase gamesFinished for Token", async function () {
-      testToken = await TestToken.new();
-
-      testToken.transfer(CREATOR_0, 10000);
-      testToken.transfer(CREATOR_1, 10000);
-      testToken.transfer(OPPONENT_0, 10000);
-
-      await testToken.approve(game.address, 10000, {
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
         from: CREATOR_0
       });
-      await testToken.approve(game.address, 10000, {
-        from: CREATOR_1
-      });
-      await testToken.approve(game.address, 10000, {
-        from: OPPONENT_0
-      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.000033")), "wrong 2 after");
 
-      await game.updateGovernanceContract(OWNER);
-      await game.updateGameAddTokenSupported(testToken.address)
 
-      //  0
-      await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
+      //  3 - Token
+      await game.startGame(testToken.address, 150, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0
       });
-
-      await time.increase(time.duration.days(2));
-      await game.finishTimeoutGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
-        from: CREATOR_1
-      });
-
-      assert.equal(0, (await game.gamesFinished.call(testToken.address)).cmp(new BN(1)), "should be 1");
-
-      //  1
-      await game.joinGame(testToken.address, 200, 2, OPPONENT_REFERRAL_0, {
+      await game.joinGame(testToken.address, 150, 1, OPPONENT_REFERRAL_0, {
         from: OPPONENT_0
       });
-
+      await game.joinGame(testToken.address, 150, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1
+      });
+      await game.joinGame(testToken.address, 150, 1, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2
+      });
+      await game.joinGame(testToken.address, 150, 2, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3
+      });
       await time.increase(time.duration.minutes(2));
       await game.playGame(testToken.address, 1, CREATOR_SEED_HASH, {
-        from: CREATOR_1
+        from: CREATOR_0
+      });
+      //  CREATOR_0: 150 + 150 / 4 = 187 * 0.97 = 181
+
+      await game.withdrawPendingPrizes(testToken.address, 0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.000033")), "wrong 3 after");
+
+
+      //  4 - ETH
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: ether("0.21")
       });
 
-      assert.equal(0, (await game.gamesFinished.call(testToken.address)).cmp(new BN(2)), "should be 2");
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: ether("0.21")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_1, {
+        from: OPPONENT_1,
+        value: ether("0.21")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_2, {
+        from: OPPONENT_2,
+        value: ether("0.21")
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_3, {
+        from: OPPONENT_3,
+        value: ether("0.21")
+      });
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+      //  CREATOR_0: 0.21 + 0.21 * 2 / 3 = 0.35
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OWNER)).cmp(ether("0.000068")), "wrong 4 after");
+    });
+
+    it("should add playerPendingWithdrawalPMC to current amount", async function () {
+      //  0 - get playerPendingWithdrawalPMC for OPPONENT_0
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      // console.log(CREATOR_0);
+      // console.log(OPPONENT_0);
+      // console.log(OPPONENT_1);
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong before");
+
+
+      //  1 - test
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: OPPONENT_0
+      });
+
+      let OPPONENT_0_PMC_balance_before = await pmc.balanceOf(OPPONENT_0);
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      let OPPONENT_0_PMC_balance_after = await pmc.balanceOf(OPPONENT_0);
+
+      assert.equal(0, OPPONENT_0_PMC_balance_after.sub(OPPONENT_0_PMC_balance_before).cmp(ether("0.00165")), "wrong pmc balance after");
+
+
+      //  3 - get playerPendingWithdrawalPMC for OPPONENT_0 again
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      // console.log(CREATOR_0);
+      // console.log(OPPONENT_0);
+      // console.log(OPPONENT_1);
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong after 3");
+
+
+      //  4 - get playerPendingWithdrawalPMC for OPPONENT_0 again
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+
+      // console.log(CREATOR_0);
+      // console.log(OPPONENT_0);
+      // console.log(OPPONENT_1);
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0.0025875")), "wrong after 4");
+
+
+      //  5 
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: OPPONENT_0
+      });
+
+
+      //  withdraw
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+
+      assert.equal(0, (await pmc.balanceOf(OPPONENT_0)).cmp(ether("0.00465")), "wrong OPPONENT_0 pmc balance after 5"); //  0.00165 + 0.0025875 + 0.0004125 = 0.00465
+
+    });
+
+    it("should delete playerPendingWithdrawalPMC[msg.sender]", async function () {
+      //  0 - get playerPendingWithdrawalPMC for OPPONENT_0
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      // console.log(CREATOR_0);
+      // console.log(OPPONENT_0);
+      // console.log(OPPONENT_1);
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong before");
+
+
+      //  1 - test
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: OPPONENT_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0")), "wrong before");
+    });
+
+    it("should increase playerWithdrawedPMCTotal[msg.sender]", async function () {
+      //  0 - CREATOR_0
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      // console.log(CREATOR_0);
+      // console.log(OPPONENT_0);
+      // console.log(OPPONENT_1);
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(CREATOR_0)).cmp(ether("0")), "wrong CREATOR_0 before");
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(CREATOR_0)).cmp(ether("0.0004125")), "wrong CREATOR_0 after");
+
+
+      //  1 - OPPONENT_0
+
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: OPPONENT_0
+      });
+
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(OPPONENT_0)).cmp(ether("0")), "wrong OPPONENT_0 before");
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(OPPONENT_0)).cmp(ether("0.00165")), "wrong OPPONENT_0 after");
+    });
+
+    it("should distribute playerPendingWithdrawalPMC correctly", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_2,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_3,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: CREATOR_1,
+        value: BET_ETH_1
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OTHER,
+        value: BET_ETH_1
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_1
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_2
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_3
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_1
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      console.log((await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).toString());
+      console.log((await game.playerPendingWithdrawalPMC.call(OPPONENT_1)).toString());
+      console.log((await game.playerPendingWithdrawalPMC.call(OPPONENT_2)).toString());
+      console.log((await game.playerPendingWithdrawalPMC.call(OPPONENT_3)).toString());
+      console.log((await game.playerPendingWithdrawalPMC.call(CREATOR_1)).toString());
+
+      let betSum = BET_ETH_1.mul(new BN("7"));
+      assert.equal(0, betSum.cmp(ether("0.84")), "wrong betSum");
+
+      let distributedBet = (BET_ETH_1.add(BET_ETH_1.div(new BN("6")))).div(new BN("100")).div(new BN("4")).mul(new BN("3"));
+      assert.equal(0, distributedBet.cmp(ether("0.00105")), "wrong distributedBet");
+
+      let playerPendingWithdrawalPMC_sum = (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).add((await game.playerPendingWithdrawalPMC.call(OPPONENT_1))).add((await game.playerPendingWithdrawalPMC.call(OPPONENT_2))).add((await game.playerPendingWithdrawalPMC.call(OPPONENT_3))).add((await game.playerPendingWithdrawalPMC.call(CREATOR_1)));
+      assert.equal(0, playerPendingWithdrawalPMC_sum.cmp(distributedBet), "wrong distribution");
+    });
+  });
+
+  describe("withdrawPendingPMC", function () {
+    it("should delete playerPendingWithdrawalPMC", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong before");
+      await game.withdrawPendingPMC({
+        from: OPPONENT_0
+      });
+      assert.equal(0, (await game.playerPendingWithdrawalPMC.call(OPPONENT_0)).cmp(ether("0")), "wrong after");
+    });
+
+    it("should transfer correct PMC amount", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0")), "wrong before");
+      await game.withdrawPendingPMC({
+        from: OPPONENT_0
+      });
+      assert.equal(0, (await pmc.balanceOf.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong after");
+    });
+
+    it("should increase playerWithdrawedPMCTotal", async function () {
+      await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
+        from: CREATOR_0,
+        value: BET_ETH_0
+      });
+
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 1, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_0,
+        value: BET_ETH_0
+      });
+      await game.joinGame(constants.ZERO_ADDRESS, 0, 2, OPPONENT_REFERRAL_0, {
+        from: OPPONENT_1,
+        value: BET_ETH_0
+      });
+
+      await time.increase(time.duration.minutes(1));
+      await game.playGame(constants.ZERO_ADDRESS, CREATOR_COIN_SIDE, CREATOR_SEED_HASH, {
+        from: CREATOR_0
+      });
+
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: OPPONENT_0
+      });
+      await game.withdrawPendingPrizes(constants.ZERO_ADDRESS, 0, {
+        from: CREATOR_0
+      });
+
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(OPPONENT_0)).cmp(ether("0")), "wrong before");
+      await game.withdrawPendingPMC({
+        from: OPPONENT_0
+      });
+      assert.equal(0, (await game.playerWithdrawedPMCTotal.call(OPPONENT_0)).cmp(ether("0.0012375")), "wrong after");
     });
   });
 });
