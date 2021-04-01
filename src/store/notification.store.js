@@ -24,7 +24,7 @@ const actions = {
   },
   CLOSE: ({ commit }) => {
     Vue.$log.debug('notification/CLOSE')   
-    commit('CLOSE')    
+    commit('CLOSE')
   },
 };
 
