@@ -80,10 +80,10 @@
         en: {
           platform_stats: 'Platform stats',
           jackpots_won: 'Jackpots won:',
-          total_in: 'Total in:',          
+          total_in: 'Total in:',
           ongoing_raffles: 'Ongoing raffles',
           jackpots: 'Jackpots:',
-          participants: 'Participants:',            
+          participants: 'Participants:',
         },          
       }      
     }

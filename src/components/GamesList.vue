@@ -55,7 +55,7 @@
       messages: {
         en: {
           games: 'Games',
-          participants: 'Participants:',          
+          participants: 'Participants:',
           in: 'In:',
           new_game: 'NEW GAME',
           coming_soon: 'Coming soon...',
