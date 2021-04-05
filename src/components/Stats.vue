@@ -65,7 +65,7 @@
       messages: {
         en: {
           stats: 'Stats',
-          total_staken: 'Total staken',          
+          total_staken: 'Total staken',
           your_stake: 'Your stake',
           unstake: 'Unstake',
           how_to_stake: 'How to stake?',
@@ -76,7 +76,7 @@
   }
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   .__stats_col_1 {
     width: 95px;
   }
