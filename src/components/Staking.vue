@@ -5,7 +5,7 @@
     <div class="__text_line">
       <span>{{ $t('available_to_stake') }}</span>
       <div class="__img_value_block">
-        <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
+        <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
         <span id="staking_1">{{gUser.balancePMC | formatBalanceShort}}</span>
         <b-tooltip target="staking_1" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>  
       </div>              
@@ -22,7 +22,7 @@
     <div class="__text_line">
       <span>{{ $t('available_to_withdraw') }}</span>
       <div class="__img_value_block">
-        <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
+        <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
         <span id="staking_2">{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalanceShort}}</span>
         <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalance}}</b-tooltip>  
       </div>

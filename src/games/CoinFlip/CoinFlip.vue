@@ -21,12 +21,12 @@
             <div class="__cf_select_coin d-flex justify-content-between" v-if="view !== 4">
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __btc" @click="selectedCoin = 'BTC'" :class="{'__selected' : selectedCoin === 'BTC'}">
-                  <img src="/img/bitcoin_icon.svg" height="30"  width="30" alt="BTC">
+                  <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
                 </div>
               </div>
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __eth " @click="selectedCoin = 'ETH'" :class="{'__selected' : selectedCoin === 'ETH'}">
-                  <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
+                  <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
                 </div>
               </div>  
             </div>
