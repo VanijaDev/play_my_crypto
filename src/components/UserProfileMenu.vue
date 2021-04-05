@@ -1,11 +1,11 @@
 <template>
   <div class="__user_profile_dd d-flex align-items-center">
-    <b-dropdown toggle-tag="div" variant="link"  right toggle-class="text-decoration-none p-0 __up_dd_toggle" no-caret menu-class="__up_dd_menu shadow">
+    <b-dropdown toggle-tag="div" variant="link"  right toggle-class="text-decoration-none p-0 __up_dd_toggle" no-caret menu-class="__up_dd_menu shadow" :disabled="!gUser.accountAddress">
       <template #button-content>
         <div class="d-flex align-items-center __user_profile">
           <div class="d-flex flex-column __up_text mr-2">
-            <span class="__strong-text __blue_text">{{ $t('profile') }}:</span>
-            <span class="__strong-text text-monospace">{{user.accountAddress | addressShort}}</span>              
+            <span class="__strong-text __blue_text">{{ $t('profile') }}</span>
+            <span class="__strong-text text-monospace">{{gUser.accountAddress | addressShort}}</span>              
           </div> 
           <div class="d-flex align-items-center">              
             <a class="d-flex flex-column justify-content-center align-items-center" href="#">
@@ -17,102 +17,99 @@
       <div class="__drop_down_menu">
         <ul class="list-group __list_group">
           <li class="list-group-item d-flex justify-content-between align-items-center __list_item">
-            <div class="__blue_text">Balance:</div>
+            <div class="__blue_text">{{ $t('balance') }}</div>
             <div class="d-flex align-items-center text-monospace">
               
-              <img class="__currency_img" src="/img/ethereum_icon.svg" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
               
-              <span id="up_1" class="mr-2">{{user.balance.ETH | formatBalanceShort}}</span>
+              <span id="up_1" class="mr-2">{{gUser.balanceETH | formatBalanceShort}}</span>
               
-              <b-tooltip target="up_1" custom-class="__tooltip" >{{user.balance.ETH | formatBalance}}</b-tooltip>
+              <b-tooltip target="up_1" custom-class="__tooltip" >{{gUser.balanceETH | formatBalance}}</b-tooltip>
                             
               <img class="__currency_img" src="/img/logo.svg" height="30" alt="Logo">
-              <span id="up_2">{{user.balance.PMC | formatBalanceShort}}</span>
-              <b-tooltip target="up_2" custom-class="__tooltip" >{{user.balance.PMC | formatBalance}}</b-tooltip>
+              <span id="up_2">{{gUser.balancePMC | formatBalanceShort}}</span>
+              <b-tooltip target="up_2" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>
             </div>
           </li>      
         </ul>
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item">
-            <div class="__blue_text">Playing now:</div>
-            <div class="__card_list d-flex justify-content-end">              
-              
-              <div class="__card_block __img_button __shadow_filter" v-for="(gameId, $index) in user.gamesStarted" :key="'gs_'+$index">
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span> <span class="text-monospace" v-if="!gamesStarted.length">{{ $t('no_games_playing') }}</span></div>
+            <div class="__card_list d-flex justify-content-end" v-if="gamesStarted.length">              
+              <div v-for="(gameId, $index) in gamesStarted" :key="'gs_'+$index"
+                class="__card_block __img_button __shadow_filter" 
+                @click="gSelectGame(getGameById(gameId))"
+                >
                 <img :src="'/img/'+ getGameById(gameId).image" height="30" alt="Game image">
               </div>
                           
             </div>
           </li>      
         </ul>
+        
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
-            <div class="__blue_text">Total in:</div>
+            <div class="__blue_text">{{ $t('total_in') }}</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">
-              
-              <span id="up_3" class="__price_change_up">1.11111</span>
-              <PriceUpDownArrowIcon class="__price_change_icon" direction="up"/>
-
-              <b-tooltip target="up_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
+              <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>              
+              <b-tooltip target="up_3" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>
             </div>
           </li>     
           <li class="list-group-item __list_item ">
             <div class=" d-flex justify-content-between align-items-center mb-2">
-              <div class="__blue_text">Total out:</div>
+              <div class="__blue_text">{{ $t('total_out') }}</div>
               <div class="d-flex align-items-center text-monospace">
-                <img class="__currency_img" src="/img/binance_icon.svg" height="30" alt="Telegram logo">
-                
-                <span id="up_4" class="__price_change_down">1.11111</span>
-                <PriceUpDownArrowIcon class="__price_change_icon" direction="down"/>
-
-                <b-tooltip target="up_4" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">                
+                <span id="up_4" :class="{'__price_change_down' : totalOutChange === 'down', '__price_change_up' : totalOutChange === 'up' }">
+                  {{gGameData.playerWithdrawedTotal | formatBalanceShort}}
+                </span>
+                <PriceUpDownArrowIcon class="__price_change_icon" v-if="totalOutChange" :direction="totalOutChange"/>
+                <b-tooltip target="up_4" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>
               </div>
             </div>            
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Gameplay:</span>
-                <span id="up_5">1.11111</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span>{{ $t('gameplay') }}</span>
+                <span id="up_5">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
+                <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Referral:</span>
-                <span id="up_6">1.11111</span>
-                <b-tooltip target="up_6" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span>{{ $t('referral') }}</span>
+                <span id="up_6">{{gGameData.referralFeeWithdrawn | formatBalanceShort}}</span>
+                <b-tooltip target="up_6" custom-class="__tooltip" >{{gGameData.referralFeeWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Raffle:</span>
-                <span id="up_7">1.11111</span>
-                <b-tooltip target="up_7" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span>{{ $t('raffle') }}</span>
+                <span id="up_7">{{gGameData.raffleJackpotPending | formatBalanceShort}}</span>
+                <b-tooltip target="up_7" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Staking:</span>
-                <span id="up_8">1.11111</span>
-                <b-tooltip target="up_8" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+                <span>{{ $t('staking') }}</span>
+                <span id="up_8">{{gUser.stakingData.stakingRewardWithdrawn | formatBalanceShort}}</span>
+                <b-tooltip target="up_8" custom-class="__tooltip" >{{gUser.stakingData.stakingRewardWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
-                <span>Partnership:</span>
-                <span id="up_9">1.11111</span>
-                <b-tooltip target="up_9" custom-class="__tooltip" >0.123456789012345678</b-tooltip>                
+                <span>{{ $t('partnership') }}</span>
+                <span id="up_9">{{gGameData.partnerFeeWithdrawn | formatBalanceShort}}</span>
+                <b-tooltip target="up_9" custom-class="__tooltip" >{{gGameData.partnerFeeWithdrawn | formatBalance}}</b-tooltip>                
               </div>
             </div>
           </li>  
         </ul>  
         <ul class="list-group __list_group">          
           <li class="list-group-item __list_item">
-            <div class="__blue_text">Pending withdrawal:</div>
-            <div class="__card_list d-flex justify-content-end">          
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_shake_hands.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_coin_flip.svg" height="30" alt="Game image">
-              </div>
-              <div class="__card_block  __img_button __shadow_filter ">
-                <img src="/img/game_shake_hands.svg" height="30" alt="Game image">
-              </div>                           
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('pending_withdrawal') }}</span> <span class="text-monospace" v-if="!userGameplayOrPartnerPendingWithdrawal">{{ $t('not_available') }}</span></div>
+            
+            <div class="__card_list d-flex justify-content-end" v-if="userGameplayOrPartnerPendingWithdrawal">    
+              <template  v-for="(game, index) in listOfGames">     
+                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userGameplayPendingWithdrawal(game)">
+                  <img :src="game.image" height="30" alt="Gameplay">
+                </div> 
+                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userPartnerPendingWithdrawal(game)">
+                  <img :src="game.imagePartner" height="30" alt="Partner">
+                </div> 
+              </template>                                      
             </div> 
           </li>  
         </ul>
@@ -125,7 +122,7 @@
   @import '@/assets/css/variables.scss';
   .__user_profile_dd {
     margin-right: -2px;
-    .__user_profile{          
+    .__user_profile{               
       .__up_text{
         span:first-child{
           text-align: right;
@@ -215,14 +212,58 @@
   export default {
     name: 'UserProfileMenu', 
     components: { PriceUpDownArrowIcon },
+    data: () => ({      
+    }),
+    computed: {
+      totalOutChange() { 
+        if (this.gGameData && this.gGameData.totalIn && this.gGameData.playerWithdrawedTotal) {
+          if (this.gGameData.totalIn.eq(this.gGameData.playerWithdrawedTotal)) return null
+          return this.gGameData.totalIn.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
+        }
+        return null
+      },
+      gamesStarted() {  
+        return this.$store.state['games/started'] ? this.$store.state['games/started'] : []
+      },
+      listOfGames() {         
+        return this.$store.getters['games/listOfGames']
+      },
+      userGameplayPendingWithdrawal() { return function(game) {
+        if (!game.data) return false
+        if ( (game.data.pendingPrizeToWithdrawPrize && game.data.pendingPrizeToWithdrawPrize.gt(0)) 
+          || (game.data.referralFeePending && game.data.referralFeePending.gt(0))
+          || (game.data.raffleJackpotPending && game.data.raffleJackpotPending.gt(0))
+        ) return true
+        return false
+      }},
+      userPartnerPendingWithdrawal() { return function(game) {
+        if (!game.data) return false
+        if (game.data.partnerFeePending && game.data.partnerFeePending.gt(0)) return true
+        return false
+      }},
+      userGameplayOrPartnerPendingWithdrawal() {
+        return this.listOfGames.find(game => {
+          return this.userGameplayPendingWithdrawal(game) || this.userPartnerPendingWithdrawal(game)
+        })
+      }
+    },
     i18n: {
       messages: {
         en: {
-          profile: 'Profile',
-        },
-        ch: {
-          profile: '輪廓',
-        },  
+          profile: 'Profile:',
+          balance: 'Balance:',
+          playing_now: 'Playing now:',
+          total_in: 'Total in:',
+          total_out: 'Total out:',
+          gameplay: 'Gameplay:',
+          referral: 'Referral:',
+          raffle: 'Raffle:',
+          staking: 'Staking:',
+          partnership: 'Partnership:',
+          pending_withdrawal: 'Pending withdrawal:',
+          no_games_playing: 'no games playing',     
+          not_available: 'not available',     
+        },          
       }      
     } 
   }

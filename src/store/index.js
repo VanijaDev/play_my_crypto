@@ -6,6 +6,8 @@ import uiBreakPoint from "./uiBreakPoint.store";
 import uiHeaderHeight from "./uiHeaderHeight.store";
 import blockchain from "./blockchain.store";
 import games from "./games.store";
+import notification from "./notification.store";
+
 
 Vue.use(Vuex);
 
@@ -19,6 +21,7 @@ const store = new Vuex.Store({
     user, 
     blockchain,
     games,
+    notification,
   },
   strict: process.env.NODE_ENV !== "production"
 });

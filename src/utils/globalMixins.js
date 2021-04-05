@@ -1,3 +1,4 @@
+import Vue from "vue";
 import { ethers, BigNumber } from "ethers";
 
 export default {
@@ -5,24 +6,26 @@ export default {
     return {  
       $loader: null,
       isLoading: false, 
-      blockContent: 0, 
+      
     };
   }, 
   computed: {     
-    user() { return  this.$store.getters['user/user'] }, 
-    game() { return  this.$store.getters['game/game'] },
+    gUser() { return  this.$store.getters['user/user'] }, 
+    gNetwork() { return  this.$store.getters['blockchain/network'] },
+    gBlockchain() { return this.$store.getters['blockchain/blockchain'] },
+    gCurrentNetworkIcon() { return this.gNetwork.id ? this.gNetwork.icon : this.gBlockchain.networks[0].icon },
+
+    gGame() { return this.$store.getters['games/currentGame'] },
+    gGameData() { return this.gGame.id ? this.gGame.data : {} },
     getGameById() { return function (gameId) { return this.$store.getters['games/getGameById'](gameId) }},
-    //checkAccess: (role) => store.getters['auth/checkAccess'](role), 
-    //isAuthenticated: () => store.getters['auth/isAuthenticated'],  
-    headerHeight() { return this.$store.getters.uiHeaderHeight },
-    breakPoint() { return function (bp, condition) { 
-      return this.$store.getters.breakPoint(bp, condition)   
-    }},  
-    isBlockContent() { return this.blockContent },
-    blockchain() { return this.$store.getters['blockchain/blockchain'] },
-    currentGame() { return this.$store.getters['games/currentGame'] },
+    //blockchain() { return this.$store.getters['blockchain/blockchain'] },
+        
+    gBreakPoint() { return function (bp, condition) { return this.$store.getters.breakPoint(bp, condition) }},  
   },
   methods: {
+    gSelectGame(game) {
+      if (game.id && this.$route.name !== game.routeName ) this.$router.push(game.routeName)
+    },
     cleanObject: obj => cleanObject(obj),
     copyToClipboard(text) {
       if (!text) return;
@@ -89,12 +92,14 @@ export default {
       return '...' 
     },
     formatBalance(val) {
-      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
-      return '...' 
+      if (!BigNumber.isBigNumber(val)) return '.......'
+      if (BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val));
+      return '0.00000' 
     },  
-    formatBalanceShort(val) {        
-      if (val && BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
-      return '...' 
+    formatBalanceShort(val) { 
+      if (!BigNumber.isBigNumber(val)) return '.......'       
+      if (BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
+      return '0.00000' 
     },  
   },
 }
@@ -113,18 +118,18 @@ function copyTextToClipboard(text) {
     try {
       var successful = document.execCommand('copy');
       var msg = successful ? 'successful' : 'unsuccessful';
-      console.log('Fallback: Copying text command was ' + msg);
+      Vue.$log.info('Fallback: Copying text command was ' + msg);
     } catch (err) {
-      console.error('Fallback: Oops, unable to copy', err);
+      Vue.$log.error('Fallback: Oops, unable to copy', err);
       return false; 
     }
     document.body.removeChild(textArea);
     return true;
   }
   navigator.clipboard.writeText(text).then(function() {
-    console.log('Async: Copying to clipboard was successful!');      
+    Vue.$log.info('Async: Copying to clipboard was successful!');      
   }, function(err) {
-    console.error('Async: Could not copy text: ', err);  
+    Vue.$log.error('Async: Could not copy text: ', err);  
     return false;    
   });
   return true;

@@ -22,6 +22,17 @@ const i18n = new VueI18n({ locale: 'en', fallbackLocale: 'en', silentTranslation
 import globalMixins from "@/utils/globalMixins";
 Vue.mixin(globalMixins)
 
+import VueLogger from 'vuejs-logger';
+Vue.use(VueLogger, {
+  isEnabled: true, //
+  logLevel : process.env.NODE_ENV === 'production' ? 'error' : 'debug',
+  stringifyArguments : false,
+  showLogLevel : true,
+  showMethodName : true,
+  separator: '|',
+  showConsoleColors: true
+});
+
 Vue.config.productionTip = false
 
 Vue.prototype.$eventBus = new Vue(); // Global event bus

@@ -1,41 +1,41 @@
 <template>
+
   <header ref="header">    
     <nav class="navbar navbar-light bg-light">
-      <b-container :class="{'px-0': breakPoint('sm', 'lt')}">
+      <b-container :class="{'px-0': gBreakPoint('sm', 'lt')}">
         <b-row no-gutters class="w-100">
           <b-col class=" d-flex justify-content-between">
             <!-- logo -->
             <div class="d-flex align-items-center">
               <a class="align-self-center" href="/">
-                <img src="/img/logo.svg" :height="breakPoint('sm', 'gte') ? 80 : 50" alt="Logo">
+                <img src="/img/logo.svg" :height="gBreakPoint('sm', 'gte') ? 80 : 50" alt="Logo">
               </a>              
             </div>
             
             <!-- contact us -->
-            <div class="d-flex align-items-center" v-if="breakPoint('lg', 'gte')">
+            <!-- TODO :  click methods -->
+            <div class="d-flex align-items-center" v-if="gBreakPoint('lg', 'gte')">
               <div class="__strong-text mr-2">
                 {{ $t('contact_us') }}
-              </div>
-              
+              </div>              
               <div class="__img_button">
                 <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo" class="__shadow_filter">
-              </div>
-                         
+              </div>                         
             </div>
 
-            <!-- choose crypto -->
+            <!-- choose crypto -->            
             <div class="d-flex align-items-center">
-              <div class="__strong-text mr-2" v-if="breakPoint('md', 'gte')">
+              <div class="__strong-text mr-2" v-if="gBreakPoint('md', 'gte')">
                 {{ $t('choose_crypto') }}
               </div>
               <div class="__currency_select_block d-flex align-items-center">
-                <div v-for="network in blockchain.networks" :key="'network_select_' + network.id"
-                  class="d-flex flex-column justify-content-center align-items-center mr-3 __img_button " 
-                  :class="{'__selected' : blockchain.network && blockchain.network.id === network.id}"
+                <div v-for="network in gBlockchain.networks" :key="'network_select_' + network.id"
+                  class="d-flex flex-column justify-content-center align-items-center mr-3  " 
+                  :class="{'__selected' : gNetwork.id === network.id, '__img_button' : gNetwork.id !== network.id }"
                   @click="selectNetwork(network)" 
                   >
                   <img :src="network.icon" height="40" width="40" :alt="network.id">
-                  <div class="mt-1" v-if="breakPoint('sm', 'gte')">{{network.name}}</div>
+                  <div class="mt-1" v-if="gBreakPoint('sm', 'gte')">{{network.name}}</div>
                 </div> 
               </div>                          
             </div>
@@ -90,12 +90,12 @@
     data: () => ({      
     }),    
     mounted () {
-      setInterval(() => { this.detectHeight() }, 100)
-      //setTimeout(() => { this.detectHeight() }, 100)
-      //window.addEventListener("resize", this.detectHeight);
+      //setInterval(() => { this.detectHeight() }, 100)
+      setTimeout(() => { this.detectHeight() }, 10)
+      window.addEventListener("resize", this.detectHeight);
     },
     beforeDestroy () {      
-      //window.removeEventListener("resize", this.detectHeight);
+      window.removeEventListener("resize", this.detectHeight);
     },  
     computed: {        
       
@@ -107,7 +107,8 @@
         }                   
       },
       selectNetwork(network) {
-        //this.$store.dispatch('blockchain/SET_NETWORK', network) 
+        this.$log.debug(network.id)
+        //<!-- TODO : click on inactive network notification -->
       },
     },
     i18n: {

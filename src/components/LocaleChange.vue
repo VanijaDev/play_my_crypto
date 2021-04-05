@@ -10,10 +10,10 @@
 
 <script>
 export default {
-  name: 'LocaleChange',
-  data () {
-    return { langs: ['en', 'ch'] }
-  },
+  name: 'LocaleChange',  
+  data: () => ({  
+    langs: ['en', 'ch']    
+  }),
   mounted () {  
     let locale = localStorage.getItem('PMC_LOCALE')
     if (!locale) {
@@ -23,12 +23,12 @@ export default {
         } catch (error) { 
           locale = 'en'         
         }        
-        console.log('navigator', locale)
+        this.$log.debug('navigator', locale)
       } else {
         locale = 'en'
       }
     }
-    console.log(locale)
+    this.$log.debug(locale)
     if (!locale || !this.langs.find(l=>locale === l)) {
       locale = 'en'
     }

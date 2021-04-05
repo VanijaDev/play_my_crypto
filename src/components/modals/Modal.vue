@@ -6,7 +6,7 @@
     v-model="modalShow"
     header-class="__modal__header" 
     title-class="__modal__title"   
-    :body-class="`__modal__body __bp_${breakPoint()}`"    
+    :body-class="`__modal__body __bp_${gBreakPoint()}`"    
     content-class="__modal__content"    
     scrollable 
     :hide-footer="true"
