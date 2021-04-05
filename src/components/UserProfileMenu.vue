@@ -19,13 +19,10 @@
           <li class="list-group-item d-flex justify-content-between align-items-center __list_item">
             <div class="__blue_text">{{ $t('balance') }}</div>
             <div class="d-flex align-items-center text-monospace">
-              
               <img class="__currency_img" :src="gCurrentNetworkIcon" height="25" alt="Telegram logo">
-              
               <span id="up_1" class="mr-2">{{gUser.balanceETH | formatBalanceShort}}</span>
-              
               <b-tooltip target="up_1" custom-class="__tooltip" >{{gUser.balanceETH | formatBalance}}</b-tooltip>
-                            
+
               <img class="__currency_img" src="/img/logo.svg" height="25" alt="Logo">
               <span id="up_2">{{gUser.balancePMC | formatBalanceShort}}</span>
               <b-tooltip target="up_2" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>
@@ -157,6 +154,7 @@
           }
           .__currency_img {
             margin-right: .5rem;
+            margin-left: .5rem;
           }
           .__price_change_down {
             color: $_red;
