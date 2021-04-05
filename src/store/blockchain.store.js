@@ -64,23 +64,29 @@ const actions = {
     state
   }) => {
     Vue.$log.debug('blockchain/ON_LOAD')
+
     if (window.ethereum !== null && typeof window.ethereum !== 'undefined') {
       window.ethereum.autoRefreshOnNetworkChange = false
       window.ethereum.on('connect', function () {
         dispatch('ON_CONNECT')
       })
+
       window.ethereum.on('chainChanged', function () {
         dispatch('ON_CHAIN_CHANGED')
       })
+
       window.ethereum.on('accountsChanged', function () {
         dispatch('ON_ACCOUNTS_CHANGED')
       })
+
       window.ethereum.on('message', function () {
         dispatch('ON_MESSAGE')
       })
+
       window.ethereum.on('disconnect', function () {
         dispatch('ON_DISCONNECT')
       })
+
       dispatch('INIT')
     } else {
       dispatch('notification/OPEN', {
@@ -180,6 +186,13 @@ const actions = {
       dispatch('user/INIT', accountAddress, {
         root: true
       })
+    } else {
+      dispatch('notification/OPEN', {
+        id: 'METAMASK_CONNECT_ERROR'
+      }, {
+        root: true
+      })
+      dispatch('DESTROY')
     }
   },
 
