@@ -3,8 +3,8 @@
   <Modal size="lg" :id="modalId" :title="$t('title')"> 
     <template v-slot:content>
       <p class="__info">{{ $t('info') }}</p>
-      <ModalAccordion :list="accordionList"/>       
-    </template>    
+      <ModalAccordion :list="accordionList"/>
+    </template>
   </Modal> 
 </template>
 
@@ -14,9 +14,9 @@
   export default {
     name: "FAQModal",
     computed: { accordionList() { return this.$i18n.messages[this.$i18n.locale].qa } },
-    components: { Modal, ModalAccordion },  
-    data () { return { modalId: 'FAQModal' } },    
-    mounted () { this.$eventBus.$on('faq-modal::open', this.open) },  
+    components: { Modal, ModalAccordion },
+    data () { return { modalId: 'FAQModal' } },
+    mounted () { this.$eventBus.$on('faq-modal::open', this.open) },
     beforeDestroy () { this.$eventBus.$off('faq-modal::open') },
     methods: { open() { this.$eventBus.$emit('modal::' + this.modalId + '::open') } },
     i18n: {
@@ -54,12 +54,12 @@
               a: 'But I really must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness.',
             },
           ]
-        },        
-      }      
-    }  
+        },
+      }
+    }
   }
 </script>
 
 <style lang="scss" scoped>
-  //@import '@/assets/css/variables.scss';   
+  //@import '@/assets/css/variables.scss';
 </style>

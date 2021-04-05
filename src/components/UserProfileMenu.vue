@@ -20,7 +20,7 @@
             <div class="__blue_text">{{ $t('balance') }}</div>
             <div class="d-flex align-items-center text-monospace">
               
-              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">
               
               <span id="up_1" class="mr-2">{{gUser.balanceETH | formatBalanceShort}}</span>
               
@@ -30,29 +30,29 @@
               <span id="up_2">{{gUser.balancePMC | formatBalanceShort}}</span>
               <b-tooltip target="up_2" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>
             </div>
-          </li>      
+          </li>
         </ul>
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item">
-            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span> <span class="text-monospace" v-if="!gamesStarted.length">{{ $t('no_games_playing') }}</span></div>
-            <div class="__card_list d-flex justify-content-end" v-if="gamesStarted.length">              
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span></div>  <!-- <span class="text-monospace" v-if="!gamesStarted.length">{{ $t('no_games_playing') }}</span> -->
+            <div class="__card_list d-flex justify-content-end" v-if="gamesStarted.length">
               <div v-for="(gameId, $index) in gamesStarted" :key="'gs_'+$index"
                 class="__card_block __img_button __shadow_filter" 
                 @click="gSelectGame(getGameById(gameId))"
                 >
                 <img :src="'/img/'+ getGameById(gameId).image" height="30" alt="Game image">
               </div>
-                          
+
             </div>
-          </li>      
+          </li>
         </ul>
         
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item d-flex justify-content-between align-items-center ">
             <div class="__blue_text">{{ $t('total_in') }}</div>
             <div class="d-flex align-items-center text-monospace">
-              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">              
-              <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>              
+              <img class="__currency_img" :src="gCurrentNetworkIcon" height="30" alt="Telegram logo">
+              <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>
               <b-tooltip target="up_3" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>
             </div>
           </li>     
@@ -99,7 +99,7 @@
         </ul>  
         <ul class="list-group __list_group">          
           <li class="list-group-item __list_item">
-            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('pending_withdrawal') }}</span> <span class="text-monospace" v-if="!userGameplayOrPartnerPendingWithdrawal">{{ $t('not_available') }}</span></div>
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('pending_withdrawal') }}</span></div>  <!-- <span class="text-monospace" v-if="!userGameplayOrPartnerPendingWithdrawal">{{ $t('not_available') }}</span> -->
             
             <div class="__card_list d-flex justify-content-end" v-if="userGameplayOrPartnerPendingWithdrawal">    
               <template  v-for="(game, index) in listOfGames">     
@@ -261,10 +261,10 @@
           staking: 'Staking:',
           partnership: 'Partnership:',
           pending_withdrawal: 'Pending withdrawal:',
-          no_games_playing: 'no games playing',     
-          not_available: 'not available',     
-        },          
-      }      
+          no_games_playing: 'no games playing',
+          not_available: 'not available',
+        },
+      }
     } 
   }
 </script>
