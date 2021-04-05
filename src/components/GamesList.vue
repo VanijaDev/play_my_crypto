@@ -1,7 +1,7 @@
 <template>
   <!-- TODO : list scroll -->
   <div class="h-100 __games_list">
-    <h2>{{ $t('games') }}</h2>
+    <h2 class="games-title">{{ $t('games') }}</h2>
     <div class="w-100 __list d-flex">
       <div v-for="(_game, _index) in list" :key="'game_' + _index"
         class="__game_card  " 
