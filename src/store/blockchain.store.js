@@ -67,6 +67,11 @@ const actions = {
     //  staking
     state.stakingContract.on("Unstake", (addr) => {
       console.log("Unstake", addr);
+
+      //  TODO: Stats
+      //  if (addr == me) {
+      //    Staking
+      //  }
     });
   },
 
