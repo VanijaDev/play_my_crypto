@@ -32,6 +32,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
   mapping(address => bool) public gameplaySupported;
 
   event Unstake(address indexed addr);
+  event Stake(address indexed addr, uint256 indexed tokens);
   
   /***
    * @dev Constructor.
@@ -103,6 +104,8 @@ contract PMCStaking is Ownable, PMC_IStaking {
 
     stakeOf[msg.sender] = stakeOf[msg.sender].add(_tokens);
     tokensStaked = tokensStaked.add(_tokens);
+
+    emit Stake(msg.sender, _tokens);
   }
 
   /***
