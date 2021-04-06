@@ -59,6 +59,17 @@ const getters = {
 };
 
 const actions = {
+  TEST_LISTEN_FOR_EVENTS_BLOCKCHAIN: async () => {
+    //  IMPORTANT: removeAllListeners in DESTROY
+
+    console.log("TEST_LISTEN_FOR_EVENTS_BLOCKCHAIN");
+
+    //  staking
+    state.stakingContract.on("Unstake", (addr) => {
+      console.log("Unstake", addr);
+    });
+  },
+
   ON_LOAD: async ({
     dispatch,
     state
@@ -186,6 +197,7 @@ const actions = {
       dispatch('user/INIT', accountAddress, {
         root: true
       })
+      dispatch('TEST_LISTEN_FOR_EVENTS_BLOCKCHAIN')
     } else {
       dispatch('notification/OPEN', {
         id: 'METAMASK_CONNECT_ERROR'
@@ -233,6 +245,8 @@ const mutations = {
   },
 
   DESTROY: (state) => {
+    state.stakingContract.removeAllListeners();
+
     state.networkIndex = null
     state.chainId = null
     state.pmcContract = null

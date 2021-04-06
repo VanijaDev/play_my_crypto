@@ -15,7 +15,7 @@ const state = {
         ETH: {
           '0x2a': "", // kovan
           '0x3': "", // ropsten
-          '0x539': "0x094155d10DB25532bE72c52cf7280959136fb969", // ganache
+          '0x539': "0x0c0f8c6F4df3Cc612da07fcF4C76Fb4615dF71B8", // ganache
         }
       },
       contract: null,
@@ -1149,35 +1149,39 @@ const actions = {
     //  IMPORTANT: removeAllListeners in DESTROY
 
     console.log("TEST_LISTEN_FOR_EVENTS");
-    const contract_cf = state.list[0].contract;
 
-    //  gameplay
-    contract_cf.on("CF_GameStarted", (token, id) => {
-      console.log("CF_GameStarted", token, id);
-    });
+    state.list.forEach((game, index) => {
+      if (game.id) {
+        const gameContract = state.list[index].contract;
+        const gameId = state.list[index].id;
 
-    contract_cf.on("CF_GameJoined", (token, id, opponent) => {
-      console.log("CF_GameJoined", token, id, opponent);
-    });
+        //  gameplay
+        gameContract.on(gameId + "_GameStarted", (token, id) => {
+          console.log(gameId + "_GameStarted", token, id);
+        });
 
-    contract_cf.on("CF_GameFinished", (token, id, timeout) => {
-      console.log("CF_GameFinished", token, id, timeout);
-    });
+        gameContract.on(gameId + "_GameJoined", (token, id, opponent) => {
+          console.log(gameId + "_GameJoined", token, id, opponent);
+        });
 
-    contract_cf.on("CF_PrizeWithdrawn", (token, player, prize, pmc) => {
-      console.log("CF_PrizeWithdrawn", token, player, prize, pmc);
-    });
+        gameContract.on(gameId + "_GameFinished", (token, id, timeout) => {
+          console.log(gameId + "_GameFinished", token, id, timeout);
+        });
 
-    //  raffle
-    contract_cf.on("CF_RafflePlayed", (token, winner, prize) => {
-      console.log("CF_RafflePlayed", token, winner, prize);
-    });
+        gameContract.on(gameId + "_PrizeWithdrawn", (token, player, prize, pmc) => {
+          console.log(gameId + "_PrizeWithdrawn", token, player, prize, pmc);
+        });
 
-    contract_cf.on("CF_RaffleJackpotWithdrawn", (token, amount, winner) => {
-      console.log("CF_RaffleJackpotWithdrawn", token, amount, winner);
-    });
+        //  raffle
+        gameContract.on(gameId + "_RafflePlayed", (token, winner, prize) => {
+          console.log(gameId + "_RafflePlayed", token, winner, prize);
+        });
 
-
+        gameContract.on(gameId + "_RaffleJackpotWithdrawn", (token, amount, winner) => {
+          console.log(gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
+        });
+      }
+    })
   },
 
   INIT: async ({
