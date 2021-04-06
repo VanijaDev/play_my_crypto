@@ -15,7 +15,7 @@ const state = {
         ETH: {
           '0x2a': "", // kovan
           '0x3': "", // ropsten
-          '0x539': "0x35eEf579d19E39B63CCE7F1C24115f7BA8ae092E", // ganache
+          '0x539': "0x094155d10DB25532bE72c52cf7280959136fb969", // ganache
         }
       },
       contract: null,
@@ -1145,12 +1145,48 @@ const getters = {
 };
 
 const actions = {
+  TEST_LISTEN_FOR_EVENTS: async () => {
+    //  IMPORTANT: removeAllListeners in DESTROY
+
+    console.log("TEST_LISTEN_FOR_EVENTS");
+    const contract_cf = state.list[0].contract;
+
+    //  gameplay
+    contract_cf.on("CF_GameStarted", (token, id) => {
+      console.log("CF_GameStarted", token, id);
+    });
+
+    contract_cf.on("CF_GameJoined", (token, id, opponent) => {
+      console.log("CF_GameJoined", token, id, opponent);
+    });
+
+    contract_cf.on("CF_GameFinished", (token, id, timeout) => {
+      console.log("CF_GameFinished", token, id, timeout);
+    });
+
+    contract_cf.on("CF_PrizeWithdrawn", (token, player, prize, pmc) => {
+      console.log("CF_PrizeWithdrawn", token, player, prize, pmc);
+    });
+
+    //  raffle
+    contract_cf.on("CF_RafflePlayed", (token, winner, prize) => {
+      console.log("CF_RafflePlayed", token, winner, prize);
+    });
+
+    contract_cf.on("CF_RaffleJackpotWithdrawn", (token, amount, winner) => {
+      console.log("CF_RaffleJackpotWithdrawn", token, amount, winner);
+    });
+
+
+  },
+
   INIT: async ({
     dispatch
   }) => {
     Vue.$log.debug('games/INIT')
     dispatch('BUILD_CONTRACTS');
     dispatch('GET_GAMES');
+    dispatch('TEST_LISTEN_FOR_EVENTS');
   },
 
   SET_CURRENT_GAME: async ({
@@ -1343,6 +1379,7 @@ const mutations = {
   DESTROY: (state) => {
     state.list.forEach((game, index) => {
       if (game.id) {
+        state.list[index].contract.removeAllListeners();
         state.list[index].contract = null
         state.list[index].statistics = {}
         state.list[index].data = {}
