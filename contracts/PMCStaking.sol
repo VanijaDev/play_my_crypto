@@ -30,6 +30,8 @@ contract PMCStaking is Ownable, PMC_IStaking {
   mapping(address => uint256) public stakingRewardWithdrawnOf;
 
   mapping(address => bool) public gameplaySupported;
+
+  event Unstake(address indexed addr);
   
   /***
    * @dev Constructor.
@@ -120,6 +122,8 @@ contract PMCStaking is Ownable, PMC_IStaking {
     }
     
     ERC20(pmcAddr).transfer(msg.sender, tokens);
+
+    emit Unstake(msg.sender);
   }
 
   /***
