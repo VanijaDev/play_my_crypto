@@ -3,7 +3,7 @@ export default {
     ETH: {
       '0x2a': "", // kovan
       '0x3': "", // ropsten
-      '0x539': "0x8C62C99277aE7B3a1a7c8a24EA31033f141eaEFc", // ganache
+      '0x539': "0xFcBB2664e2f35A6eBd82BddDb5023Feb6dd93f62", // ganache
     }
   },
   abi: [{
@@ -37,6 +37,17 @@ export default {
         }
       ],
       "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+        "indexed": true,
+        "internalType": "address",
+        "name": "addr",
+        "type": "address"
+      }],
+      "name": "Unstake",
       "type": "event"
     },
     {
