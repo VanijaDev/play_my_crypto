@@ -65,6 +65,15 @@ const actions = {
     console.log("TEST_LISTEN_FOR_EVENTS_BLOCKCHAIN");
 
     //  staking
+    state.stakingContract.on("Stake", (addr, tokens) => {
+      console.log("Unstake", addr, tokens);
+
+      //  TODO: Stats
+      //  if (addr == me) {
+      //    Staking
+      //  }
+    });
+
     state.stakingContract.on("Unstake", (addr) => {
       console.log("Unstake", addr);
 
