@@ -44,17 +44,6 @@ const mutations = {
   },
 };
 
-const api = {
-  api_game_getReferralFeePending: async function (_token) {
-    return this.gameInst.getReferralFeePending(_token);
-  },
-
-  api_game_getRaffleJackpotWithdrawn: async function (_token, _acc) {
-    return this.gameInst.getRaffleJackpotWithdrawn(_token, _acc);
-  }
-}
-
-
 export default {
   state,
   getters,

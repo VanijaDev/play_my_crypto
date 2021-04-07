@@ -19,7 +19,7 @@ const state = {
         }
       },
       contract: null,
-      statistics: {},
+      statistics: { participants : 0 },
       data: {},
       abi: [{
           "inputs": [{
@@ -1145,30 +1145,29 @@ const getters = {
 };
 
 const actions = {
-  TEST_LISTEN_FOR_EVENTS: async () => {
+  TEST_LISTEN_FOR_EVENTS: async ({ commit, dispatch, rootState }) => {
     //  IMPORTANT: removeAllListeners in DESTROY
-
-    console.log("TEST_LISTEN_FOR_EVENTS");
+    
+    Vue.$log.debug('blockchain/TEST_LISTEN_FOR_EVENTS')
 
     state.list.forEach((game, index) => {
       if (game.id) {
         const gameContract = state.list[index].contract;
         const gameId = state.list[index].id;
-
         //  gameplay
-        gameContract.on(gameId + "_GameStarted", (token, id) => {
-          console.log(gameId + "_GameStarted", token, id);
-
-          //  TODO: 1) update game icon values; 2) Profile; 3) Platform stats -> Total in;
-          // if (opponent == me) {
-          //   My stats - My in
-          // }
-
-          // const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
-          // dispatch('GET_GAME_STATISTICS', {
-          //   game,
-          //   gameInfo
-          // });
+        gameContract.on(gameId + "_GameStarted", async (token, id) => {
+          Vue.$log.debug('blockchain/TEST_LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id)
+          const gameInfo = await game.contract.gameInfo(token, id);
+          if (gameInfo.creator === rootState.user.accountAddress) {
+            //  TODO: 
+            // if (opponent == me) {    
+            //   Profile;
+            //   My stats - My in
+            // }
+          }          
+          commit('SET_GAME_INFO', { game, gameInfo });          
+          dispatch('GET_GAME_STATISTICS', { game, gameInfo }); // 
+          dispatch('GET_GAME_DATA', game ); // Platform Stats - Total in // User Profile - Total in / My stats - My in
         });
 
         gameContract.on(gameId + "_GameJoined", (token, id, opponent) => {
@@ -1301,12 +1300,7 @@ const actions = {
     commit('SET_GAMES_STARTED', gamesStarted)
   },
 
-  GET_GAME_STATISTICS: ({
-    commit
-  }, {
-    game,
-    gameInfo
-  }) => {
+  GET_GAME_STATISTICS: ({ commit }, { game, gameInfo }) => {
     Vue.$log.debug('games/GET_GAME_STATISTICS')
     const participants = gameInfo.heads.add(gameInfo.tails).add(1)
     const gameStatistics = {
@@ -1331,6 +1325,7 @@ const actions = {
         partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
         referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
+        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
       }
       const pendingPrizeToWithdraw = await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)
       if (pendingPrizeToWithdraw) {
@@ -1356,7 +1351,7 @@ const actions = {
         raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // My Stats - Raffle /  User Profile - Raffle
         raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // My Stats - Jackpot
         raffleParticipants: 0, // My Stats -  Participants .length
-        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
+        //betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
       }
       const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
@@ -1432,7 +1427,7 @@ const mutations = {
       if (game.id) {
         state.list[index].contract.removeAllListeners();
         state.list[index].contract = null
-        state.list[index].statistics = {}
+        state.list[index].statistics = { participants: 0 }
         state.list[index].data = {}
       }
     })
