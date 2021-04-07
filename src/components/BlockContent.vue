@@ -1,9 +1,9 @@
 <template> 
-  <div class="__block_content">    
-  </div>       
+  <div class="__block_content">
+  </div>
 </template>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   @import '@/assets/css/variables.scss';
   .__block_content{
     background: white;
@@ -13,18 +13,17 @@
     height: 100%;
     width: 100%;
     z-index: 999;
-    
   }
 </style>
 
 <script>
   export default {
     name: 'Notification',
-    data () {      
-      return {  
-        show: false,      
+    data () {
+      return {
+        show: false,
       };
-    },  
+    },
   }
 </script>
 

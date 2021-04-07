@@ -1,11 +1,11 @@
 export default {
   networks: {
     ETH: {
-      '0x2a': "0xaD6E52A5C06b2dBD86D51DAC43b1e2b9A77712dc", //kovan
-      '0x3': "0xD0cC9bc3799CBf5fA5744f686b3b1cbd45924e28", //ropsten
-      //[networks.ETH.chains.ganache]: "0x0E14AEe58cf4A0c8311Eb5728463e658025f49b8", 
-    }  
-  },  
+      '0x2a': "", // kovan
+      '0x3': "0xa15F80C7c2aD80510c6C25f1c597633f543006bA", // ropsten
+      '0x539': "0xc516f963F157128B5A04adc80abAcbFf830E2892", // ganache
+    }
+  },
   abi: [{
       "inputs": [{
           "internalType": "address",
@@ -37,6 +37,35 @@ export default {
         }
       ],
       "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+          "indexed": true,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "tokens",
+          "type": "uint256"
+        }
+      ],
+      "name": "Stake",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [{
+        "indexed": true,
+        "internalType": "address",
+        "name": "addr",
+        "type": "address"
+      }],
+      "name": "Unstake",
       "type": "event"
     },
     {

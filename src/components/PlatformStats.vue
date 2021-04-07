@@ -4,22 +4,22 @@
       <!-- Platform stats -->
       <b-col md="6" lg="12" class="">
         <h3>{{ $t('platform_stats') }}</h3>
-        <!-- Jackpots won -->
-        <div class="__text_line">
-          <span>{{ $t('jackpots_won') }}</span>
-          <div class="__img_value_block">
-            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
-            <span id="p_stat_1">{{raffleJackpotsWonTotalTotal | formatBalanceShort}}</span>
-            <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{raffleJackpotsWonTotalTotal | formatBalance}}</b-tooltip>  
-          </div>              
-        </div>
         <!-- Total in -->
         <div class="__text_line">
           <span>{{ $t('total_in') }}</span>
           <div class="__img_value_block">
-            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="p_stat_2">{{betsTotalTotal | formatBalanceShort}}</span>  
             <b-tooltip target="p_stat_2" custom-class="__tooltip" >{{betsTotalTotal | formatBalance}}</b-tooltip>
+          </div>              
+        </div>
+        <!-- Jackpots won -->
+        <div class="__text_line">
+          <span>{{ $t('jackpots_won') }}</span>
+          <div class="__img_value_block">
+            <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
+            <span id="p_stat_1">{{raffleJackpotsWonTotalTotal | formatBalanceShort}}</span>
+            <b-tooltip target="p_stat_1" custom-class="__tooltip" >{{raffleJackpotsWonTotalTotal | formatBalance}}</b-tooltip>  
           </div>              
         </div>
       </b-col>
@@ -30,7 +30,7 @@
         <div class="__text_line">
           <span>{{ $t('jackpots') }}</span>
           <div class="__img_value_block">
-            <img :src="gCurrentNetworkIcon" height="30"  width="30" alt="ETH">
+            <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="p_stat_3">{{raffleJackpotTotal | formatBalanceShort}}</span>  
             <b-tooltip target="p_stat_3" custom-class="__tooltip" >{{raffleJackpotTotal | formatBalance}}</b-tooltip>
           </div>              
@@ -80,10 +80,10 @@
         en: {
           platform_stats: 'Platform stats',
           jackpots_won: 'Jackpots won:',
-          total_in: 'Total in:',          
+          total_in: 'Total in:',
           ongoing_raffles: 'Ongoing raffles',
           jackpots: 'Jackpots:',
-          participants: 'Participants:',            
+          participants: 'Participants:',
         },          
       }      
     }

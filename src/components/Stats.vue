@@ -7,7 +7,7 @@
         <span class="__stats_col_1">{{ $t('total_staken') }}:</span>       
         <span class="__stats_col_2"></span>
         <div class="__img_value_block __stats_col_3">
-          <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
+          <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
           <span id="stats_1">{{gUser.stakingData.tokensStaked | formatBalanceShort}}</span>
           <b-tooltip target="stats_1" custom-class="__tooltip" >{{gUser.stakingData.tokensStaked | formatBalance}}</b-tooltip>  
         </div>  
@@ -20,7 +20,7 @@
         <!-- Percent -->
         <span class="__stats_col_2"><span v-if="gUser.stakingData.stakePercentShort >= 0">{{gUser.stakingData.stakePercentShort}}%</span></span>
         <div class="__img_value_block __stats_col_3">
-          <img src="/img/logo.svg" height="30"  width="30" alt="ETH">
+          <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
           <span id="stats_2">{{gUser.stakingData.stake | formatBalanceShort}}</span>
           <b-tooltip target="stats_2" custom-class="__tooltip" >{{gUser.stakingData.stake | formatBalance}}</b-tooltip>  
         </div> 
@@ -65,7 +65,7 @@
       messages: {
         en: {
           stats: 'Stats',
-          total_staken: 'Total staken',          
+          total_staken: 'Total staken',
           your_stake: 'Your stake',
           unstake: 'Unstake',
           how_to_stake: 'How to stake?',
@@ -76,7 +76,7 @@
   }
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   .__stats_col_1 {
     width: 95px;
   }

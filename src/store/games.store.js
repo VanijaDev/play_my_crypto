@@ -1,23 +1,25 @@
 import Vue from "vue";
-import { ethers } from "ethers";
+import {
+  ethers
+} from "ethers";
 
-const state = { 
-  list: [
-    { 
-      id: 'CF', 
-      name: 'Coin Flip', 
-      routeName: 'coin-flip', 
-      filesFolder: 'CoinFlip', 
+const state = {
+  list: [{
+      id: 'CF',
+      name: 'Coin Flip',
+      routeName: 'coin-flip',
+      filesFolder: 'CoinFlip',
       image: '/img/game_coin_flip.svg',
       imagePartner: '/img/game_coin_flip_partner.svg',
       networks: {
         ETH: {
-          '0x2a': "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", //kovan
-          '0x3' : "0x1C0B2fdf6A8836CE3210Eb8B57F5cF90706fC807", //ropsten
-        }  
+          '0x2a': "", // kovan
+          '0x3': "0xc6AEf8CB992EbD792BEb1fC1f4E652ca0d834610", // ropsten
+          '0x539': "0x5BF9123C1c15c2E0D9C97fcC7Bf8e4DcC10DB20b", // ganache
+        }
       },
-      contract: null,      
-      statistics: {},      
+      contract: null,
+      statistics: {},
       data: {},
       abi: [{
           "inputs": [{
@@ -869,6 +871,21 @@ const state = {
             "name": "",
             "type": "address"
           }],
+          "name": "playerPendingWithdrawalPMC",
+          "outputs": [{
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }],
           "name": "playerWithdrawedPMCTotal",
           "outputs": [{
             "internalType": "uint256",
@@ -1045,6 +1062,13 @@ const state = {
           "type": "function"
         },
         {
+          "inputs": [],
+          "name": "withdrawPendingPMC",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
           "inputs": [{
               "internalType": "address",
               "name": "_token",
@@ -1085,136 +1109,280 @@ const state = {
         }
       ],
     },
-    { id: null, name: 'NEW GAME', routePath: null, image: '/img/no_game.png' },
-    { id: null, name: 'NEW GAME', routePath: null, image: '/img/no_game.png' },
-    { id: null, name: 'NEW GAME', routePath: null, image: '/img/no_game.png' },    
+    {
+      id: null,
+      name: 'NEW GAME',
+      routePath: null,
+      image: '/img/no_game.png'
+    },
+    {
+      id: null,
+      name: 'NEW GAME',
+      routePath: null,
+      image: '/img/no_game.png'
+    },
+    {
+      id: null,
+      name: 'NEW GAME',
+      routePath: null,
+      image: '/img/no_game.png'
+    },
   ],
-  currentId: null, 
-  currentIndex: null, 
+  currentId: null,
+  currentIndex: null,
   started: [],
 };
 
 const getters = {
-  list: (state) => { return state.list }, 
-  listOfGames: (state) => { return state.list.filter(g => g.id !== null ) },
-  currentGame: state => state.currentIndex !== null ? state.list[state.currentIndex] : {},   
-  getGameById: state => gameId => state.list.find(game => game.id === gameId),  
+  list: (state) => {
+    return state.list
+  },
+  listOfGames: (state) => {
+    return state.list.filter(g => g.id !== null)
+  },
+  currentGame: state => state.currentIndex !== null ? state.list[state.currentIndex] : {},
+  getGameById: state => gameId => state.list.find(game => game.id === gameId),
 };
 
 const actions = {
-  INIT: async ({ dispatch }) => {
-    Vue.$log.debug('games/INIT') 
-    dispatch('BUILD_CONTRACTS');
-    dispatch('GET_GAMES'); 
-  },
-  
-  SET_CURRENT_GAME: async ({ commit }, gameId) => {    
-    Vue.$log.debug('games/SET_CURRENT_GAME')
-    commit('SET_CURRENT_GAME', gameId);     
+  TEST_LISTEN_FOR_EVENTS: async () => {
+    //  IMPORTANT: removeAllListeners in DESTROY
+
+    console.log("TEST_LISTEN_FOR_EVENTS");
+
+    state.list.forEach((game, index) => {
+      if (game.id) {
+        const gameContract = state.list[index].contract;
+        const gameId = state.list[index].id;
+
+        //  gameplay
+        gameContract.on(gameId + "_GameStarted", (token, id) => {
+          console.log(gameId + "_GameStarted", token, id);
+
+          //  TODO: 1) update game icon values; 2) Profile; 3) Platform stats -> Total in;
+          // if (opponent == me) {
+          //   My stats - My in
+          // }
+
+          // const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
+          // dispatch('GET_GAME_STATISTICS', {
+          //   game,
+          //   gameInfo
+          // });
+        });
+
+        gameContract.on(gameId + "_GameJoined", (token, id, opponent) => {
+          console.log(gameId + "_GameJoined", token, id, opponent);
+
+          //  TODO: 1) game icon values; 2) Platform stats -> Total in;
+          // if (opponent == me) {
+          //  return; in handler 
+          //   Profile;
+          //   My stats - My in
+          // }
+
+          // const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
+          // dispatch('GET_GAME_STATISTICS', {
+          //   game,
+          //   gameInfo
+          // });
+        });
+
+        gameContract.on(gameId + "_GameFinished", (token, id, timeout) => {
+          console.log(gameId + "_GameFinished", token, id, timeout);
+
+          //  TODO: 1) game icon values; 2) Profile; 3) Pending withdrawal section; 4) Ongoing raffle; 5) Ongoing raffles; 6) Percentage block
+          // if (creator == me) {
+          //   return; handle in sending handler
+          // }
+        });
+
+        gameContract.on(gameId + "_PrizeWithdrawn", (token, player, prize, pmc) => {
+          console.log(gameId + "_PrizeWithdrawn", token, player, prize, pmc);
+
+          //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 3) Percentage block
+          // if (player == me) {
+          //   Profile
+          //   Pending withdrawal section;
+          // }
+        });
+
+        //  raffle
+        gameContract.on(gameId + "_RafflePlayed", (token, winner, prize) => {
+          console.log(gameId + "_RafflePlayed", token, winner, prize);
+
+          //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 
+          // if (winner == me) {
+          //   Profile
+          //   Pending withdrawal section;
+          // }
+        });
+
+        gameContract.on(gameId + "_RaffleJackpotWithdrawn", (token, amount, winner) => {
+          console.log(gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
+
+          //  TODO: 1) Percentage block; 2) Platform stats; 
+          // if (winner == me) {
+          //   Profile
+          //   Pending withdrawal section;
+          // }
+        });
+      }
+    })
   },
 
-  BUILD_CONTRACTS: ({ commit, rootState }) => {
+  INIT: async ({
+    dispatch
+  }) => {
+    Vue.$log.debug('games/INIT')
+    dispatch('BUILD_CONTRACTS');
+    dispatch('GET_GAMES');
+    dispatch('TEST_LISTEN_FOR_EVENTS');
+  },
+
+  SET_CURRENT_GAME: async ({
+    commit
+  }, gameId) => {
+    Vue.$log.debug('games/SET_CURRENT_GAME')
+    commit('SET_CURRENT_GAME', gameId);
+  },
+
+  BUILD_CONTRACTS: ({
+    commit,
+    rootState
+  }) => {
     Vue.$log.debug('games/BUILD_CONTRACTS')
     commit('BUILD_CONTRACTS', rootState.blockchain);
   },
-  
-  GET_GAMES: async ({commit, dispatch, state}) => {   
+
+  GET_GAMES: async ({
+    commit,
+    dispatch,
+    state
+  }) => {
     Vue.$log.debug('games/GET_GAMES')
 
     let gamesStarted = []
-    for (const game of state.list) { 
+    for (const game of state.list) {
       if (game.id) {
         try {
           const gamesStartedCount = await game.contract.gamesStarted(ethers.constants.AddressZero);
-          if (gamesStartedCount.gt(0)) {          
+          if (gamesStartedCount.gt(0)) {
             // GAME INFO
             const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
-            commit('SET_GAME_INFO', { game, gameInfo });  
-            
-            if (gameInfo.running) {              
-              dispatch('GET_GAME_STATISTICS', { game, gameInfo });              
+            commit('SET_GAME_INFO', {
+              game,
+              gameInfo
+            });
+
+            if (gameInfo.running) {
+              dispatch('GET_GAME_STATISTICS', {
+                game,
+                gameInfo
+              });
               const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
               if (checkPrizeForGames.length > 0) {
                 const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
-                if (game.info.idx.eq(lastGameToCheckPrize) ) {
+                if (game.info.idx.eq(lastGameToCheckPrize)) {
                   // GAMES STARTED
-                  gamesStarted.push(game.id) 
+                  gamesStarted.push(game.id)
                   //if (state.currentId === game.id)                    
                 }
               }
               dispatch('GET_GAME_DATA', game);
               dispatch('GET_GAME_RAFFLE', game);
             }
-          }  
+          }
         } catch (error) {
-          Vue.$log.error('GET_GAMES_INFO', error) 
-        }                  
-      } 
-    } 
-    commit('SET_GAMES_STARTED', gamesStarted)  
+          Vue.$log.error('GET_GAMES_INFO', error)
+        }
+      }
+    }
+    commit('SET_GAMES_STARTED', gamesStarted)
   },
 
-  GET_GAME_STATISTICS: ({ commit }, { game, gameInfo }) => {    
+  GET_GAME_STATISTICS: ({
+    commit
+  }, {
+    game,
+    gameInfo
+  }) => {
     Vue.$log.debug('games/GET_GAME_STATISTICS')
     const participants = gameInfo.heads.add(gameInfo.tails).add(1)
     const gameStatistics = {
       participants: participants,
       stakes: participants.mul(gameInfo.stake)
     }
-    commit('SET_GAME_STATISTICS', { game, gameStatistics });    
+    commit('SET_GAME_STATISTICS', {
+      game,
+      gameStatistics
+    });
   },
 
-  GET_GAME_DATA: async ({ commit }, game) => {
-    Vue.$log.debug('games/GET_GAME_DATA')  
+  GET_GAME_DATA: async ({
+    commit
+  }, game) => {
+    Vue.$log.debug('games/GET_GAME_DATA')
     try {
       const gameData = {
         playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
         playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
-        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero),  // User Profile - Referral 
+        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
         partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
         referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
-      }      
+      }
       const pendingPrizeToWithdraw = await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)
       if (pendingPrizeToWithdraw) {
         gameData.pendingPrizeToWithdrawPrize = pendingPrizeToWithdraw.prize // My Stats - Gameplay
         gameData.pendingGameplayPmcTokens = pendingPrizeToWithdraw.pmc_tokens // My Stats - Gameplay PMC
       }
-      commit('SET_GAME_DATA', { game, gameData }) 
+      commit('SET_GAME_DATA', {
+        game,
+        gameData
+      })
     } catch (error) {
       Vue.$log.error('GET_GAME_DATA', error);
-    }   
+    }
   },
 
-  GET_GAME_RAFFLE: async ({ commit, rootState }, game) => {
+  GET_GAME_RAFFLE: async ({
+    commit,
+    rootState
+  }, game) => {
     Vue.$log.debug('games/GET_GAME_RAFFLE')
     try {
-      const raffleData = {        
-        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress),  // My Stats - Raffle /  User Profile - Raffle
+      const raffleData = {
+        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // My Stats - Raffle /  User Profile - Raffle
         raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // My Stats - Jackpot
         raffleParticipants: 0, // My Stats -  Participants .length
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
-      }    
+      }
       const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
-      if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length     
-      commit('SET_GAME_RAFFLE', { game, raffleData }) 
+      if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length
+      commit('SET_GAME_RAFFLE', {
+        game,
+        raffleData
+      })
     } catch (error) {
       Vue.$log.error('GET_GAME_RAFFLE', error);
-    }   
+    }
   },
 
-  DESTROY: async ({ commit }) => {
+  DESTROY: async ({
+    commit
+  }) => {
     Vue.$log.debug('games/DESTROY')
     commit('DESTROY')
   },
-  
+
 };
 
-const mutations = {  
+const mutations = {
   SET_CURRENT_GAME: (state, gameId) => {
-    state.currentId = gameId;  
-    state.currentIndex = state.list.findIndex(_game => _game.id === gameId)    
+    state.currentId = gameId;
+    state.currentIndex = state.list.findIndex(_game => _game.id === gameId)
   },
 
   BUILD_CONTRACTS: (state, blockchain) => {
@@ -1223,41 +1391,54 @@ const mutations = {
     })
   },
 
-  SET_GAME_INFO: (state, { game, gameInfo }) => {
+  SET_GAME_INFO: (state, {
+    game,
+    gameInfo
+  }) => {
     const index = state.list.findIndex(_game => _game.id === game.id)
-    Vue.set(state.list[index], 'info', gameInfo)              
-  }, 
+    Vue.set(state.list[index], 'info', gameInfo)
+  },
 
   SET_GAMES_STARTED: (state, gamesStarted) => {
-    state.started = gamesStarted;     
+    state.started = gamesStarted;
   },
 
-  SET_GAME_DATA: (state, { game, gameData }) => {  
-    const index = state.list.findIndex(_game => _game.id === game.id)  
-    Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))    
+  SET_GAME_DATA: (state, {
+    game,
+    gameData
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))
   },
 
-  SET_GAME_RAFFLE: (state, { game, raffleData }) => {  
-    const index = state.list.findIndex(_game => _game.id === game.id)  
-    Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))    
+  SET_GAME_RAFFLE: (state, {
+    game,
+    raffleData
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))
   },
 
-  SET_GAME_STATISTICS: (state, { game, gameStatistics }) => {  
-    const index = state.list.findIndex(_game => _game.id === game.id)  
-    Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))    
+  SET_GAME_STATISTICS: (state, {
+    game,
+    gameStatistics
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))
   },
 
-  DESTROY: (state) => {     
+  DESTROY: (state) => {
     state.list.forEach((game, index) => {
       if (game.id) {
+        state.list[index].contract.removeAllListeners();
         state.list[index].contract = null
-        state.list[index].statistics = {} 
-        state.list[index].data = {} 
+        state.list[index].statistics = {}
+        state.list[index].data = {}
       }
     })
     state.started = []
   },
-  
+
 };
 
 export default {

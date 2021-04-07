@@ -1,15 +1,15 @@
 <!-- Game FAQ My Stats Modal -->
 <template>
-  <Modal size="lg" :id="modalId" :title="$t('title')"> 
+  <Modal size="lg" :id="modalId" :title="$t('title')">
     <template v-slot:content>
       <p class="__info">{{ $t('info') }}</p>
-      <ModalAccordion :list="accordionList"/>       
-    </template>    
+      <ModalAccordion :list="accordionList"/>
+    </template>
   </Modal> 
 </template> 
 
 <style lang="scss" scoped>
-  //@import '@/assets/css/variables.scss';   
+  //@import '@/assets/css/variables.scss';
 </style>
 
 <script>
