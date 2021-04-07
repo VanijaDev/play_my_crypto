@@ -214,9 +214,10 @@
     }),
     computed: {
       totalOutChange() { 
-        if (this.gGameData && this.gGameData.totalIn && this.gGameData.playerWithdrawedTotal) {
-          if (this.gGameData.totalIn.eq(this.gGameData.playerWithdrawedTotal)) return null
-          return this.gGameData.totalIn.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
+        console.log(this.gGameData)
+        if (this.gGameData && this.gGameData.playerStakeTotal && this.gGameData.playerWithdrawedTotal) {
+          if (this.gGameData.playerStakeTotal.eq(this.gGameData.playerWithdrawedTotal)) return null
+          return this.gGameData.playerStakeTotal.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
         }
         return null
       },
