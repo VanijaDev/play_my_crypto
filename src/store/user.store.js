@@ -21,18 +21,20 @@ const getters = {
 
 const actions = {
   LISTEN_FOR_EVENTS: async ({
-    dispatch
+    dispatch,
+    rootState
   }) => {
     Vue.$log.debug('user.store/LISTEN_FOR_EVENTS - init');
 
     //  staking
-    state.stakingContract.on("Stake", (addr, tokens) => {
+    const stakingContract = rootState.blockchain.stakingContract;
+    stakingContract.on("Stake", (addr, tokens) => {
       Vue.$log.debug('user.store/LISTEN_FOR_EVENTS', "Stake", addr, tokens);
 
       dispatch('GET_STAKING_DATA')
     });
 
-    state.stakingContract.on("Unstake", (addr) => {
+    stakingContract.on("Unstake", (addr) => {
       Vue.$log.debug('user.store/LISTEN_FOR_EVENTS', "Unstake", addr);
 
       dispatch('GET_STAKING_DATA')
@@ -352,8 +354,8 @@ const mutations = {
 
   DESTROY: (state) => {
     //  TODO
-    // if (state.stakingContract) {
-    //   state.stakingContract.removeAllListeners();
+    // if (stakingContract) {
+    //   stakingContract.removeAllListeners();
     // }
 
     state.accountAddress = null

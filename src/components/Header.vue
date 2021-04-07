@@ -37,7 +37,7 @@
                   <img :src="network.icon" height="40" width="40" :alt="network.id">
                   <div class="mt-1" v-if="gBreakPoint('sm', 'gte')">{{network.name}}</div>
                 </div> 
-              </div>                          
+              </div>
             </div>
             
             <UserProfileMenu/>
@@ -104,10 +104,11 @@
       detectHeight: function () { 
         if (this.$refs?.header?.clientHeight) {
           this.$store.dispatch('UI_HEADER_HEIGHT_SET', this.$refs.header.clientHeight) 
-        }                   
+        }
       },
       selectNetwork(network) {
         this.$log.debug(network.id)
+        //  TODO: show message: "Please select Binance Smart Chain in MetaMask" || "Please select Ethereum Mainnet in MetaMask"
         //<!-- TODO : click on inactive network notification -->
       },
     },

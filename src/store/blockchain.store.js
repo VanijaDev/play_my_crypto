@@ -186,7 +186,6 @@ const actions = {
       dispatch('user/INIT', accountAddress, {
         root: true
       })
-      dispatch('LISTEN_FOR_EVENTS')
     } else {
       dispatch('notification/OPEN', {
         id: 'METAMASK_CONNECT_ERROR'
