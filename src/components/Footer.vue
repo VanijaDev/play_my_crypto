@@ -21,7 +21,7 @@
                 {{ $t('contact_us') }}
               </div>
               <div class="__img_button">
-                <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo"  class="__shadow_filter">
+                <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo"  class="__shadow_filter" @click="openTelegram()">
               </div>            
             </div>
           </div>
@@ -78,7 +78,12 @@
           contact_us: '聯繫我們:',
         },  
       }      
-    } 
+    },
+    methods: {
+      openTelegram() {
+        window.open("https://t.me/playmycrypto");
+      }
+    },
   }
 </script>
 
