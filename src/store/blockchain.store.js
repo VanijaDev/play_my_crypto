@@ -259,7 +259,9 @@ const mutations = {
   },
 
   DESTROY: (state) => {
-    state.stakingContract.removeAllListeners();
+    if (state.stakingContract) {
+      state.stakingContract.removeAllListeners();
+    }
 
     state.networkIndex = null
     state.chainId = null

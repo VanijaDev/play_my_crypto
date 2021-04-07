@@ -19,7 +19,9 @@ const state = {
         }
       },
       contract: null,
-      statistics: { participants : 0 },
+      statistics: {
+        participants: 0
+      },
       data: {},
       abi: [{
           "inputs": [{
@@ -1145,9 +1147,13 @@ const getters = {
 };
 
 const actions = {
-  TEST_LISTEN_FOR_EVENTS: async ({ commit, dispatch, rootState }) => {
+  TEST_LISTEN_FOR_EVENTS: async ({
+    commit,
+    dispatch,
+    rootState
+  }) => {
     //  IMPORTANT: removeAllListeners in DESTROY
-    
+
     Vue.$log.debug('blockchain/TEST_LISTEN_FOR_EVENTS')
 
     state.list.forEach((game, index) => {
@@ -1164,10 +1170,16 @@ const actions = {
             //   Profile;
             //   My stats - My in
             // }
-          }          
-          commit('SET_GAME_INFO', { game, gameInfo });          
-          dispatch('GET_GAME_STATISTICS', { game, gameInfo }); // 
-          dispatch('GET_GAME_DATA', game ); // Platform Stats - Total in // User Profile - Total in / My stats - My in
+          }
+          commit('SET_GAME_INFO', {
+            game,
+            gameInfo
+          });
+          dispatch('GET_GAME_STATISTICS', {
+            game,
+            gameInfo
+          }); // 
+          dispatch('GET_GAME_DATA', game); // Platform Stats - Total in // User Profile - Total in / My stats - My in
         });
 
         gameContract.on(gameId + "_GameJoined", (token, id, opponent) => {
@@ -1300,7 +1312,12 @@ const actions = {
     commit('SET_GAMES_STARTED', gamesStarted)
   },
 
-  GET_GAME_STATISTICS: ({ commit }, { game, gameInfo }) => {
+  GET_GAME_STATISTICS: ({
+    commit
+  }, {
+    game,
+    gameInfo
+  }) => {
     Vue.$log.debug('games/GET_GAME_STATISTICS')
     const participants = gameInfo.heads.add(gameInfo.tails).add(1)
     const gameStatistics = {
@@ -1425,9 +1442,14 @@ const mutations = {
   DESTROY: (state) => {
     state.list.forEach((game, index) => {
       if (game.id) {
-        state.list[index].contract.removeAllListeners();
+        if (state.list[index].contract) {
+          state.list[index].contract.removeAllListeners();
+        }
+
         state.list[index].contract = null
-        state.list[index].statistics = { participants: 0 }
+        state.list[index].statistics = {
+          participants: 0
+        }
         state.list[index].data = {}
       }
     })
