@@ -37,7 +37,7 @@
                 class="__card_block __img_button __shadow_filter" 
                 @click="gSelectGame(getGameById(gameId))"
                 >
-                <img :src="'/img/'+ getGameById(gameId).image" height="25" alt="Game image">
+                <img :src="getGameById(gameId).image" height="25" alt="Game image">
               </div>
 
             </div>
@@ -221,7 +221,7 @@
         return null
       },
       gamesStarted() {  
-        return this.$store.state['games/started'] ? this.$store.state['games/started'] : []
+        return this.$store.getters['games/started']
       },
       listOfGames() {         
         return this.$store.getters['games/listOfGames']
