@@ -16,6 +16,13 @@ export default {
     gUser() {
       return this.$store.getters['user/user']
     },
+    gUserTotalOutChange() { 
+      if (this.gGameData && this.gGameData.playerStakeTotal && this.gGameData.playerWithdrawedTotal) {
+        if (this.gGameData.playerStakeTotal.eq(this.gGameData.playerWithdrawedTotal)) return null
+        return this.gGameData.playerStakeTotal.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
+      }
+      return null
+    },
     gNetwork() {
       return this.$store.getters['blockchain/network']
     },

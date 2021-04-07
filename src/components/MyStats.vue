@@ -1,6 +1,6 @@
 <template>
   <!-- TODO : withdraw click methods -->
-  <div class="__content-block __cb_white h-100">
+  <div class="__content-block __cb_white h-100 __my_stats">
     <b-row class="h-100">      
       <b-col xs="12" sm="6">
         <h3>{{ $t('my_stats') }}</h3>
@@ -18,7 +18,13 @@
           <span>{{ $t('my_out') }}</span>
           <div class="__img_value_block">
             <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
-            <span id="my_stat_2">{{gGameData.playerWithdrawedTotal | formatBalanceShort}}</span>
+            
+                        
+            <span id="my_stat_2" :class="{'__price_change_down' : gUserTotalOutChange === 'down', '__price_change_up' : gUserTotalOutChange === 'up' }">
+              {{gGameData.playerWithdrawedTotal | formatBalanceShort}}
+            </span>
+            <PriceUpDownArrowIcon class="__price_change_icon" v-if="gUserTotalOutChange" :direction="gUserTotalOutChange"/>
+            
             <b-tooltip target="my_stat_2" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>  
           </div>              
         </div>
@@ -105,10 +111,11 @@
 <script>
   import HowToPlayModal from '@/components/modals/HowToPlayModal.vue';
   import GameFAQMyStatsModal from '@/components/modals/GameFAQMyStatsModal.vue';
+  import PriceUpDownArrowIcon from '@/components/icons/PriceUpDownArrowIcon.vue';
 
   export default {
     name: 'MyStats',  
-    components: { HowToPlayModal, GameFAQMyStatsModal }, 
+    components: { HowToPlayModal, GameFAQMyStatsModal, PriceUpDownArrowIcon }, 
     i18n: {
       messages: {
         en: {
@@ -133,5 +140,20 @@
 </script>
 
 <style lang="scss" scoped>  
-  //@import '@/assets/css/variables.scss';
+  @import '@/assets/css/variables.scss';
+  .__my_stats {
+    .__price_change_down {
+      color: $_red;
+    }
+    .__price_change_up {
+      color: $_green;
+    }
+    .__price_change_icon {
+      position: absolute;
+      right: 2px;
+      height: 12px;
+      width: 12px;            
+    }  
+  }
+  
 </style>
