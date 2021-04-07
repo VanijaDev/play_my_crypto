@@ -1147,30 +1147,24 @@ const getters = {
 };
 
 const actions = {
-  TEST_LISTEN_FOR_EVENTS: async ({
+  LISTEN_FOR_EVENTS: async ({
     commit,
     dispatch,
     rootState
   }) => {
-    //  IMPORTANT: removeAllListeners in DESTROY
-
-    Vue.$log.debug('blockchain/TEST_LISTEN_FOR_EVENTS')
+    Vue.$log.debug('games.store/LISTEN_FOR_EVENTS - init')
 
     state.list.forEach((game, index) => {
       if (game.id) {
         const gameContract = state.list[index].contract;
         const gameId = state.list[index].id;
+
         //  gameplay
+
         gameContract.on(gameId + "_GameStarted", async (token, id) => {
-          Vue.$log.debug('blockchain/TEST_LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id)
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id)
           const gameInfo = await game.contract.gameInfo(token, id);
-          if (gameInfo.creator === rootState.user.accountAddress) {
-            //  TODO: 
-            // if (opponent == me) {    
-            //   Profile;
-            //   My stats - My in
-            // }
-          }
+
           commit('SET_GAME_INFO', {
             game,
             gameInfo
@@ -1178,37 +1172,57 @@ const actions = {
           dispatch('GET_GAME_STATISTICS', {
             game,
             gameInfo
-          }); // 
-          dispatch('GET_GAME_DATA', game); // Platform Stats - Total in // User Profile - Total in / My stats - My in
-        });
+          });
+          dispatch('GET_GAME_DATA', game);
 
-        gameContract.on(gameId + "_GameJoined", (token, id, opponent) => {
-          console.log(gameId + "_GameJoined", token, id, opponent);
-
-          //  TODO: 1) game icon values; 2) Platform stats -> Total in;
-          // if (opponent == me) {
-          //  return; in handler 
-          //   Profile;
-          //   My stats - My in
-          // }
-
-          // const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
-          // dispatch('GET_GAME_STATISTICS', {
-          //   game,
-          //   gameInfo
-          // });
-        });
-
-        gameContract.on(gameId + "_GameFinished", (token, id, timeout) => {
-          console.log(gameId + "_GameFinished", token, id, timeout);
-
-          //  TODO: 1) game icon values; 2) Profile; 3) Pending withdrawal section; 4) Ongoing raffle; 5) Ongoing raffles; 6) Percentage block
-          // if (creator == me) {
-          //   return; handle in sending handler
+          //  TODO:
+          // if (gameInfo.creator === rootState.user.accountAddress) {
+          //   Profile -> Playing now icon;
           // }
         });
 
-        gameContract.on(gameId + "_PrizeWithdrawn", (token, player, prize, pmc) => {
+        gameContract.on(gameId + "_GameJoined", async (token, id, opponent) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent)
+          const gameInfo = await game.contract.gameInfo(token, id);
+
+          commit('SET_GAME_INFO', {
+            game,
+            gameInfo
+          });
+          dispatch('GET_GAME_STATISTICS', {
+            game,
+            gameInfo
+          });
+          dispatch('GET_GAME_DATA', game);
+
+          //  TODO:
+          // if (gameInfo.opponent === rootState.user.accountAddress) {
+          //   Profile -> Playing now icon;
+          // }
+        });
+
+        gameContract.on(gameId + "_GameFinished", async (token, id, timeout) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameFinished", token, id, timeout);
+          const gameInfo = await game.contract.gameInfo(token, id);
+
+          commit('SET_GAME_INFO', {
+            game,
+            gameInfo
+          });
+
+          //  game icon values
+          dispatch('GET_GAME_STATISTICS', {
+            game,
+            gameInfo
+          });
+
+          dispatch('GET_GAME_DATA', game);
+          dispatch('GET_GAME_RAFFLE', game);
+
+          //  TODO: 1) Profile -> Playing now; 2) Profile -> Pending withdrawal; 3) Percentage block
+        });
+
+        gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
           console.log(gameId + "_PrizeWithdrawn", token, player, prize, pmc);
 
           //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 3) Percentage block
@@ -1219,7 +1233,7 @@ const actions = {
         });
 
         //  raffle
-        gameContract.on(gameId + "_RafflePlayed", (token, winner, prize) => {
+        gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
           console.log(gameId + "_RafflePlayed", token, winner, prize);
 
           //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 
@@ -1229,7 +1243,7 @@ const actions = {
           // }
         });
 
-        gameContract.on(gameId + "_RaffleJackpotWithdrawn", (token, amount, winner) => {
+        gameContract.on(gameId + "_RaffleJackpotWithdrawn", async (token, amount, winner) => {
           console.log(gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
 
           //  TODO: 1) Percentage block; 2) Platform stats; 
@@ -1248,7 +1262,7 @@ const actions = {
     Vue.$log.debug('games/INIT')
     dispatch('BUILD_CONTRACTS');
     dispatch('GET_GAMES');
-    dispatch('TEST_LISTEN_FOR_EVENTS');
+    dispatch('LISTEN_FOR_EVENTS');
   },
 
   SET_CURRENT_GAME: async ({
