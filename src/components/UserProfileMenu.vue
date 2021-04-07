@@ -58,10 +58,10 @@
               <div class="__blue_text">{{ $t('total_out') }}</div>
               <div class="d-flex align-items-center text-monospace">
                 <img class="__currency_img" :src="gCurrentNetworkIcon" height="25" alt="Telegram logo">                
-                <span id="up_4" :class="{'__price_change_down' : totalOutChange === 'down', '__price_change_up' : totalOutChange === 'up' }">
+                <span id="up_4" :class="{'__price_change_down' : gUserTotalOutChange === 'down', '__price_change_up' : gUserTotalOutChange === 'up' }">
                   {{gGameData.playerWithdrawedTotal | formatBalanceShort}}
                 </span>
-                <PriceUpDownArrowIcon class="__price_change_icon" v-if="totalOutChange" :direction="totalOutChange"/>
+                <PriceUpDownArrowIcon class="__price_change_icon" v-if="gUserTotalOutChange" :direction="gUserTotalOutChange"/>
                 <b-tooltip target="up_4" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>
               </div>
             </div>            
@@ -212,15 +212,7 @@
     components: { PriceUpDownArrowIcon },
     data: () => ({      
     }),
-    computed: {
-      totalOutChange() { 
-        console.log(this.gGameData)
-        if (this.gGameData && this.gGameData.playerStakeTotal && this.gGameData.playerWithdrawedTotal) {
-          if (this.gGameData.playerStakeTotal.eq(this.gGameData.playerWithdrawedTotal)) return null
-          return this.gGameData.playerStakeTotal.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
-        }
-        return null
-      },
+    computed: {      
       gamesStarted() {  
         return this.$store.getters['games/started']
       },
