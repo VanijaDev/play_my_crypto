@@ -1139,6 +1139,9 @@ const getters = {
   list: (state) => {
     return state.list
   },
+  started: (state) => {
+    return state.started
+  },
   listOfGames: (state) => {
     return state.list.filter(g => g.id !== null)
   },
