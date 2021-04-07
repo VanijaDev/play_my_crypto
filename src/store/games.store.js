@@ -14,7 +14,7 @@ const state = {
       networks: {
         ETH: {
           '0x2a': "", // kovan
-          '0x3': "", // ropsten
+          '0x3': "0xc6AEf8CB992EbD792BEb1fC1f4E652ca0d834610", // ropsten
           '0x539': "0x5BF9123C1c15c2E0D9C97fcC7Bf8e4DcC10DB20b", // ganache
         }
       },
