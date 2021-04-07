@@ -1311,7 +1311,7 @@ const actions = {
               gameInfo
             });
 
-            if (gameInfo.running) {
+            //if (gameInfo.running) {
               dispatch('GET_GAME_STATISTICS', {
                 game,
                 gameInfo
@@ -1325,9 +1325,10 @@ const actions = {
                   //if (state.currentId === game.id)                    
                 }
               }
-              dispatch('GET_GAME_DATA', game);
-              dispatch('GET_GAME_RAFFLE', game);
-            }
+              
+            //}
+            dispatch('GET_GAME_DATA', game);
+            dispatch('GET_GAME_RAFFLE', game);
           }
         } catch (error) {
           Vue.$log.error('GET_GAMES_INFO', error)
