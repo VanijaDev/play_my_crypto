@@ -1167,7 +1167,7 @@ const actions = {
         gameContract.on(gameId + "_GameStarted", async (token, id) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id)
           //const gameInfo = await game.contract.gameInfo(token, id);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
           
           //  TODO:
@@ -1179,7 +1179,7 @@ const actions = {
         gameContract.on(gameId + "_GameJoined", async (token, id, opponent) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent)
           //const gameInfo = await game.contract.gameInfo(token, id);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
 
           //  TODO:
@@ -1191,7 +1191,7 @@ const actions = {
         gameContract.on(gameId + "_GameFinished", async (token, id, timeout) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameFinished", token, id, timeout);
           //const gameInfo = await game.contract.gameInfo(token, id);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
 
           //  TODO: 1) Profile -> Playing now; 2) Profile -> Pending withdrawal; 3) Percentage block
@@ -1200,7 +1200,7 @@ const actions = {
         gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_PrizeWithdrawn", token, player, prize, pmc);
           //const gameInfo = await game.contract.gameInfo(token, gameInfo.id);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
 
           //  TODO: 1) Percentage block; 2) Profile -> Pending withdrawal; 3) Pending withdrawal section;
@@ -1213,7 +1213,7 @@ const actions = {
         //  raffle
         gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
           console.log(gameId + "_RafflePlayed", token, winner, prize);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
 
           //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 
@@ -1225,7 +1225,7 @@ const actions = {
 
         gameContract.on(gameId + "_RaffleJackpotWithdrawn", async (token, amount, winner) => {
           console.log(gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
-
+          dispatch('user/GET_BALANCE', null, { root: true });
           dispatch('GET_GAMES');
 
           //  TODO: 1) Percentage block; 2) Platform stats; 
