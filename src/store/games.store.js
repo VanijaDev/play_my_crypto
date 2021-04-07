@@ -1283,7 +1283,7 @@ const actions = {
               gameInfo
             });
 
-            
+            commit('DESTROY_GAME_STATISTICS', { game })
             if (gameInfo.running) { 
               dispatch('GET_GAME_STATISTICS', {
                 game,
@@ -1434,6 +1434,15 @@ const mutations = {
   }) => {
     const index = state.list.findIndex(_game => _game.id === game.id)
     Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))
+  },
+
+  DESTROY_GAME_STATISTICS: (state, {
+    game,
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    state.list[index].statistics = {
+      participants: 0
+    }
   },
 
   DESTROY: (state) => {
