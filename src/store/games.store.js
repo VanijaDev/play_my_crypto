@@ -1223,11 +1223,19 @@ const actions = {
         });
 
         gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
-          console.log(gameId + "_PrizeWithdrawn", token, player, prize, pmc);
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_PrizeWithdrawn", token, player, prize, pmc);
+          const gameInfo = await game.contract.gameInfo(token, gameInfo.id);
 
-          //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 3) Percentage block
-          // if (player == me) {
-          //   Profile
+          commit('SET_GAME_INFO', {
+            game,
+            gameInfo
+          });
+
+          dispatch('GET_GAME_RAFFLE', game);
+
+          //  TODO: 1) Percentage block; 2) Profile -> Pending withdrawal; 3) Pending withdrawal section;
+          // if (gameInfo.opponent === rootState.user.accountAddress) {
+          //   
           //   Pending withdrawal section;
           // }
         });
