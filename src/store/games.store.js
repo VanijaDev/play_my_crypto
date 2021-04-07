@@ -1163,76 +1163,60 @@ const actions = {
         const gameId = state.list[index].id;
 
         //  gameplay
-
         gameContract.on(gameId + "_GameStarted", async (token, id) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id)
-          //const gameInfo = await game.contract.gameInfo(token, id);
-          dispatch('user/GET_BALANCE', null, { root: true });
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
           dispatch('GET_GAMES');
-          
-          //  TODO:
-          // if (gameInfo.creator === rootState.user.accountAddress) {
-          //   Profile -> Playing now icon;
-          // }
         });
 
         gameContract.on(gameId + "_GameJoined", async (token, id, opponent) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent)
-          //const gameInfo = await game.contract.gameInfo(token, id);
-          dispatch('user/GET_BALANCE', null, { root: true });
-          dispatch('GET_GAMES');
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent);
 
-          //  TODO:
-          // if (gameInfo.opponent === rootState.user.accountAddress) {
-          //   Profile -> Playing now icon;
-          // }
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
         });
 
         gameContract.on(gameId + "_GameFinished", async (token, id, timeout) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameFinished", token, id, timeout);
-          //const gameInfo = await game.contract.gameInfo(token, id);
-          dispatch('user/GET_BALANCE', null, { root: true });
-          dispatch('GET_GAMES');
 
-          //  TODO: 1) Profile -> Playing now; 2) Profile -> Pending withdrawal; 3) Percentage block
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
         });
 
         gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
           Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_PrizeWithdrawn", token, player, prize, pmc);
-          //const gameInfo = await game.contract.gameInfo(token, gameInfo.id);
-          dispatch('user/GET_BALANCE', null, { root: true });
-          dispatch('GET_GAMES');
 
-          //  TODO: 1) Percentage block; 2) Profile -> Pending withdrawal; 3) Pending withdrawal section;
-          // if (gameInfo.opponent === rootState.user.accountAddress) {
-          //   
-          //   Pending withdrawal section;
-          // }
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
         });
 
         //  raffle
-        gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
-          console.log(gameId + "_RafflePlayed", token, winner, prize);
-          dispatch('user/GET_BALANCE', null, { root: true });
-          dispatch('GET_GAMES');
 
-          //  TODO: 1) Ongoing raffles; 2) Ongoing raffle; 
-          // if (winner == me) {
-          //   Profile
-          //   Pending withdrawal section;
-          // }
-        });
+        //  commented because _GameFinished event will update entire data
+        // gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
+        //   Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RafflePlayed", token, winner, prize);
+        //   dispatch('user/GET_BALANCE', null, {
+        //     root: true
+        //   });
+        //   dispatch('GET_GAMES');
+        // });
 
         gameContract.on(gameId + "_RaffleJackpotWithdrawn", async (token, amount, winner) => {
-          console.log(gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
-          dispatch('user/GET_BALANCE', null, { root: true });
-          dispatch('GET_GAMES');
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
 
-          //  TODO: 1) Percentage block; 2) Platform stats; 
-          // if (winner == me) {
-          //   Profile
-          //   Pending withdrawal section;
-          // }
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
         });
       }
     })
@@ -1274,7 +1258,7 @@ const actions = {
       if (game.id) {
         try {
           const gamesStartedCount = await game.contract.gamesStarted(ethers.constants.AddressZero);
-          
+
           if (gamesStartedCount.gt(0)) {
             // GAME INFO
             const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
@@ -1283,12 +1267,14 @@ const actions = {
               gameInfo
             });
 
-            commit('DESTROY_GAME_STATISTICS', { game })
-            if (gameInfo.running) { 
+            commit('DESTROY_GAME_STATISTICS', {
+              game
+            })
+            if (gameInfo.running) {
               dispatch('GET_GAME_STATISTICS', {
                 game,
                 gameInfo
-              });             
+              });
               const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
               if (checkPrizeForGames.length > 0) {
                 const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
@@ -1296,7 +1282,7 @@ const actions = {
                   // GAMES STARTED
                   gamesStarted.push(game.id)
                 }
-              }              
+              }
             }
             dispatch('GET_GAME_DATA', game);
             dispatch('GET_GAME_RAFFLE', game);
