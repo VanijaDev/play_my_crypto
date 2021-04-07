@@ -16,7 +16,7 @@ export default {
     gUser() {
       return this.$store.getters['user/user']
     },
-    gUserTotalOutChange() { 
+    gUserTotalOutChange() {
       if (this.gGameData && this.gGameData.playerStakeTotal && this.gGameData.playerWithdrawedTotal) {
         if (this.gGameData.playerStakeTotal.eq(this.gGameData.playerWithdrawedTotal)) return null
         return this.gGameData.playerStakeTotal.gt(this.gGameData.playerWithdrawedTotal) ? 'down' : 'up'
@@ -116,7 +116,9 @@ export default {
         bodyClass: 'k__toast-body',
       })
     },
-
+    gOpenTelegram() {
+      window.open("https://t.me/playmycrypto");
+    }
   },
   filters: {
     addressShort(tokenAddress) {

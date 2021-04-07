@@ -19,7 +19,7 @@
                 {{ $t('contact_us') }}
               </div>              
               <div class="__img_button">
-                <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo" class="__shadow_filter" @click="openTelegram()">
+                <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo" class="__shadow_filter" @click="gOpenTelegram()">
               </div>                         
             </div>
 
@@ -110,9 +110,6 @@
         this.$log.debug(network.id)
         //  TODO: show message: "Please select Binance Smart Chain in MetaMask" || "Please select Ethereum Mainnet in MetaMask"
         //<!-- TODO : click on inactive network notification -->
-      },
-      openTelegram() {
-        window.open("https://t.me/playmycrypto");
       }
     },
     i18n: {
