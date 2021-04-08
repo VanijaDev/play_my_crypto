@@ -93,7 +93,7 @@ const actions = {
         stakingRewardWithdrawn: await stakingContract.stakingRewardWithdrawnOf(state.accountAddress), // User Profile - Staking
         stake: stake, // Stats - Your stake
         stakePercent: stakePercent, // Stats - Your stake Percent
-        stakePercentShort: (parseFloat(stakePercent) / 1000000000000000000).toFixed(2),
+        stakePercentShort: (parseFloat(stakePercent) / 10000000000000000).toFixed(2),
       }
       commit('SET_STAKING_DATA', stakingData)
     } catch (error) {
