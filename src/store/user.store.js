@@ -337,6 +337,62 @@ const actions = {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE')
     //  TODO: check what network / crypto for prize
 
+    const n = rootState.blockchain.networkIndex;
+    const ci = rootState.blockchain.chainId;
+    console.log("n: ", n);
+    console.log("ci: ", ci);
+    return
+
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
+
+    try {
+      const tx = await gameContract.withdrawPendingPrizes();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE - tx', tx);
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
+      const receipt = await tx.wait();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE - receipt', receipt)
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
+    dispatch('GET_BALANCE');
+    dispatch('GET_STAKING_DATA');
+
   },
 
   WITHDRAW_GAMEPLAY_PMC: async ({

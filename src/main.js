@@ -4,20 +4,34 @@ import router from "./router";
 import store from "./store";
 import './assets/css/app.scss'
 
-import { LayoutPlugin } from 'bootstrap-vue'
+import {
+  LayoutPlugin
+} from 'bootstrap-vue'
 Vue.use(LayoutPlugin)
-import { TooltipPlugin } from 'bootstrap-vue'
+import {
+  TooltipPlugin
+} from 'bootstrap-vue'
 Vue.use(TooltipPlugin)
-import { DropdownPlugin } from 'bootstrap-vue'
+import {
+  DropdownPlugin
+} from 'bootstrap-vue'
 Vue.use(DropdownPlugin)
-import { ModalPlugin } from 'bootstrap-vue'
+import {
+  ModalPlugin
+} from 'bootstrap-vue'
 Vue.use(ModalPlugin)
-import { CollapsePlugin } from 'bootstrap-vue'
+import {
+  CollapsePlugin
+} from 'bootstrap-vue'
 Vue.use(CollapsePlugin)
 
 import VueI18n from 'vue-i18n'
 Vue.use(VueI18n)
-const i18n = new VueI18n({ locale: 'en', fallbackLocale: 'en', silentTranslationWarn: true })
+const i18n = new VueI18n({
+  locale: 'en',
+  fallbackLocale: 'en',
+  silentTranslationWarn: true
+})
 
 import globalMixins from "@/utils/globalMixins";
 Vue.mixin(globalMixins)
@@ -25,10 +39,10 @@ Vue.mixin(globalMixins)
 import VueLogger from 'vuejs-logger';
 Vue.use(VueLogger, {
   isEnabled: true, //
-  logLevel : process.env.NODE_ENV === 'production' ? 'error' : 'debug',
-  stringifyArguments : false,
-  showLogLevel : true,
-  showMethodName : true,
+  logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
+  stringifyArguments: false,
+  showLogLevel: true,
+  showMethodName: true,
   separator: '|',
   showConsoleColors: true
 });
