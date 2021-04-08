@@ -25,7 +25,7 @@
           <b-tooltip target="stats_2" custom-class="__tooltip" >{{gUser.stakingData.stake | formatBalance}}</b-tooltip>  
         </div> 
         <!-- Unstake -->
-        <button type="button" class="btn btn-primary __blue_button ml-2 __stats_col_4" :disabled="unStakeDisabled">{{ $t('unstake') }}</button>        
+        <button type="button" class="btn btn-primary __blue_button ml-2 __stats_col_4" :disabled="unStakeDisabled" @click="unstake()">{{ $t('unstake') }}</button>        
       </div>
     </div>
     
@@ -57,9 +57,9 @@
       },       
     },
     methods: {
-      unStake() {
-        this.$store.dispatch('user/UNSTAKE')  
-      },      
+      unstake() {
+        this.$store.dispatch('user/UNSTAKE')
+      },
     },
     i18n: {
       messages: {

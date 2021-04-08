@@ -56,7 +56,7 @@
             <span id="my_stat_4">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_4" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_prize()">{{ $t('withdraw') }}</button> 
         </div>
         <!-- Gameplay PMC-->
         <div class="__text_line mb-3">
@@ -67,7 +67,7 @@
             <span id="my_stat_7">{{gGameData.pendingGameplayPmcTokens | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_7" custom-class="__tooltip" >{{gGameData.pendingGameplayPmcTokens | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_pmc()">{{ $t('withdraw') }}</button> 
 
         </div>
         <!-- Referral -->
@@ -80,7 +80,7 @@
             <b-tooltip target="my_stat_5" custom-class="__tooltip" >{{gGameData.referralFeePending | formatBalance}}</b-tooltip>  
           </div>
                      
-          <button type="button" class="btn btn-primary __blue_button ml-1">{{ $t('withdraw') }}</button>  
+          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_referral()">{{ $t('withdraw') }}</button>  
         </div>
         <!-- Raffle -->
         <div class="__text_line mb-3">
@@ -92,7 +92,7 @@
               <b-tooltip target="my_stat_6" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>  
             </div>
           
-          <button type="button" class="btn btn-primary __blue_button ml-1">{{ $t('withdraw') }}</button>  
+          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_raffle()">{{ $t('withdraw') }}</button>  
         </div>
 
         <!-- Info -->
@@ -121,20 +121,34 @@
         en: {
           my_stats: 'My stats',
           my_in: 'My in:',
-          my_out: 'My out:',          
+          my_out: 'My out:',
           ongoing_raffle: 'Ongoing raffle',
           jackpot: 'Jackpot:',
-          participants: 'Participants:',    
-          pending_withdrawal: 'Pending withdrawal',      
-          gameplay_eth: 'Gameplay:',  
+          participants: 'Participants:',
+          pending_withdrawal: 'Pending withdrawal',
+          gameplay_eth: 'Gameplay:',
           gameplay_pmc: 'PMC:',
           referral: 'Referral:',
-          raffle: 'Raffle:', 
-          withdraw: 'Withdraw',   
+          raffle: 'Raffle:',
+          withdraw: 'Withdraw',
           how_to_play: 'How to play?',
           game_faq: 'Game FAQ',
-        },          
-      }      
+        },
+      }
+    },
+    methods: {
+      withdraw_gameplay_prize() {
+        this.$store.dispatch('user/WITHDRAW_GAMEPLAY_PRIZE');
+      },
+      withdraw_gameplay_pmc() {
+        this.$store.dispatch('user/WITHDRAW_GAMEPLAY_PMC');
+      },
+      withdraw_gameplay_referral() {
+        this.$store.dispatch('user/WITHDRAW_GAMEPLAY_REFERRAL');
+      },
+      withdraw_gameplay_raffle() {
+        this.$store.dispatch('user/WITHDRAW_GAMEPLAY_RAFFLE');
+      },
     }
   }
 </script>
@@ -152,7 +166,7 @@
       position: absolute;
       right: 2px;
       height: 12px;
-      width: 12px;            
+      width: 12px;
     }  
   }
   

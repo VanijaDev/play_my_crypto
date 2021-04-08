@@ -41,7 +41,7 @@ import { ethers, BigNumber } from "ethers";
     }), 
     computed: {
       addStakeAllowed() { 
-        if (!this.gUser.pmcAllowance ) return false        
+        if (!this.gUser.pmcAllowance ) return false
         if (this.gUser.pmcAllowance.eq(0) ) return false
         // if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.gUser.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
         return true  

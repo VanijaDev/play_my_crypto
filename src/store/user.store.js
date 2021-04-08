@@ -330,6 +330,41 @@ const actions = {
     dispatch('GET_STAKING_DATA');
   },
 
+  WITHDRAW_GAMEPLAY_PRIZE: async ({
+    dispatch,
+    rootState
+  }, addStakeAmount) => {
+    Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE')
+    //  TODO: check what network / crypto for prize
+
+  },
+
+  WITHDRAW_GAMEPLAY_PMC: async ({
+    dispatch,
+    rootState
+  }, addStakeAmount) => {
+    Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC')
+
+  },
+
+  WITHDRAW_GAMEPLAY_REFERRAL: async ({
+    dispatch,
+    rootState
+  }, addStakeAmount) => {
+    Vue.$log.debug('user/WITHDRAW_GAMEPLAY_REFERRAL')
+    //  TODO: check what network / crypto for prize
+
+  },
+
+  WITHDRAW_GAMEPLAY_RAFFLE: async ({
+    dispatch,
+    rootState
+  }, addStakeAmount) => {
+    Vue.$log.debug('user/WITHDRAW_GAMEPLAY_RAFFLE')
+    //  TODO: check what network / crypto for prize
+
+  },
+
   DESTROY: async ({
     commit
   }) => {
