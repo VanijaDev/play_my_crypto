@@ -1348,10 +1348,9 @@ const actions = {
     Vue.$log.debug('games/GET_GAME_RAFFLE')
     try {
       const raffleData = {
-        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // My Stats - Raffle /  User Profile - Raffle
-        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // My Stats - Jackpot
-        raffleParticipants: 0, // My Stats -  Participants .length
-        //betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
+        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
+        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // Ongoing raffle -> Jackpot
+        raffleParticipants: 0, // Ongoing raffle -  Participants .length
         raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
       }
       const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
