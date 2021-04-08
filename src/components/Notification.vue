@@ -13,7 +13,7 @@
       </div>      
       <div v-if="notification.id === 'TRANSACTION_PENDING' || notification.id === 'TRANSACTION_MINED' || notification.id === 'TRANSACTION_ERROR'">
         <span class="mr-2">{{ $t('transaction') }}</span>
-        <a :href="`https://ropsten.etherscan.io/tx/${notification.data.tx}`" target="_blank" class="text-break">{{ notification.data.tx }}</a>
+        <a :href="explorerURL(notification.data.tx)" target="_blank" class="text-break">{{ notification.data.tx }}</a>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('is being mined...') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mining SUCCESS.') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('mining ERROR.') }}</span>
@@ -71,8 +71,8 @@
       this.$eventBus.$off('notification::open') 
       this.$eventBus.$off('notification::close')    
     },
-    computed: {      
-      notification() { return this.$store.getters['notification/notification'] },  
+    computed: {
+      notification() { return this.$store.getters['notification/notification'] },
       closeable() { 
         return this.notification.closeable 
           || this.notification.id === 'TRANSACTION_MINED'
@@ -86,6 +86,13 @@
       },
       closeNotification () {
         this.$store.dispatch('notification/CLOSE') 
+      },
+      explorerURL(tx) {
+        //  TODO :  check network for explorer url prefix - explorerBaseURL
+
+        console.log("Store: ", this.$store);
+
+        return "https://etherscan.io/tx/"+tx;
       },
     },
     i18n: {

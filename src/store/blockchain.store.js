@@ -12,6 +12,7 @@ const state = {
       id: 'ETH',
       name: 'ETHEREUM',
       icon: '/img/ethereum_icon.svg',
+      explorerBaseURL: 'https://etherscan.io/tx/',
       chains: [
         //{ id: '0x1', name: 'Mainnet' },
         {
@@ -30,6 +31,7 @@ const state = {
       id: 'BSC',
       name: 'BINANCE',
       icon: '/img/binance_icon.svg',
+      explorerBaseURL: 'https://bscscan.com/tx/',
       chains: [{
           id: '0x56',
           name: 'Mainnet'
