@@ -14,9 +14,9 @@
       <div v-if="notification.id === 'TRANSACTION_PENDING' || notification.id === 'TRANSACTION_MINED' || notification.id === 'TRANSACTION_ERROR'">
         <span class="mr-2">{{ $t('transaction') }}</span>
         <a :href="explorerURL(notification.data.tx)" target="_blank" class="text-break">{{ notification.data.tx }}</a>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('is being mined...') }}</span>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mining SUCCESS.') }}</span>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('mining ERROR.') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('mining') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mined') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('error') }}</span>
       </div>
      
       
@@ -100,9 +100,9 @@
         en: {
           mm_connect_error: 'Please connect MetaMask and select supported network',
           transaction: 'Transaction',
-          mining: 'mining...',
-          mined: 'mined!',
-          error: 'ERROR !',
+          mining: 'is being mined...',
+          mined: 'mining SUCCESS.',
+          error: 'mining ERROR.',
         },
       }
     } 
