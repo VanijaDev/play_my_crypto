@@ -14,9 +14,9 @@
       <div v-if="notification.id === 'TRANSACTION_PENDING' || notification.id === 'TRANSACTION_MINED' || notification.id === 'TRANSACTION_ERROR'">
         <span class="mr-2">{{ $t('transaction') }}</span>
         <a :href="`https://ropsten.etherscan.io/tx/${notification.data.tx}`" target="_blank" class="text-break">{{ notification.data.tx }}</a>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('mining') }}</span>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mined') }}</span>
-        <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('error') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('is being mined...') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('is successfully mined.') }}</span>
+        <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('mining error.') }}</span>
       </div>
      
       
