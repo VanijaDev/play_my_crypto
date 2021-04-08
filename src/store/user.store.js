@@ -122,8 +122,9 @@ const actions = {
     Vue.$log.debug('user/APPROVE_PCM_STAKE')
     //dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: '0x8a7caa0e7587262e1d2aa87ac44b6396e30623059e45f5daec22bb3e5e6f665a' } }, { root: true })
     try {
-      const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, 21515) //ethers.constants.MaxUint256
+      const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256)
       Vue.$log.debug('user/APPROVE_PCM_STAKE - tx', tx);
+
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
         data: {
@@ -132,6 +133,7 @@ const actions = {
       }, {
         root: true
       })
+
       const receipt = await tx.wait();
       Vue.$log.debug('user/APPROVE_PCM_STAKE - receipt', receipt)
       if (receipt.status) {
