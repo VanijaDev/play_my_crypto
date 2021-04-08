@@ -299,7 +299,7 @@ button:hover {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        width: 110px;
+        width: 96px;
 
         span:nth-child(2) {
           @extend .text-monospace;
@@ -338,4 +338,3 @@ button:hover {
 }
 
 // ------------------------------------------------------------------------------
-
