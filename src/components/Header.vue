@@ -107,8 +107,28 @@
         }
       },
       selectNetwork(network) {
-        this.$log.debug(network.id)
         //  TODO: show message: "Please select Binance Smart Chain in MetaMask" || "Please select Ethereum Mainnet in MetaMask"
+        //  TODO: add check for current network
+        this.$log.debug(network.id)
+
+        if (network.id === "ETH") { //  && currentNetwork !== "ETH"
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: `Please select Ethereum Mainnet in MetaMask`,
+            delay: 5
+          }, {
+            root: true
+          })
+
+        } else if (network.id === "BSC") { //  && currentNetwork !== "BSC"
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: `Please select Binance Smart Chain in MetaMask`,
+            delay: 5
+          }, {
+            root: true
+          })
+        }
         //<!-- TODO : click on inactive network notification -->
       }
     },
