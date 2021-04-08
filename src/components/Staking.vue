@@ -13,10 +13,10 @@
     <!-- Add stake -->
     <div class="__text_line">
       <span>{{ $t('add_stake') }}</span>
-      <input type="number" min="0" :max="gUser.balancePMC | formatBalance" class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
-      <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled">{{ $t('max') }}</button> 
+      <input type="number" min="0" step="0.01" :max="gUser.balancePMC | formatBalance" class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
+      <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled" @click="setMaxPMCStake()">{{ $t('max') }}</button> 
       <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>     
-      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePcm()">{{ $t('approve') }}</button>                
+      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePMC()">{{ $t('approve') }}</button>                
     </div>  
     <!-- Available to withdraw -->
     <div class="__text_line">
@@ -37,23 +37,26 @@ import { ethers, BigNumber } from "ethers";
   export default {
     name: 'Staking', 
     data: () => ({
-      addStakeAmount: null,      
+      addStakeAmount: null,
     }), 
     computed: {
       addStakeAllowed() { 
         if (!this.gUser.pmcAllowance ) return false        
         if (this.gUser.pmcAllowance.eq(0) ) return false
-        if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.gUser.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
+        // if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.gUser.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
         return true  
       },
       addStakeDisabled() { 
-        if (!this.addStakeAmount) return true
-        if (ethers.utils.parseEther(this.addStakeAmount).lte(0)) return true
-        if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true        
-        return false  
+        try {
+          if (!this.addStakeAmount) return true
+          if (ethers.utils.parseEther(this.addStakeAmount).lte(0)) return true
+          if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true        
+          return false 
+        } catch (error) {
+          return true;
+        }
       },
       maxStakeDisabled() { 
-        if (!this.addStakeAmount) return true
         if (!this.gUser.balancePMC) return true
         if (this.gUser.balancePMC.eq(0)) return true
         return false  
@@ -62,17 +65,27 @@ import { ethers, BigNumber } from "ethers";
         if (!this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward ) return true
         if (this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward.eq(0) ) return true    
         return false  
-      },  
+      }
     },
     methods: {
-      approvePcm() {
+      approvePMC() {
         this.$store.dispatch('user/APPROVE_PCM_STAKE')  
       },
       addStake() {
-        this.$store.dispatch('user/ADD_STAKE', this.addStakeAmount)  
+        try {
+          this.$store.dispatch('user/ADD_STAKE', ethers.utils.parseEther(this.addStakeAmount));
+        } catch(error) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: `Error: wrong value to stake.`,
+            delay: 5
+          }, {
+            root: true
+          })
+        }
       },
-      setMaxStake() {
-        this.addStakeAmount = this.gUser.balancePMC
+      setMaxPMCStake() {
+        this.addStakeAmount = ethers.utils.formatEther(this.gUser.balancePMC.toString()).toString();
       },
     },
     i18n: {
