@@ -2,7 +2,8 @@ import Vue from "vue";
 //import { cleanObject } from "@/utils/globalMixins";
 
 const state = {
-  show: false,
+  id: null,
+  show: false, //
   type: 'text',
   delay: false,
   closable: false,

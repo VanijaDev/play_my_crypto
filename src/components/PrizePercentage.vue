@@ -7,7 +7,7 @@
         <div class="__prize-percentage">
           <span id="percent_1">95%</span>
           <span v-html="$t('p1')"></span>  
-          <b-tooltip target="percent_1" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+          <b-tooltip target="percent_1" custom-class="__tooltip" >{{percent_1 | formatBalance}}</b-tooltip>
         </div>                
       </b-col>
       <!-- *** -->
@@ -15,7 +15,7 @@
         <div class="__prize-percentage">
           <span id="percent_2">1%</span>
           <span v-html="$t('p2')"></span>
-          <b-tooltip target="percent_2" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+          <b-tooltip target="percent_2" custom-class="__tooltip" v-if="gGame.data && gGame.data.referralFeeWithdrawnTotal" >{{gGame.data.referralFeeWithdrawnTotal | formatBalance}}</b-tooltip>
         </div>  
       </b-col>
       <!-- *** -->
@@ -23,7 +23,7 @@
         <div class="__prize-percentage mt-2 mt-sm-0">
           <span id="percent_3">1%</span>
           <span v-html="$t('p3')"></span>
-          <b-tooltip target="percent_3" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+          <b-tooltip target="percent_3" custom-class="__tooltip" v-if="gGame.data && gGame.data.raffleJackpotsWonTotal">{{gGame.data.raffleJackpotsWonTotal | formatBalance}}</b-tooltip> 
         </div>  
       </b-col>
     
@@ -32,7 +32,7 @@
         <div class="__prize-percentage mt-2">
           <span id="percent_4">1%</span>
           <span v-html="$t('p4')"></span>
-          <b-tooltip target="percent_4" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+          <b-tooltip target="percent_4" custom-class="__tooltip" v-if="gGame.data && gGame.data.partnerFeeWithdrawnTotal">{{gGame.data.partnerFeeWithdrawnTotal | formatBalance}}</b-tooltip> 
         </div>  
       </b-col>
       <!-- *** -->
@@ -40,7 +40,7 @@
         <div class="__prize-percentage mt-2">
           <span id="percent_5">1%</span>
           <span v-html="$t('p5')"></span>
-          <b-tooltip target="percent_5" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
+          <b-tooltip target="percent_5" custom-class="__tooltip" >{{percent_5 | formatBalance}}</b-tooltip>
         </div>  
       </b-col>
       <!-- *** -->
@@ -48,7 +48,6 @@
         <div class="__prize-percentage mt-2">
           <span id="percent_6">100%</span>
           <span v-html="$t('p6')"></span>
-          <b-tooltip target="percent_6" custom-class="__tooltip" >0.123456789012345678</b-tooltip>
         </div>  
       </b-col>
     </b-row>
@@ -56,8 +55,18 @@
 </template>
 
 <script>
+  import { BigNumber } from "ethers";
   export default {
+    
     name: 'PrizePercentage',
+    computed: {
+      percent_1() {
+        return this.gGame.data && this.gGame.data.betsTotal ? this.gGame.data.betsTotal.div(100).mul(95) : BigNumber.from('0')
+      },
+      percent_5() {
+        return this.gGame.data && this.gGame.data.betsTotal ? this.gGame.data.betsTotal.div(100) : BigNumber.from('0')
+      }
+    },
     i18n: {
       messages: {
         en: {

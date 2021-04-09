@@ -87,12 +87,8 @@
       closeNotification () {
         this.$store.dispatch('notification/CLOSE') 
       },
-      explorerURL(tx) {
-        //  TODO :  check network for explorer url prefix - explorerBaseURL
-
-        console.log("Store: ", this.$store);
-
-        return "https://etherscan.io/tx/"+tx;
+      explorerURL(tx) {        
+        return  this.gNetwork.explorerBaseURL + tx;
       },
     },
     i18n: {
