@@ -63,7 +63,7 @@
 
             </div> 
 
-            <!-- View 1 -->
+            <!-- playingCreator -->
             <div class="__cf_view" v-if="gameView === 'playingCreator'">
               
               <div class="__cf_line">Referral address:</div>
@@ -100,9 +100,9 @@
               </div>
 
               <div class="__timer d-flex mb-3">
-                <div>23 h</div>
-                <div>01 min</div>
-                <div>45 sec</div>
+                <div>{{timeLeft.hours}} h</div>
+                <div>{{timeLeft.minutes}} min</div>
+                <div>{{timeLeft.seconds}} sec</div>
               </div>
 
             </div> 
@@ -145,7 +145,7 @@
 
             </div>
 
-            <!-- View 3 -->
+            <!-- playingOponent -->
             <div class="__cf_view" v-if="gameView === 'playingOponent'">
 
               <div class="__cf_line">Referral address:</div>
@@ -182,9 +182,9 @@
               </div>
               
               <div class="__timer d-flex mb-3">
-                <div>23 h</div>
-                <div>01 min</div>
-                <div>45 sec</div>
+                <div>{{timeLeft.hours}} h</div>
+                <div>{{timeLeft.minutes}} min</div>
+                <div>{{timeLeft.seconds}} sec</div>
               </div>
 
             </div>
@@ -407,8 +407,8 @@
     }),
     computed: {
       gameView() {
-        if (!this.gGame.gameplay) return null        
-        console.log(this.gGame.gameplay)
+        if (!this.gGame.gameplay || !this.gGame.info) return null        
+        
         // start 
         if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) return 'start'
          
@@ -437,6 +437,23 @@
       },
       startActive() {
         return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet)        
+      },
+      timeLeft() {
+        // TODO timer
+        if (!this.gGame.info || !this.gGame.info.startTime) return {} 
+        var date = new Date(this.gGame.info.startTime.toString() * 1000);
+        // Hours part from the timestamp
+        var hours = date.getHours();
+        // Minutes part from the timestamp
+        var minutes = "0" + date.getMinutes();
+        // Seconds part from the timestamp
+        var seconds = "0" + date.getSeconds();        
+        // Will display time in 10:30:23 format
+        return { 
+          hours : hours,
+          minutes: minutes.substr(-2),
+          seconds: seconds.substr(-2)
+        }
       }
     },
     beforeDestroy() {
