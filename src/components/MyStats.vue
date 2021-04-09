@@ -50,7 +50,8 @@
         <h3>{{ $t('pending_withdrawal') }}</h3>
         <!-- Gameplay ETH -->
         <div class="__text_line mb-3">
-          <span class="w-25">{{ $t('gameplay_eth') }}</span>          
+          <span class="w-25">{{ $t('gameplay_eth') }}</span>
+          // <span class="w-25">{{ $t('gameplay_pmc') }}</span>
           <div class="__img_value_block">
             <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="my_stat_4">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
@@ -60,14 +61,14 @@
         </div>
         <!-- Gameplay PMC-->
         <div class="__text_line mb-3">
-          <span class="w-25">{{ $t('gameplay_pmc') }}</span>          
+          <span class="w-25">{{ $t('pending_pmc') }}</span>          
           
           <div class="__img_value_block">
             <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
             <span id="my_stat_7">{{gGameData.pendingGameplayPmcTokens | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_7" custom-class="__tooltip" >{{gGameData.pendingGameplayPmcTokens | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingGameplayPmcTokens)" @click="withdraw_gameplay_pmc()">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingGameplayPmcTokens)" @click="WITHDRAW_PENDING_PMC()">{{ $t('withdraw') }}</button> 
 
         </div>
         <!-- Referral -->
@@ -127,7 +128,8 @@
           participants: 'Participants:',
           pending_withdrawal: 'Pending withdrawal',
           gameplay_eth: 'Gameplay:',
-          gameplay_pmc: 'PMC:',
+          gameplay_pmc: '+1% in PMC',
+          pending_pmc: 'PMC:',
           referral: 'Referral:',
           raffle: 'Raffle:',
           withdraw: 'Withdraw',
@@ -140,8 +142,8 @@
       withdraw_gameplay_prize() {
         this.$store.dispatch('user/WITHDRAW_GAMEPLAY_PRIZE');
       },
-      withdraw_gameplay_pmc() {
-        this.$store.dispatch('user/WITHDRAW_GAMEPLAY_PMC');
+      WITHDRAW_PENDING_PMC() {
+        this.$store.dispatch('user/WITHDRAW_PENDING_PMC');
       },
       withdraw_gameplay_referral() {
         this.$store.dispatch('user/WITHDRAW_GAMEPLAY_REFERRAL');

@@ -392,18 +392,18 @@ const actions = {
     //  all data updates in event handler
   },
 
-  WITHDRAW_GAMEPLAY_PMC: async ({
+  WITHDRAW_PENDING_PMC: async ({
     dispatch,
     rootState
   }) => {
-    Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC')
+    Vue.$log.debug('user/WITHDRAW_PENDING_PMC')
 
     const curGameIdx = rootState.games.currentIndex;
     const gameContract = rootState.games.list[curGameIdx].contract;
 
     try {
       const tx = await gameContract.withdrawPendingPMC();
-      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC - tx', tx);
+      Vue.$log.debug('user/WITHDRAW_PENDING_PMC - tx', tx);
 
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
@@ -415,7 +415,7 @@ const actions = {
       })
 
       const receipt = await tx.wait();
-      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC - receipt', receipt)
+      Vue.$log.debug('user/WITHDRAW_PENDING_PMC - receipt', receipt)
 
       if (receipt.status) {
         dispatch('notification/OPEN', {

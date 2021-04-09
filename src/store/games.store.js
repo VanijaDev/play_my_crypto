@@ -1314,7 +1314,8 @@ const actions = {
   },
 
   GET_GAME_DATA: async ({
-    commit
+    commit,
+    rootState
   }, game) => {
     Vue.$log.debug('games/GET_GAME_DATA')
     try {
@@ -1326,11 +1327,8 @@ const actions = {
         referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
-      }
-      const pendingPrizeToWithdraw = await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)
-      if (pendingPrizeToWithdraw) {
-        gameData.pendingPrizeToWithdrawPrize = pendingPrizeToWithdraw.prize // My Stats - Gameplay
-        gameData.pendingGameplayPmcTokens = pendingPrizeToWithdraw.pmc_tokens // My Stats - Gameplay PMC
+        pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
+        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress)
       }
       commit('SET_GAME_DATA', {
         game,
