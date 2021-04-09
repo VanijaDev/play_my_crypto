@@ -472,6 +472,7 @@
     },
     methods: {
       startCountdown() {
+        // TODO check and format to '00 sec' instead '0 sec'
         let t = 0
         if (this.gGame.info && this.gGame.info.startTime) {
           t = new Date((this.gGame.info.startTime.toString() * 1000) + this.duration) - new Date(Date.now())
