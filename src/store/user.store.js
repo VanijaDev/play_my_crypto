@@ -3,6 +3,7 @@ import {
   ethers,
   BigNumber
 } from "ethers";
+import constants from "../utils/constants";
 
 const state = {
   accountAddress: null,
@@ -333,22 +334,17 @@ const actions = {
   WITHDRAW_GAMEPLAY_PRIZE: async ({
     dispatch,
     rootState
-  }, addStakeAmount) => {
+  }) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE')
     //  TODO: check what network / crypto for prize
-
-    const n = rootState.blockchain.networkIndex;
-    const ci = rootState.blockchain.chainId;
-    console.log("n: ", n);
-    console.log("ci: ", ci);
-    return
 
     const curGameIdx = rootState.games.currentIndex;
     const gameContract = rootState.games.list[curGameIdx].contract;
 
     try {
-      const tx = await gameContract.withdrawPendingPrizes();
+      const tx = await gameContract.withdrawPendingPrizes(ethers.constants.AddressZero, 0);
       Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE - tx', tx);
+
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
         data: {
@@ -357,8 +353,10 @@ const actions = {
       }, {
         root: true
       })
+
       const receipt = await tx.wait();
       Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE - receipt', receipt)
+
       if (receipt.status) {
         dispatch('notification/OPEN', {
           id: 'TRANSACTION_MINED',
@@ -390,17 +388,71 @@ const actions = {
         root: true
       })
     }
-    dispatch('GET_BALANCE');
-    dispatch('GET_STAKING_DATA');
 
+    //  all data updates in event handler
   },
 
   WITHDRAW_GAMEPLAY_PMC: async ({
     dispatch,
     rootState
-  }, addStakeAmount) => {
+  }) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC')
 
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
+
+    try {
+      const tx = await gameContract.withdrawPendingPMC();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC - tx', tx);
+
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
+
+      const receipt = await tx.wait();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PMC - receipt', receipt)
+
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
+
+    dispatch('GET_BALANCE');
+    dispatch('games/GET_GAMES', null, {
+      root: true
+    });
   },
 
   WITHDRAW_GAMEPLAY_REFERRAL: async ({
