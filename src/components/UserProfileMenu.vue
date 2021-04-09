@@ -31,9 +31,9 @@
         </ul>
         <ul class="list-group __list_group">
           <li class="list-group-item __list_item">
-            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span></div>  <!-- <span class="text-monospace" v-if="!gamesStarted.length">{{ $t('no_games_playing') }}</span> -->
-            <div class="__card_list d-flex justify-content-end" v-if="gamesStarted.length">
-              <div v-for="(gameId, $index) in gamesStarted" :key="'gs_'+$index"
+            <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('playing_now') }}</span></div>  <!-- <span class="text-monospace" v-if="!userGamesStarted.length">{{ $t('no_games_playing') }}</span> -->
+            <div class="__card_list d-flex justify-content-end" v-if="userGamesStarted.length">
+              <div v-for="(gameId, $index) in userGamesStarted" :key="'gs_'+$index"
                 class="__card_block __img_button __shadow_filter" 
                 @click="gSelectGame(getGameById(gameId))"
                 >
@@ -213,7 +213,7 @@
     data: () => ({      
     }),
     computed: {      
-      gamesStarted() {  
+      userGamesStarted() {  
         return this.$store.getters['games/started']
       },
       listOfGames() {         

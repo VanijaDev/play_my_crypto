@@ -8,7 +8,7 @@
       <div class="h-100 d-flex flex-column justify-content-between">
         <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-md-between" >
           <!-- Coin -->
-          <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="view !== 3">
+          <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="gameView !== 'result'"> 
             
             <h4 class="__blue_text text-center mb-4" v-if="view === 4">COIN SIDE</h4>
 
@@ -33,7 +33,7 @@
           </div>
           
           <!-- Result -->
-          <div class="__cf_result_block  justify-content-center align-items-center order-1 order-sm-2 " v-if="view === 3">
+          <div class="__cf_result_block  justify-content-center align-items-center order-1 order-sm-2 " v-if="gameView === 'result'">
             
             <div class="d-flex flex-column justify-content-center" v-if="result" @click="result = false">
               <img src="/img/game_result_won.svg" alt="Won" width="100" class="mb-3 align-self-center">
@@ -52,14 +52,14 @@
             <div class="__cf_view" v-if="gameView === 'start'">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referalAddress"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3"  placeholder="Hello World">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.seedPhrase" placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input type="text" class="form-control w-50 mb-3"  placeholder="1.2345">
+              <input type="text" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345">
 
             </div> 
 
@@ -146,7 +146,7 @@
             </div>
 
             <!-- View 3 -->
-            <div class="__cf_view" v-if="view === 3">
+            <div class="__cf_view" v-if="gameView === 'playingOponent'">
 
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">0xt84u8r0394urwklnedlkfjojdut7e458737w</div>
@@ -252,7 +252,7 @@
         </div>    
       
         <div class="d-flex justify-content-center" v-if="gameView === 'start'">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 1">START</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 1" :disabled="!startActive">START</button>
         </div>
 
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="gameView === 'playingCreator'">
@@ -267,7 +267,7 @@
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 3">JOIN</button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="view === 3">
+        <div class="d-flex justify-content-center" v-if="gameView === 'playingOponent'">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 4">OK</button>
         </div>
 
@@ -384,36 +384,59 @@
     data: () => ({
       id: 'CF',
       ready: false, 
-      selectedCoin: 'BTC',
+      selectedCoin: null,
       view: 0, 
       result: true,
       viewTitles: {
         start: 'START NEW GAME', 
         join: 'JOIN GAME',
-        playingCreator: 'PLAYING GAME',          
-        result: 'RESULT', 
+        playingCreator: 'PLAYING GAME',        
         playingOponent: 'PLAYING GAME', 
+        // TODO
+        result: 'RESULT',        
         timeout: 'TIME’S UP FOR THE ONGOING GAME'
+      },
+      gameplay: {
+        start: {
+          referalAddress: null,
+          seedPhrase: null,
+          bet: null
+        }  
       }
+      
     }),
     computed: {
       gameView() {
-        if (!this.gGame.gameplay) return null
-        
+        if (!this.gGame.gameplay) return null        
         console.log(this.gGame.gameplay)
         // start 
-        if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.eq(this.gGame.gameplay.gamesFinishedCount)) return 'start'
+        if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) return 'start'
          
-        if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.gt(this.gGame.gameplay.gamesFinishedCount)) {
+        // playingCreator or join
+        if (this.gGame.gameplay.gamesStarted 
+          && this.gGame.gameplay.gamesFinished 
+          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
           // playingCreator
-          if (this.gGame.info && this.gGame.info.creator && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) return 'playingCreator'        
+          if (this.gGame.info 
+            && this.gUser.accountAddress 
+            && this.gGame.info.creator 
+            && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()
+            ) return 'playingCreator'  
+          // playingOponent
+          if (this.gGame.gameplay.gamesStarted 
+            && this.gGame.gameplay.gamesParticipatedToCheckPrize
+            && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
+            && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])
+            ) return 'playingOponent' 
           // join
           return 'join'
-        }
-        
+        }        
         //// join 
-        //if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.gt(this.gGame.gameplay.gamesFinishedCount)) return 'join'
-        
+        //if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) return 'join'
+        return null
+      },
+      startActive() {
+        return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet)        
       }
     },
     beforeDestroy() {

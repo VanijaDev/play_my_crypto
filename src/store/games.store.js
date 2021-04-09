@@ -1254,21 +1254,21 @@ const actions = {
   }) => {
     Vue.$log.debug('games/GET_GAMES')
 
-    let gamesStarted = []
+    let userGamesStarted = []
     for (const game of state.list) {
       if (game.id) {
         try {
-          const gamesStartedCount = await game.contract.gamesStarted(ethers.constants.AddressZero);
-          const gamesFinishedCount = await game.contract.gamesFinished(ethers.constants.AddressZero);
+          const gamesStarted = await game.contract.gamesStarted(ethers.constants.AddressZero);
+          const gamesFinished = await game.contract.gamesFinished(ethers.constants.AddressZero);
 
-          Vue.$log.debug('games/gamesStartedCount', gamesStartedCount)
-          Vue.$log.debug('games/gamesFinishedCount', gamesFinishedCount)
+          Vue.$log.debug('games/gamesStarted', gamesStarted)
+          Vue.$log.debug('games/gamesFinished', gamesFinished)
 
-          commit('SET_GAMEPLAY', { game, gameplay: { gamesStartedCount, gamesFinishedCount } });
+          commit('SET_GAMEPLAY', { game, gameplay: { gamesStarted, gamesFinished } });
 
-          if (gamesStartedCount.gt(0)) {
+          if (gamesStarted.gt(0)) {
             // GAME INFO
-            const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStartedCount - 1);
+            const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStarted - 1);
             commit('SET_GAME_INFO', {
               game,
               gameInfo
@@ -1282,12 +1282,13 @@ const actions = {
                 game,
                 gameInfo
               });
-              const checkPrizeForGames = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
-              if (checkPrizeForGames.length > 0) {
-                const lastGameToCheckPrize = checkPrizeForGames[checkPrizeForGames.length - 1];
+              const gamesParticipatedToCheckPrize = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
+              commit('SET_GAMEPLAY', { game, gameplay: { gamesParticipatedToCheckPrize } });
+              if (gamesParticipatedToCheckPrize.length > 0) {
+                const lastGameToCheckPrize = gamesParticipatedToCheckPrize[gamesParticipatedToCheckPrize.length - 1];
                 if (game.info.idx.eq(lastGameToCheckPrize)) {
                   // GAMES STARTED
-                  gamesStarted.push(game.id)
+                  userGamesStarted.push(game.id)
                 }
               }
             }
@@ -1299,7 +1300,7 @@ const actions = {
         }
       }
     }
-    commit('SET_GAMES_STARTED', gamesStarted)
+    commit('SET_GAMES_STARTED', userGamesStarted)
   },
 
   GET_GAME_STATISTICS: ({
@@ -1398,8 +1399,8 @@ const mutations = {
     Vue.set(state.list[index], 'info', gameInfo)
   },
 
-  SET_GAMES_STARTED: (state, gamesStarted) => {
-    state.started = gamesStarted;
+  SET_GAMES_STARTED: (state, userGamesStarted) => {
+    state.started = userGamesStarted;
   },
 
   SET_GAMEPLAY: (state, {game, gameplay}) => {    
