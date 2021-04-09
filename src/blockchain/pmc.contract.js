@@ -2,8 +2,8 @@ export default {
   networks: {
     ETH: {
       '0x2a': "", //kovan
-      '0x3': "0xf9d3a591Fc7165eE8Fb6B1639eD1652FD70C3822", //ropsten
-      '0x539': "0xcAE04327aaa0891C4f1008ea1C3d7590c8163149", // ganache
+      '0x3': "0x3930aE40Ab84762741b2CDbc9a50105F4f323762", //ropsten
+      '0x539': "0x7F93dA569e64dE338C6E8B2bf4eB14d8E19C7D83", // ganache
     },
   },
   abi: [{
