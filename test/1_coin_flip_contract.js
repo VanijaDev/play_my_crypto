@@ -6809,6 +6809,10 @@ contract("PMCCoinFlipContract", function (accounts) {
   });
 
   describe("withdrawPendingPMC", function () {
+    it.only("should fail if no PMC to withdraw", async function () {
+      await expectRevert(game.withdrawPendingPMC(), "No PMC");
+    });
+
     it("should delete playerPendingWithdrawalPMC", async function () {
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,

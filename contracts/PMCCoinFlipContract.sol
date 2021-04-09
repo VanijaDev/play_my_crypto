@@ -481,6 +481,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   function withdrawPendingPMC() external {
     uint256 pmc = playerPendingWithdrawalPMC[msg.sender];
+    require(pmc > 0, "No PMC");
+
     delete playerPendingWithdrawalPMC[msg.sender];
     PMC(pmcAddr).mint(msg.sender, pmc);
     playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(pmc);
