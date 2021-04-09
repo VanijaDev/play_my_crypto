@@ -336,7 +336,6 @@ const actions = {
     rootState
   }) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_PRIZE')
-    //  TODO: check what network / crypto for prize
 
     const curGameIdx = rootState.games.currentIndex;
     const gameContract = rootState.games.list[curGameIdx].contract;
@@ -460,7 +459,6 @@ const actions = {
     rootState
   }, addStakeAmount) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_REFERRAL')
-    //  TODO: check what network / crypto for prize
 
   },
 
@@ -469,7 +467,6 @@ const actions = {
     rootState
   }, addStakeAmount) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_RAFFLE')
-    //  TODO: check what network / crypto for prize
 
   },
 
