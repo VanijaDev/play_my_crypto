@@ -3,7 +3,7 @@
     
     <div class="h-100 d-flex flex-column" v-if="gGame.id">
 
-      <h2 class="__blue_text text-center mb-4">{{viewTitles[view]}}</h2>
+      <h2 class="__blue_text text-center mb-4">{{viewTitles[gameView]}}</h2>
 
       <div class="h-100 d-flex flex-column justify-content-between">
         <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-md-between" >
@@ -48,8 +48,8 @@
 
           <div class="__cf_view_block mr-0 mr-sm-4 order-2 order-sm-1" :class="{'w-100' : gBreakPoint('xs')}">
             
-            <!-- View 0 -->
-            <div class="__cf_view" v-if="view === 0">
+            <!-- Start -->
+            <div class="__cf_view" v-if="gameView === 'start'">
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
@@ -64,7 +64,7 @@
             </div> 
 
             <!-- View 1 -->
-            <div class="__cf_view" v-if="view === 1">
+            <div class="__cf_view" v-if="gameView === 'playingCreator'">
               
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">0xt84u8r0394urwklnedlkfjojdut7e458737w</div>
@@ -107,8 +107,8 @@
 
             </div> 
 
-            <!-- View 2 -->
-            <div class="__cf_view" v-if="view === 2">
+            <!-- Join -->
+            <div class="__cf_view" v-if="gameView === 'join'">
               
               <div class="__cf_line">
                 <span>Game bet:</span>
@@ -251,11 +251,11 @@
           </div>        
         </div>    
       
-        <div class="d-flex justify-content-center" v-if="view === 0">
+        <div class="d-flex justify-content-center" v-if="gameView === 'start'">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 1">START</button>
         </div>
 
-        <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="view === 1">
+        <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="gameView === 'playingCreator'">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
             <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game">
@@ -263,7 +263,7 @@
           <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" @click="view = 2">FINISH GAME</button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="view === 2">
+        <div class="d-flex justify-content-center" v-if="gameView === 'join'">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="view = 3">JOIN</button>
         </div>
 
@@ -378,6 +378,7 @@
 </style>
 
 <script>
+  import { ethers } from "ethers";
   export default {
     name: 'CoinFlipGame', 
     data: () => ({
@@ -386,12 +387,34 @@
       selectedCoin: 'BTC',
       view: 0, 
       result: true,
-      viewTitles: [
-        'START NEW GAME', 'PLAYING GAME', 'JOIN GAME', 'RESULT', 'PLAYING GAME', 'TIME’S UP FOR THE ONGOING GAME'
-      ]
+      viewTitles: {
+        start: 'START NEW GAME', 
+        join: 'JOIN GAME',
+        playingCreator: 'PLAYING GAME',          
+        result: 'RESULT', 
+        playingOponent: 'PLAYING GAME', 
+        timeout: 'TIME’S UP FOR THE ONGOING GAME'
+      }
     }),
     computed: {
-      
+      gameView() {
+        if (!this.gGame.gameplay) return null
+        
+        console.log(this.gGame.gameplay)
+        // start 
+        if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.eq(this.gGame.gameplay.gamesFinishedCount)) return 'start'
+         
+        if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.gt(this.gGame.gameplay.gamesFinishedCount)) {
+          // playingCreator
+          if (this.gGame.info && this.gGame.info.creator && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) return 'playingCreator'        
+          // join
+          return 'join'
+        }
+        
+        //// join 
+        //if (this.gGame.gameplay.gamesStartedCount && this.gGame.gameplay.gamesFinishedCount && this.gGame.gameplay.gamesStartedCount.gt(this.gGame.gameplay.gamesFinishedCount)) return 'join'
+        
+      }
     },
     beforeDestroy() {
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
@@ -402,6 +425,9 @@
       //this.$store.registerModule("game", store)
       
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id)  
+    },
+    methods: {
+
     }
   }
 </script>

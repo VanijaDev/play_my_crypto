@@ -22,6 +22,7 @@ const state = {
       statistics: {
         participants: 0
       },
+      gameplay: {},
       data: {},
       abi: [{
           "inputs": [{
@@ -1258,6 +1259,12 @@ const actions = {
       if (game.id) {
         try {
           const gamesStartedCount = await game.contract.gamesStarted(ethers.constants.AddressZero);
+          const gamesFinishedCount = await game.contract.gamesFinished(ethers.constants.AddressZero);
+
+          Vue.$log.debug('games/gamesStartedCount', gamesStartedCount)
+          Vue.$log.debug('games/gamesFinishedCount', gamesFinishedCount)
+
+          commit('SET_GAMEPLAY', { game, gameplay: { gamesStartedCount, gamesFinishedCount } });
 
           if (gamesStartedCount.gt(0)) {
             // GAME INFO
@@ -1393,6 +1400,11 @@ const mutations = {
 
   SET_GAMES_STARTED: (state, gamesStarted) => {
     state.started = gamesStarted;
+  },
+
+  SET_GAMEPLAY: (state, {game, gameplay}) => {    
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))    
   },
 
   SET_GAME_DATA: (state, {
