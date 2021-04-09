@@ -56,7 +56,7 @@
             <span id="my_stat_4">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_4" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_prize()">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingPrizeToWithdrawPrize)" @click="withdraw_gameplay_prize()">{{ $t('withdraw') }}</button> 
         </div>
         <!-- Gameplay PMC-->
         <div class="__text_line mb-3">
@@ -67,7 +67,7 @@
             <span id="my_stat_7">{{gGameData.pendingGameplayPmcTokens | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_7" custom-class="__tooltip" >{{gGameData.pendingGameplayPmcTokens | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_pmc()">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingGameplayPmcTokens)" @click="withdraw_gameplay_pmc()">{{ $t('withdraw') }}</button> 
 
         </div>
         <!-- Referral -->
@@ -80,7 +80,7 @@
             <b-tooltip target="my_stat_5" custom-class="__tooltip" >{{gGameData.referralFeePending | formatBalance}}</b-tooltip>  
           </div>
                      
-          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_referral()">{{ $t('withdraw') }}</button>  
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.referralFeePending)" @click="withdraw_gameplay_referral()">{{ $t('withdraw') }}</button>  
         </div>
         <!-- Raffle -->
         <div class="__text_line mb-3">
@@ -92,7 +92,7 @@
               <b-tooltip target="my_stat_6" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>  
             </div>
           
-          <button type="button" class="btn btn-primary __blue_button ml-1" @click="withdraw_gameplay_raffle()">{{ $t('withdraw') }}</button>  
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.raffleJackpotPending)" @click="withdraw_gameplay_raffle()">{{ $t('withdraw') }}</button>  
         </div>
 
         <!-- Info -->
@@ -148,6 +148,9 @@
       },
       withdraw_gameplay_raffle() {
         this.$store.dispatch('user/WITHDRAW_GAMEPLAY_RAFFLE');
+      },
+      isMoreThanZero(_val) {
+        return _val > 0;
       },
     }
   }
