@@ -115,16 +115,15 @@
           this.$store.dispatch('notification/OPEN', {
             id: 'ERROR',
             data: `Please select Ethereum Mainnet in MetaMask`,
-            delay: 5
+            //delay: 5
           }, {
             root: true
           })
-
         } else if (network.id === "BSC") { //  && currentNetwork !== "BSC"
           this.$store.dispatch('notification/OPEN', {
             id: 'ERROR',
             data: `Please select Binance Smart Chain in MetaMask`,
-            delay: 5
+            //delay: 5
           }, {
             root: true
           })

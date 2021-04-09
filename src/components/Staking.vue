@@ -13,7 +13,7 @@
     <!-- Add stake -->
     <div class="__text_line">
       <span>{{ $t('add_stake') }}</span>
-      <input type="number" min="0" step="0.01" :max="gUser.balancePMC | formatBalance" class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
+      <input type="number" min="0" step="0.01"  class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
       <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled" @click="setMaxPMCStake()">{{ $t('max') }}</button> 
       <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>     
       <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePMC()">{{ $t('approve') }}</button>                
@@ -39,7 +39,13 @@ import { ethers, BigNumber } from "ethers";
     data: () => ({
       addStakeAmount: null,
     }), 
+    watch: {
+      userAccount() {
+        this.addStakeAmount = null
+      }
+    },
     computed: {
+      userAccount() { return this.gUser.accountAddress },
       addStakeAllowed() { 
         if (!this.gUser.pmcAllowance ) return false
         if (this.gUser.pmcAllowance.eq(0) ) return false
@@ -57,8 +63,7 @@ import { ethers, BigNumber } from "ethers";
         }
       },
       maxStakeDisabled() { 
-        if (!this.gUser.balancePMC) return true
-        if (this.gUser.balancePMC.eq(0)) return true
+        if (!this.gUser.balancePMC || this.gUser.balancePMC.eq(0)) return true
         return false  
       },
       withdrawDisabled() { 

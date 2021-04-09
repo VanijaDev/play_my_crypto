@@ -1260,10 +1260,7 @@ const actions = {
         try {
           const gamesStarted = await game.contract.gamesStarted(ethers.constants.AddressZero);
           const gamesFinished = await game.contract.gamesFinished(ethers.constants.AddressZero);
-
-          Vue.$log.debug('games/gamesStarted', gamesStarted)
-          Vue.$log.debug('games/gamesFinished', gamesFinished)
-
+          
           commit('SET_GAMEPLAY', { game, gameplay: { gamesStarted, gamesFinished } });
 
           if (gamesStarted.gt(0)) {
@@ -1336,7 +1333,9 @@ const actions = {
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
-        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress)
+        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
+        referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
+        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)       
       }
       commit('SET_GAME_DATA', {
         game,
