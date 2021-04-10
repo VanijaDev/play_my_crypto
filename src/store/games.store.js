@@ -197,11 +197,14 @@ const actions = {
         referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
-        pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
         pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
         referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
-        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)       
+        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)
       }
+      const prizeObj = (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0));
+      gameData.pendingPrizeToWithdrawPrize = prizeObj.prize; // My Stats - Gameplay
+      gameData.pendingPrizeToWithdrawPMCBonus = prizeObj.pmc_tokens;  // My Stats - Gameplay PMC bonus
+
       commit('SET_GAME_DATA', {
         game,
         gameData
@@ -1407,170 +1410,6 @@ const state = {
               "name": "_maxLoop",
               "type": "uint256"
             }
-<<<<<<< HEAD
-            dispatch('GET_GAME_DATA', game);
-            dispatch('GET_GAME_RAFFLE', game);
-          }
-        } catch (error) {
-          Vue.$log.error('GET_GAMES_INFO', error)
-        }
-      }
-    }
-    commit('SET_GAMES_STARTED', userGamesStarted)
-  },
-
-  GET_GAME_STATISTICS: ({
-    commit
-  }, {
-    game,
-    gameInfo
-  }) => {
-    Vue.$log.debug('games/GET_GAME_STATISTICS')
-    const participants = gameInfo.heads.add(gameInfo.tails).add(1)
-    const gameStatistics = {
-      participants: participants,
-      stakes: participants.mul(gameInfo.stake)
-    }
-    commit('SET_GAME_STATISTICS', {
-      game,
-      gameStatistics
-    });
-  },
-
-  GET_GAME_DATA: async ({
-    commit,
-    rootState
-  }, game) => {
-    Vue.$log.debug('games/GET_GAME_DATA')
-    try {
-      const gameData = {
-        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
-        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
-        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
-        partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
-        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
-        partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
-        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
-        pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
-        pendingPrizeToWithdrawPMCBonus: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).pmc_tokens, // My Stats - Gameplay PMC bonus
-        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
-        referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
-        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)
-      }
-      commit('SET_GAME_DATA', {
-        game,
-        gameData
-      })
-    } catch (error) {
-      Vue.$log.error('GET_GAME_DATA', error);
-    }
-  },
-
-  GET_GAME_RAFFLE: async ({
-    commit,
-    rootState
-  }, game) => {
-    Vue.$log.debug('games/GET_GAME_RAFFLE')
-    try {
-      const raffleData = {
-        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
-        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // Ongoing raffle -> Jackpot
-        raffleParticipants: 0, // Ongoing raffle -  Participants .length
-        raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
-      }
-      const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
-      if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length
-      commit('SET_GAME_RAFFLE', {
-        game,
-        raffleData
-      })
-    } catch (error) {
-      Vue.$log.error('GET_GAME_RAFFLE', error);
-    }
-  },
-
-  DESTROY: async ({
-    commit
-  }) => {
-    Vue.$log.debug('games/DESTROY')
-    commit('DESTROY')
-  },
-
-};
-
-const mutations = {
-  SET_CURRENT_GAME: (state, gameId) => {
-    state.currentId = gameId;
-    state.currentIndex = state.list.findIndex(_game => _game.id === gameId)
-  },
-
-  BUILD_CONTRACTS: (state, blockchain) => {
-    state.list.forEach((game, index) => {
-      if (game.id) state.list[index].contract = new ethers.Contract(game.networks[blockchain.networks[blockchain.networkIndex].id][blockchain.chainId], game.abi, window.pmc.signer)
-    })
-  },
-
-  SET_GAME_INFO: (state, {
-    game,
-    gameInfo
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Vue.set(state.list[index], 'info', gameInfo)
-  },
-
-  SET_GAMES_STARTED: (state, userGamesStarted) => {
-    state.started = userGamesStarted;
-  },
-
-  SET_GAMEPLAY: (state, {game, gameplay}) => {    
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))    
-  },
-
-  SET_GAME_DATA: (state, {
-    game,
-    gameData
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))
-  },
-
-  SET_GAME_RAFFLE: (state, {
-    game,
-    raffleData
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))
-  },
-
-  SET_GAME_STATISTICS: (state, {
-    game,
-    gameStatistics
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))
-  },
-
-  DESTROY_GAME_STATISTICS: (state, {
-    game,
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    state.list[index].statistics = {
-      participants: 0
-    }
-  },
-
-  DESTROY: (state) => {
-    state.list.forEach((game, index) => {
-      if (game.id) {
-        if (state.list[index].contract) {
-          state.list[index].contract.removeAllListeners();
-        }
-
-        state.list[index].contract = null
-        state.list[index].statistics = {
-          participants: 0
-=======
           ],
           "name": "withdrawPendingPrizes",
           "outputs": [],
@@ -1598,7 +1437,6 @@ const mutations = {
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
->>>>>>> develop_web_roman
         }
       ],
     },
