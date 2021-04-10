@@ -378,7 +378,6 @@
 </style>
 
 <script>
-  import { ethers } from "ethers";
   export default {
     name: 'CoinFlipGame', 
     data: () => ({
@@ -402,32 +401,44 @@
           seedPhrase: null,
           bet: null
         }  
-      }
-      
+      },
+      timeLeft: {
+        total: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0
+      },
+      duration: 24 * 60 * 60 * 1000       
     }),
     computed: {
-      gameView() {
+      gameView() {        
         if (!this.gGame.gameplay || !this.gGame.info) return null        
         
         // start 
-        if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) return 'start'
-         
-        // playingCreator or join
         if (this.gGame.gameplay.gamesStarted 
           && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
+          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) 
+          return 'start'
+         
+        // playingCreator or playingOponent or join
+        if (this.gGame.gameplay.gamesStarted 
+          && this.gGame.gameplay.gamesFinished 
+          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) 
+          {
           // playingCreator
-          if (this.gGame.info 
-            && this.gUser.accountAddress 
+          if ( this.gUser.accountAddress
+            && this.gGame.info 
             && this.gGame.info.creator 
             && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()
-            ) return 'playingCreator'  
+          ) 
+          return 'playingCreator'  
           // playingOponent
           if (this.gGame.gameplay.gamesStarted 
             && this.gGame.gameplay.gamesParticipatedToCheckPrize
             && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
             && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])
-            ) return 'playingOponent' 
+          ) 
+          return 'playingOponent' 
           // join
           return 'join'
         }        
@@ -437,37 +448,53 @@
       },
       startActive() {
         return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet)        
-      },
-      timeLeft() {
-        // TODO timer
-        if (!this.gGame.info || !this.gGame.info.startTime) return {} 
-        var date = new Date(this.gGame.info.startTime.toString() * 1000);
-        // Hours part from the timestamp
-        var hours = date.getHours();
-        // Minutes part from the timestamp
-        var minutes = "0" + date.getMinutes();
-        // Seconds part from the timestamp
-        var seconds = "0" + date.getSeconds();        
-        // Will display time in 10:30:23 format
-        return { 
-          hours : hours,
-          minutes: minutes.substr(-2),
-          seconds: seconds.substr(-2)
-        }
-      }
+      },  
+      running() {
+        return (this.gGame.info && this.gGame.info.running)        
+      }, 
     },
     beforeDestroy() {
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
     },
-    async created() {
+    created() {
       //if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game')
       //let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default
-      //this.$store.registerModule("game", store)
-      
+      //this.$store.registerModule("game", store)      
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id)  
     },
+    mounted() {
+      
+    },
+    watch: {
+      running() {
+        setTimeout(this.startCountdown, 1);
+      }
+    },
     methods: {
-
+      startCountdown() {
+        // TODO check and format to '00 sec' instead '0 sec'
+        let t = 0
+        if (this.gGame.info && this.gGame.info.startTime) {
+          t = new Date((this.gGame.info.startTime.toString() * 1000) + this.duration) - new Date(Date.now())
+        }
+        
+        if (t > 0 && this.running) { //
+          this.timeLeft = {
+            total: t,
+            hours: Math.floor((t / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((t / 1000 / 60) % 60),
+            seconds: Math.floor((t / 1000) % 60)
+          };  
+          setTimeout(this.startCountdown, 1000);        
+        } else {
+          this.timeLeft = {
+            total: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+          }; 
+        }              
+      }
     }
   }
 </script>
