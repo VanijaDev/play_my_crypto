@@ -51,11 +51,10 @@
         <!-- Gameplay ETH -->
         <div class="__text_line mb-3">
           <span class="w-25">{{ $t('gameplay_eth') }}</span>
-          // <span class="w-25">{{ $t('gameplay_pmc') }}</span>
           <div class="__img_value_block">
             <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="my_stat_4">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
-            <b-tooltip target="my_stat_4" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>  
+            <b-tooltip target="my_stat_4" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}} + {{gGameData.pendingPrizeToWithdrawPMCBonus | formatBalance}} PMC</b-tooltip>  
           </div>
           <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingPrizeToWithdrawPrize)" @click="withdraw_gameplay_prize()">{{ $t('withdraw') }}</button> 
         </div>
@@ -128,7 +127,6 @@
           participants: 'Participants:',
           pending_withdrawal: 'Pending withdrawal',
           gameplay_eth: 'Gameplay:',
-          gameplay_pmc: '+1% in PMC',
           pending_pmc: 'PMC:',
           referral: 'Referral:',
           raffle: 'Raffle:',

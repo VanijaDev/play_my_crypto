@@ -1333,9 +1333,10 @@ const actions = {
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
+        pendingPrizeToWithdrawPMCBonus: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).pmc_tokens, // My Stats - Gameplay PMC bonus
         pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
         referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
-        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)       
+        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)
       }
       commit('SET_GAME_DATA', {
         game,

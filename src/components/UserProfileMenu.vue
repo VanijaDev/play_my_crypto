@@ -69,7 +69,7 @@
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('gameplay') }}</span>
                 <span id="up_5">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}}</b-tooltip>
+                <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}} + {{gGameData.pendingPrizeToWithdrawPMCBonus | formatBalance}} PMC</b-tooltip>
               </div>  
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('referral') }}</span>
