@@ -1,9 +1,5 @@
 import Vue from "vue";
-import {
-  ethers,
-  BigNumber
-} from "ethers";
-import constants from "../utils/constants";
+import { ethers, BigNumber } from "ethers";
 
 const state = {
   accountAddress: null,
