@@ -1,8 +1,6 @@
 import Vue from "vue";
 //import { cleanObject } from "@/utils/globalMixins";
-import {
-  ethers
-} from "ethers";
+import { ethers } from "ethers";
 import PMC from '@/blockchain/pmc.contract.js';
 import Staking from '@/blockchain/staking.contract.js';
 

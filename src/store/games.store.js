@@ -1,10 +1,335 @@
 import Vue from "vue";
-import {
-  ethers
-} from "ethers";
+import { ethers } from "ethers";
+
+const getters = {
+  list: (state) => {
+    return state.list
+  },
+  started: (state) => {
+    return state.started
+  },
+  listOfGames: (state) => {
+    return state.list.filter(g => g.id !== null)
+  },
+  currentGame: state => state.currentIndex !== null ? state.list[state.currentIndex] : {},
+  getGameById: state => gameId => state.list.find(game => game.id === gameId),
+};
+
+const actions = {
+  LISTEN_FOR_EVENTS: async ({
+    //commit,
+    dispatch,
+    //rootState
+  }) => {
+    Vue.$log.debug('games.store/LISTEN_FOR_EVENTS - init')
+
+    state.list.forEach((game, index) => {
+      if (game.id) {
+        const gameContract = state.list[index].contract;
+        const gameId = state.list[index].id;
+
+        //  gameplay
+        gameContract.on(gameId + "_GameStarted", async (token, id) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
+        });
+
+        gameContract.on(gameId + "_GameJoined", async (token, id, opponent) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
+        });
+
+        gameContract.on(gameId + "_GameFinished", async (token, id, timeout) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameFinished", token, id, timeout);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
+        });
+
+        gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_PrizeWithdrawn", token, player, prize, pmc);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
+        });
+
+        //  raffle
+
+        //  commented because _GameFinished event will update entire data
+        // gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
+        //   Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RafflePlayed", token, winner, prize);
+        //   dispatch('user/GET_BALANCE', null, {
+        //     root: true
+        //   });
+        //   dispatch('GET_GAMES');
+        // });
+
+        gameContract.on(gameId + "_RaffleJackpotWithdrawn", async (token, amount, winner) => {
+          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
+
+          dispatch('user/GET_BALANCE', null, {
+            root: true
+          });
+          dispatch('GET_GAMES');
+        });
+      }
+    })
+  },
+
+  INIT: async ({
+    dispatch
+  }) => {
+    Vue.$log.debug('games/INIT')
+    dispatch('BUILD_CONTRACTS');
+    dispatch('GET_GAMES');
+    dispatch('LISTEN_FOR_EVENTS');
+  },
+
+  SET_CURRENT_GAME: async ({
+    commit
+  }, gameId) => {
+    Vue.$log.debug('games/SET_CURRENT_GAME')
+    commit('SET_CURRENT_GAME', gameId);
+  },
+
+  BUILD_CONTRACTS: ({
+    commit,
+    rootState
+  }) => {
+    Vue.$log.debug('games/BUILD_CONTRACTS')
+    commit('BUILD_CONTRACTS', rootState.blockchain);
+  },
+
+  GET_GAMES: async ({
+    commit,
+    dispatch,
+    state
+  }) => {
+    Vue.$log.debug('games/GET_GAMES')
+
+    let userGamesStarted = []
+    for (const game of state.list) {
+      if (game.id) {
+        try {
+          const gamesStarted = await game.contract.gamesStarted(ethers.constants.AddressZero);
+          const gamesFinished = await game.contract.gamesFinished(ethers.constants.AddressZero);
+          
+          commit('SET_GAMEPLAY', { game, gameplay: { gamesStarted, gamesFinished } });
+
+          if (gamesStarted.gt(0)) {
+            // GAME INFO
+            const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStarted - 1);
+            commit('SET_GAME_INFO', {
+              game,
+              gameInfo
+            });
+
+            commit('DESTROY_GAME_STATISTICS', {
+              game
+            })
+            if (gameInfo.running) {
+              dispatch('GET_GAME_STATISTICS', {
+                game,
+                gameInfo
+              });
+              const gamesParticipatedToCheckPrize = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
+              commit('SET_GAMEPLAY', { game, gameplay: { gamesParticipatedToCheckPrize } });
+              if (gamesParticipatedToCheckPrize.length > 0) {
+                const lastGameToCheckPrize = gamesParticipatedToCheckPrize[gamesParticipatedToCheckPrize.length - 1];
+                if (game.info.idx.eq(lastGameToCheckPrize)) {
+                  // GAMES STARTED
+                  userGamesStarted.push(game.id)
+                }
+              }
+            }
+            dispatch('GET_GAME_DATA', game);
+            dispatch('GET_GAME_RAFFLE', game);
+          }
+        } catch (error) {
+          Vue.$log.error('GET_GAMES_INFO', error)
+        }
+      }
+    }
+    commit('SET_GAMES_STARTED', userGamesStarted)
+  },
+
+  GET_GAME_STATISTICS: ({
+    commit
+  }, {
+    game,
+    gameInfo
+  }) => {
+    Vue.$log.debug('games/GET_GAME_STATISTICS')
+    const participants = gameInfo.heads.add(gameInfo.tails).add(1)
+    const gameStatistics = {
+      participants: participants,
+      stakes: participants.mul(gameInfo.stake)
+    }
+    commit('SET_GAME_STATISTICS', {
+      game,
+      gameStatistics
+    });
+  },
+
+  GET_GAME_DATA: async ({
+    commit,
+    rootState
+  }, game) => {
+    Vue.$log.debug('games/GET_GAME_DATA')
+    try {
+      const gameData = {
+        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
+        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
+        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
+        partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
+        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
+        partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
+        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
+        pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
+        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
+        referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
+        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)       
+      }
+      commit('SET_GAME_DATA', {
+        game,
+        gameData
+      })
+    } catch (error) {
+      Vue.$log.error('GET_GAME_DATA', error);
+    }
+  },
+
+  GET_GAME_RAFFLE: async ({
+    commit,
+    rootState
+  }, game) => {
+    Vue.$log.debug('games/GET_GAME_RAFFLE')
+    try {
+      const raffleData = {
+        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
+        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // Ongoing raffle -> Jackpot
+        raffleParticipants: 0, // Ongoing raffle -  Participants .length
+        raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
+      }
+      const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
+      if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length
+      commit('SET_GAME_RAFFLE', {
+        game,
+        raffleData
+      })
+    } catch (error) {
+      Vue.$log.error('GET_GAME_RAFFLE', error);
+    }
+  },
+
+  DESTROY: async ({
+    commit
+  }) => {
+    Vue.$log.debug('games/DESTROY')
+    commit('DESTROY')
+  },
+
+};
+
+const mutations = {
+  SET_CURRENT_GAME: (state, gameId) => {
+    state.currentId = gameId;
+    state.currentIndex = state.list.findIndex(_game => _game.id === gameId)
+  },
+
+  BUILD_CONTRACTS: (state, blockchain) => {
+    state.list.forEach((game, index) => {
+      if (game.id) state.list[index].contract = new ethers.Contract(game.networks[blockchain.networks[blockchain.networkIndex].id][blockchain.chainId], game.abi, window.pmc.signer)
+    })
+  },
+
+  SET_GAME_INFO: (state, {
+    game,
+    gameInfo
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Vue.set(state.list[index], 'info', gameInfo)
+  },
+
+  SET_GAMES_STARTED: (state, userGamesStarted) => {
+    state.started = userGamesStarted;
+  },
+
+  SET_GAMEPLAY: (state, {game, gameplay}) => {    
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))    
+  },
+
+  SET_GAME_DATA: (state, {
+    game,
+    gameData
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))
+  },
+
+  SET_GAME_RAFFLE: (state, {
+    game,
+    raffleData
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))
+  },
+
+  SET_GAME_STATISTICS: (state, {
+    game,
+    gameStatistics
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))
+  },
+
+  DESTROY_GAME_STATISTICS: (state, {
+    game,
+  }) => {
+    const index = state.list.findIndex(_game => _game.id === game.id)
+    state.list[index].statistics = {
+      participants: 0
+    }
+  },
+
+  DESTROY: (state) => {
+    state.list.forEach((game, index) => {
+      if (game.id) {
+        if (state.list[index].contract) {
+          state.list[index].contract.removeAllListeners();
+        }
+
+        state.list[index].contract = null
+        state.list[index].statistics = {
+          participants: 0
+        }
+        state.list[index].data = {}
+      }
+    })
+    state.started = []
+  },
+
+};
 
 const state = {
-  list: [{
+  currentId: null,
+  currentIndex: null,
+  started: [],
+  list: [
+    {
       id: 'CF',
       name: 'Coin Flip',
       routeName: 'coin-flip',
@@ -1131,332 +1456,7 @@ const state = {
       image: '/img/no_game.png'
     },
   ],
-  currentId: null,
-  currentIndex: null,
-  started: [],
-};
-
-const getters = {
-  list: (state) => {
-    return state.list
-  },
-  started: (state) => {
-    return state.started
-  },
-  listOfGames: (state) => {
-    return state.list.filter(g => g.id !== null)
-  },
-  currentGame: state => state.currentIndex !== null ? state.list[state.currentIndex] : {},
-  getGameById: state => gameId => state.list.find(game => game.id === gameId),
-};
-
-const actions = {
-  LISTEN_FOR_EVENTS: async ({
-    //commit,
-    dispatch,
-    //rootState
-  }) => {
-    Vue.$log.debug('games.store/LISTEN_FOR_EVENTS - init')
-
-    state.list.forEach((game, index) => {
-      if (game.id) {
-        const gameContract = state.list[index].contract;
-        const gameId = state.list[index].id;
-
-        //  gameplay
-        gameContract.on(gameId + "_GameStarted", async (token, id) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameStarted", token, id);
-
-          dispatch('user/GET_BALANCE', null, {
-            root: true
-          });
-          dispatch('GET_GAMES');
-        });
-
-        gameContract.on(gameId + "_GameJoined", async (token, id, opponent) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameJoined", token, id, opponent);
-
-          dispatch('user/GET_BALANCE', null, {
-            root: true
-          });
-          dispatch('GET_GAMES');
-        });
-
-        gameContract.on(gameId + "_GameFinished", async (token, id, timeout) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_GameFinished", token, id, timeout);
-
-          dispatch('user/GET_BALANCE', null, {
-            root: true
-          });
-          dispatch('GET_GAMES');
-        });
-
-        gameContract.on(gameId + "_PrizeWithdrawn", async (token, player, prize, pmc) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_PrizeWithdrawn", token, player, prize, pmc);
-
-          dispatch('user/GET_BALANCE', null, {
-            root: true
-          });
-          dispatch('GET_GAMES');
-        });
-
-        //  raffle
-
-        //  commented because _GameFinished event will update entire data
-        // gameContract.on(gameId + "_RafflePlayed", async (token, winner, prize) => {
-        //   Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RafflePlayed", token, winner, prize);
-        //   dispatch('user/GET_BALANCE', null, {
-        //     root: true
-        //   });
-        //   dispatch('GET_GAMES');
-        // });
-
-        gameContract.on(gameId + "_RaffleJackpotWithdrawn", async (token, amount, winner) => {
-          Vue.$log.debug('games.store/LISTEN_FOR_EVENTS', gameId + "_RaffleJackpotWithdrawn", token, amount, winner);
-
-          dispatch('user/GET_BALANCE', null, {
-            root: true
-          });
-          dispatch('GET_GAMES');
-        });
-      }
-    })
-  },
-
-  INIT: async ({
-    dispatch
-  }) => {
-    Vue.$log.debug('games/INIT')
-    dispatch('BUILD_CONTRACTS');
-    dispatch('GET_GAMES');
-    dispatch('LISTEN_FOR_EVENTS');
-  },
-
-  SET_CURRENT_GAME: async ({
-    commit
-  }, gameId) => {
-    Vue.$log.debug('games/SET_CURRENT_GAME')
-    commit('SET_CURRENT_GAME', gameId);
-  },
-
-  BUILD_CONTRACTS: ({
-    commit,
-    rootState
-  }) => {
-    Vue.$log.debug('games/BUILD_CONTRACTS')
-    commit('BUILD_CONTRACTS', rootState.blockchain);
-  },
-
-  GET_GAMES: async ({
-    commit,
-    dispatch,
-    state
-  }) => {
-    Vue.$log.debug('games/GET_GAMES')
-
-    let userGamesStarted = []
-    for (const game of state.list) {
-      if (game.id) {
-        try {
-          const gamesStarted = await game.contract.gamesStarted(ethers.constants.AddressZero);
-          const gamesFinished = await game.contract.gamesFinished(ethers.constants.AddressZero);
-          
-          commit('SET_GAMEPLAY', { game, gameplay: { gamesStarted, gamesFinished } });
-
-          if (gamesStarted.gt(0)) {
-            // GAME INFO
-            const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStarted - 1);
-            commit('SET_GAME_INFO', {
-              game,
-              gameInfo
-            });
-
-            commit('DESTROY_GAME_STATISTICS', {
-              game
-            })
-            if (gameInfo.running) {
-              dispatch('GET_GAME_STATISTICS', {
-                game,
-                gameInfo
-              });
-              const gamesParticipatedToCheckPrize = await game.contract.getGamesParticipatedToCheckPrize(ethers.constants.AddressZero);
-              commit('SET_GAMEPLAY', { game, gameplay: { gamesParticipatedToCheckPrize } });
-              if (gamesParticipatedToCheckPrize.length > 0) {
-                const lastGameToCheckPrize = gamesParticipatedToCheckPrize[gamesParticipatedToCheckPrize.length - 1];
-                if (game.info.idx.eq(lastGameToCheckPrize)) {
-                  // GAMES STARTED
-                  userGamesStarted.push(game.id)
-                }
-              }
-            }
-            dispatch('GET_GAME_DATA', game);
-            dispatch('GET_GAME_RAFFLE', game);
-          }
-        } catch (error) {
-          Vue.$log.error('GET_GAMES_INFO', error)
-        }
-      }
-    }
-    commit('SET_GAMES_STARTED', userGamesStarted)
-  },
-
-  GET_GAME_STATISTICS: ({
-    commit
-  }, {
-    game,
-    gameInfo
-  }) => {
-    Vue.$log.debug('games/GET_GAME_STATISTICS')
-    const participants = gameInfo.heads.add(gameInfo.tails).add(1)
-    const gameStatistics = {
-      participants: participants,
-      stakes: participants.mul(gameInfo.stake)
-    }
-    commit('SET_GAME_STATISTICS', {
-      game,
-      gameStatistics
-    });
-  },
-
-  GET_GAME_DATA: async ({
-    commit,
-    rootState
-  }, game) => {
-    Vue.$log.debug('games/GET_GAME_DATA')
-    try {
-      const gameData = {
-        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
-        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
-        referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
-        partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
-        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
-        partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
-        betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
-        pendingPrizeToWithdrawPrize: (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0)).prize, // My Stats - Gameplay
-        pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
-        referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
-        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)       
-      }
-      commit('SET_GAME_DATA', {
-        game,
-        gameData
-      })
-    } catch (error) {
-      Vue.$log.error('GET_GAME_DATA', error);
-    }
-  },
-
-  GET_GAME_RAFFLE: async ({
-    commit,
-    rootState
-  }, game) => {
-    Vue.$log.debug('games/GET_GAME_RAFFLE')
-    try {
-      const raffleData = {
-        raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
-        raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // Ongoing raffle -> Jackpot
-        raffleParticipants: 0, // Ongoing raffle -  Participants .length
-        raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
-      }
-      const raffleParticipants = await game.contract.getRaffleParticipants(ethers.constants.AddressZero)
-      if (raffleParticipants && raffleParticipants.length) raffleData.raffleParticipants = raffleParticipants.length
-      commit('SET_GAME_RAFFLE', {
-        game,
-        raffleData
-      })
-    } catch (error) {
-      Vue.$log.error('GET_GAME_RAFFLE', error);
-    }
-  },
-
-  DESTROY: async ({
-    commit
-  }) => {
-    Vue.$log.debug('games/DESTROY')
-    commit('DESTROY')
-  },
-
-};
-
-const mutations = {
-  SET_CURRENT_GAME: (state, gameId) => {
-    state.currentId = gameId;
-    state.currentIndex = state.list.findIndex(_game => _game.id === gameId)
-  },
-
-  BUILD_CONTRACTS: (state, blockchain) => {
-    state.list.forEach((game, index) => {
-      if (game.id) state.list[index].contract = new ethers.Contract(game.networks[blockchain.networks[blockchain.networkIndex].id][blockchain.chainId], game.abi, window.pmc.signer)
-    })
-  },
-
-  SET_GAME_INFO: (state, {
-    game,
-    gameInfo
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Vue.set(state.list[index], 'info', gameInfo)
-  },
-
-  SET_GAMES_STARTED: (state, userGamesStarted) => {
-    state.started = userGamesStarted;
-  },
-
-  SET_GAMEPLAY: (state, {game, gameplay}) => {    
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))    
-  },
-
-  SET_GAME_DATA: (state, {
-    game,
-    gameData
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameData).forEach(key => Vue.set(state.list[index].data, key, gameData[key]))
-  },
-
-  SET_GAME_RAFFLE: (state, {
-    game,
-    raffleData
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(raffleData).forEach(key => Vue.set(state.list[index].data, key, raffleData[key]))
-  },
-
-  SET_GAME_STATISTICS: (state, {
-    game,
-    gameStatistics
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameStatistics).forEach(key => Vue.set(state.list[index].statistics, key, gameStatistics[key]))
-  },
-
-  DESTROY_GAME_STATISTICS: (state, {
-    game,
-  }) => {
-    const index = state.list.findIndex(_game => _game.id === game.id)
-    state.list[index].statistics = {
-      participants: 0
-    }
-  },
-
-  DESTROY: (state) => {
-    state.list.forEach((game, index) => {
-      if (game.id) {
-        if (state.list[index].contract) {
-          state.list[index].contract.removeAllListeners();
-        }
-
-        state.list[index].contract = null
-        state.list[index].statistics = {
-          participants: 0
-        }
-        state.list[index].data = {}
-      }
-    })
-    state.started = []
-  },
-
+  
 };
 
 export default {
