@@ -81,14 +81,14 @@
               
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __btc __selected">
-                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">            
+                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">67</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
@@ -122,21 +122,21 @@
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __btc __selected">
-                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">            
+                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">67</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
 
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Current profit:</span>
-                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">    
+                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 <span class="ml-3 text-monospace __blue_text">2.1234</span>
               </div>
 
@@ -146,7 +146,7 @@
                 <div>{{timeLeft.seconds}} sec</div>
               </div>
 
-            </div> 
+            </div>
 
             <!-- playing_oponent -->
             <div class="__cf_view" v-if="mode === 'playing_oponent'">
@@ -166,14 +166,14 @@
               
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __btc __selected">
-                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">            
+                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">67</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
@@ -210,14 +210,14 @@
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __btc __selected">
-                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">            
+                  <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">67</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-4">
                 <div class="__cf_coin __shadow __eth __selected">
-                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">            
+                  <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
                 <span class="ml-3 text-monospace">24</span>
               </div>
@@ -251,19 +251,19 @@
 
             </div>
 
-          </div>        
+          </div>
         </div> 
 
-        <!-- Footer -->      
+        <!-- Footer -->
         <div class="d-flex justify-content-center" v-if="mode === 'start'">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="!startActive">START</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="!startActive" @click="startGameClicked()">START</button>
         </div>
 
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === 'playing_creator'">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
             <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game">
-          </div>      
+          </div>
           <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" >FINISH GAME</button>
         </div>
 
@@ -284,15 +284,15 @@
         </div>
 
       </div>
-    </div>   
-  </div>  
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped> 
   @import '@/assets/css/variables.scss';
   
   .__cf_view_block {
-    width: calc(100% - 11em);    
+    width: calc(100% - 11em);
   }
   
   .__cf_line {
@@ -336,13 +336,13 @@
       margin: auto;
       margin-bottom: 1rem;
       
-      &.__selected_btc { 
+      &.__selected_btc {
         background-color: $_btc_color;
-        border: 3px solid $_btc_color;      
+        border: 3px solid $_btc_color;
       }
-      &.__selected_eth { 
+      &.__selected_eth {
         background-color: $_eth_color;
-        border: 3px solid $_eth_color;      
+        border: 3px solid $_eth_color;
       }
       .__question{
         font-size: 5rem;
@@ -353,8 +353,8 @@
       img {
         height: 6em;
         width: 6em;
-      }      
-    }    
+      }
+    }
   }
   .__cf_coin {
     height: 3em;
@@ -363,31 +363,31 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #858585;  
-    cursor: pointer;      
-    filter: saturate(0) contrast(50%) brightness(130%); 
+    background-color: #858585;
+    cursor: pointer;
+    filter: saturate(0) contrast(50%) brightness(130%);
     &:hover {
       filter: saturate(1) contrast(100%) brightness(100%);
     }
     &.__selected {
       filter: saturate(1) contrast(100%) brightness(100%);
-    }        
+    }
     &.__btc{
       background-color: $_btc_color;
-    }        
+    }
     &.__eth{
       background-color: $_eth_color;
-    }        
-  }  
+    }
+  }
 </style>
 
 <script>
   import { BigNumber } from "ethers";
   export default {
-    name: 'CoinFlipGame', 
+    name: 'CoinFlipGame',
     data: () => ({
-      id: 'CF',      
-      selectedCoin: null,      
+      id: 'CF',
+      selectedCoin: null,
       result: true,
       gameplay: {
         start: {
@@ -404,47 +404,50 @@
       },
       duration: 24 * 60 * 60 * 1000, // 24 h in millisecnds
       timerId: null,
+      startButtonDisabled: false
     }),
     computed: {
-      mode() {        
-        if (!this.gGame.gameplay || !this.gGame.info) return null        
+      mode() {
+        if (!this.gGame.gameplay || !this.gGame.info) return null
         
         // start 
         if (this.gGame.gameplay.gamesStarted 
           && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) 
+          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished))
           return 'start'
          
         // playing_creator or playing_oponent or join
         if (this.gGame.gameplay.gamesStarted 
           && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) 
-          {            
+          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
           // playing_creator
-          if ( this.gUser.accountAddress
-            && this.gGame.info 
-            && this.gGame.info.creator 
-            && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()
-          ) 
-          return 'playing_creator'  
-          // playing_oponent
-          if (this.gGame.gameplay.gamesStarted 
-            && this.gGame.gameplay.gamesParticipatedToCheckPrize
-            && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
-            && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])
-          ) 
-          return 'playing_oponent'
-          // join
-          return 'join'
-        }        
+            if ( this.gUser.accountAddress
+              && this.gGame.info 
+              && this.gGame.info.creator 
+              && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()
+            ) 
+            return 'playing_creator'
+            
+            // playing_oponent
+            if (this.gGame.gameplay.gamesStarted 
+              && this.gGame.gameplay.gamesParticipatedToCheckPrize
+              && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
+              && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])
+            ) 
+            return 'playing_oponent'
+
+            // join
+            return 'join'
+          }      
+
         // TODO next game modes
         return null
       },
       startActive() {
-        return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet)        
-      },  
+        return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.startButtonDisabled)
+      },
       running() {
-        return (this.gGame.info && this.gGame.info.running)        
+        return (this.gGame.info && this.gGame.info.running)
       }, 
     },
     beforeDestroy() {
@@ -454,9 +457,9 @@
       // connection of game store (if need it)
       //if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game')
       //let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default
-      //this.$store.registerModule("game", store)      
-      this.$store.dispatch('games/SET_CURRENT_GAME', this.id)  
-    },    
+      //this.$store.registerModule("game", store)
+      this.$store.dispatch('games/SET_CURRENT_GAME', this.id)
+    },
     watch: {
       running() {
         setTimeout(this.startCountdown, 1);
@@ -470,14 +473,23 @@
           && this.gGame.info.startTime.gt(0)
           ) {
           t = new Date((this.gGame.info.startTime.toString() * 1000) + this.duration) - new Date(Date.now())
-        }        
+        }
         this.timeLeft = {
           total:    t,
           hours:    t > 0 ? ('0' + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2) : '00',
           minutes:  t > 0 ? ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2) : '00',
           seconds:  t > 0 ? ('0' + Math.floor((t / 1000) % 60)).slice(-2) : '00', 
         }; 
-        if (t > 0) setTimeout(this.startCountdown, 1000); 
+        if (t > 0) setTimeout(this.startCountdown, 1000);
+      },
+      startGameClicked() {
+        // this.startButtonDisabled = true;  //  TODO: how to enable again on error
+        this.$store.dispatch('coinflip/START_GAME', 
+          { _selectedCoin: this.selectedCoin,
+            _referalAddress: this.gameplay.start.referalAddress,
+            _seedPhrase: this.gameplay.start.seedPhrase,
+            _bet: this.gameplay.start.bet
+          });
       }
     },
     i18n: {
@@ -485,9 +497,9 @@
         en: {
           start: 'START NEW GAME',
           join: 'JOIN GAME',
-          playing_creator: 'PLAYING GAME',        
-          playing_oponent: 'PLAYING GAME',           
-          result: 'RESULT',        
+          playing_creator: 'PLAYING GAME',
+          playing_oponent: 'PLAYING GAME',
+          result: 'RESULT',
           timeout: 'TIME’S UP FOR THE ONGOING GAME',
           // TODO add rest of texts to translation
         },

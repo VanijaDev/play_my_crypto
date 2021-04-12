@@ -7,6 +7,7 @@ import uiHeaderHeight from "./uiHeaderHeight.store";
 import blockchain from "./blockchain.store";
 import games from "./games.store";
 import notification from "./notification.store";
+import coinflip from "../games/CoinFlip/CoinFlip.store";
 
 
 Vue.use(Vuex);
@@ -22,6 +23,7 @@ const store = new Vuex.Store({
     blockchain,
     games,
     notification,
+    coinflip
   },
   strict: process.env.NODE_ENV !== "production"
 });
