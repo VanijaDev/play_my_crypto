@@ -62,7 +62,7 @@
               <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.seedPhrase" placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input type="text" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345">
+              <input type="number" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345" step="0.1">
 
             </div> 
 
@@ -256,7 +256,7 @@
 
         <!-- Footer -->
         <div class="d-flex justify-content-center" v-if="mode === 'start'">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="!startActive" @click="startGameClicked()">START</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="startDisabled" @click="startGameClicked()">START</button>
         </div>
 
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === 'playing_creator'">
@@ -382,7 +382,9 @@
 </style>
 
 <script>
-  import { BigNumber } from "ethers";
+  import { ethers, BigNumber } from "ethers";
+  import constants from "../../utils/constants";
+  
   export default {
     name: 'CoinFlipGame',
     data: () => ({
@@ -396,7 +398,7 @@
           bet: null
         }  
       },
-      timeLeft: {
+      timeLeft: { 
         total: 0,
         hours: '00',
         minutes: '00',
@@ -408,7 +410,9 @@
     }),
     computed: {
       mode() {
-        if (!this.gGame.gameplay || !this.gGame.info) return null
+        if (!this.gGame.gameplay || !this.gGame.info) {
+          return 'start'
+        }
         
         // start 
         if (this.gGame.gameplay.gamesStarted 
@@ -443,9 +447,27 @@
         // TODO next game modes
         return null
       },
-      startActive() {
-        return (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.startButtonDisabled)
+      startDisabled() {
+        if (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.startButtonDisabled) {
+          try {
+            if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
+              return true;
+            }
+
+            // if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.gameplay.bet))) return true 
+            // if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
+            //   return true;
+            // }
+
+            return false;
+          } catch (error) {
+            return true;
+          }
+        }
+
+        return true;
       },
+
       running() {
         return (this.gGame.info && this.gGame.info.running)
       }, 

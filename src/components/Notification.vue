@@ -17,6 +17,7 @@
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('mining') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mined') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('error') }}</span>
+        <span class="ml-2" v-if="notification.id === 'ERROR'"></span>
       </div>
      
       

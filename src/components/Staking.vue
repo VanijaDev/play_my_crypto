@@ -7,17 +7,17 @@
       <div class="__img_value_block">
         <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
         <span id="staking_1">{{gUser.balancePMC | formatBalanceShort}}</span>
-        <b-tooltip target="staking_1" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>  
-      </div>              
+        <b-tooltip target="staking_1" custom-class="__tooltip" >{{gUser.balancePMC | formatBalance}}</b-tooltip>
+      </div>
     </div>
     <!-- Add stake -->
     <div class="__text_line">
       <span>{{ $t('add_stake') }}</span>
       <input type="number" min="0" step="0.01"  class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
       <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled" @click="setMaxPMCStake()">{{ $t('max') }}</button> 
-      <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>     
-      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePMC()">{{ $t('approve') }}</button>                
-    </div>  
+      <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>
+      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePMC()">{{ $t('approve') }}</button>
+    </div>
     <!-- Available to withdraw -->
     <div class="__text_line">
       <span>{{ $t('available_to_withdraw') }}</span>
@@ -56,7 +56,7 @@ import { ethers, BigNumber } from "ethers";
         try {
           if (!this.addStakeAmount) return true
           if (ethers.utils.parseEther(this.addStakeAmount).lte(0)) return true
-          if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true        
+          if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true
           return false 
         } catch (error) {
           return true;
@@ -98,18 +98,18 @@ import { ethers, BigNumber } from "ethers";
         en: {
           staking: 'Staking',
           available_to_stake: 'Available to stake:',
-          add_stake: 'Add stake:',          
+          add_stake: 'Add stake:',
           max: 'MAX',
           add: 'Add',
-          approve: 'Approve',    
-          available_to_withdraw: 'Available to withdraw:',      
-          withdraw: 'Withdraw',     
-        },          
-      }      
+          approve: 'Approve',
+          available_to_withdraw: 'Available to withdraw:',
+          withdraw: 'Withdraw',
+        },
+      }
     }
   }
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   
 </style>

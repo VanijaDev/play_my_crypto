@@ -14,8 +14,8 @@
   export default {
     name: "PrivacyPolicyModal",
     components: { Modal },  
-    data () { return { modalId: 'PrivacyPolicyModal' } },    
-    mounted () { this.$eventBus.$on('privacy-policy-modal::open', this.open) },  
+    data () { return { modalId: 'PrivacyPolicyModal' } },
+    mounted () { this.$eventBus.$on('privacy-policy-modal::open', this.open) },
     beforeDestroy () { this.$eventBus.$off('privacy-policy-modal::open') },
     methods: { open() { this.$eventBus.$emit('modal::' + this.modalId + '::open') } },
     i18n: {

@@ -1,5 +1,6 @@
 import Vue from "vue";
 import { ethers, BigNumber } from "ethers";
+import constants from "../../utils/constants"
 
 const state = {
   title: 'CoinFlip',
@@ -15,26 +16,69 @@ const getters = {
 
 const actions = {
   START_GAME: async ({ rootState, dispatch }, { _selectedCoin, _referalAddress, _seedPhrase, _bet }) => {
-    Vue.$log.debug('Coinflip/START_GAME')
+    Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referalAddress, _seedPhrase, _bet)
 
-    // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
+    let coinSide = "0";
+    if (_selectedCoin === constants.coinSide_BTC) {
+      coinSide = "1";
+    } else if (_selectedCoin === constants.coinSide_ETH) {
+      coinSide = "2";
+    } else {
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: "Internal Error: wrong coin side.",
+        delay: 5
+      }, {
+        root: true
+      })
+      return;
+    }
+    Vue.$log.debug('coinSide', coinSide);
     
+
+    const seedPhraseBytesHash = ethers.utils.solidityKeccak256([ "string", ], [ _seedPhrase ]);
+    // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
+    const coinSideHash = ethers.utils.solidityKeccak256([ "uint", "bytes", ], [ coinSide, seedPhraseBytesHash ])
+    Vue.$log.debug('coinSideHash', coinSideHash);
+
+
+    let referral = ethers.constants.AddressZero;
+    if (_referalAddress) {
+      if (!ethers.utils.isAddress(_referalAddress)) {
+        dispatch('notification/OPEN', {
+          id: 'ERROR',
+          data: "Error: invalid referral address.",
+          delay: 5
+        }, {
+          root: true
+        });
+        return;
+      } else {
+        referral = _referalAddress;
+      }
+    }
+    Vue.$log.debug('referral', referral);
+    
+    if (referral.toLowerCase() == rootState.user.accountAddress.toLowerCase()) {
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: "Error: please use different referral address.",
+        delay: 5
+      }, {
+        root: true
+      });
+      return;
+    }
+
+return
     const curGameIdx = rootState.games.currentIndex;
     const gameContract = rootState.games.list[curGameIdx].contract;
-    
-    const coinSideHash = "";
-    const referral = (_referalAddress && ethers.utils.isAddress(_referalAddress)) ? _referalAddress : ethers.AddressZero;
-    Vue.$log.debug('referral', referral)
-
-
-    // console.log(_selectedCoin, _referalAddress, _seedPhrase, _bet);
-
-
-    return;
-
 
     try {
-      const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, );
+      // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
+      const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, coinSideHash, referral, {
+        value: 111111111111111111
+      });
       Vue.$log.debug('Coinflip/START_GAME - tx', tx);
 
       dispatch('notification/OPEN', {
@@ -86,6 +130,7 @@ const actions = {
       root: true
     });
   },
+  
   // GET_PLAYER_STAKE_TOTAL: async ({
   //   commit,
   //   state
