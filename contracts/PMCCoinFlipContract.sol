@@ -60,6 +60,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     require(_coinSide == uint8(CoinSide.heads) || _coinSide == uint8(CoinSide.tails), "Wrong side");
     _;
   }
+
+  modifier onlyCorrectReferral(address _referral) {
+    require(_referral != msg.sender, "Wrong referral");
+    _;
+  }
   
   modifier onlyWhileRunningGame(address _token) {
     require(_lastStartedGame(_token).running, "No running games");
@@ -89,7 +94,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _coinSideHash Hashed coin side.
    * @param _referral Referral address.
    */
-  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
+  function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable onlyCorrectReferral(_referral) {
     uint256 stake = msg.value;
 
     if (!_isEth(_token)) {
@@ -137,7 +142,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _coinSide Coin side.
    * @param _referral Referral address.
    */
-  function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) {
+  function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral) external payable onlyCorrectCoinSide(_coinSide) onlyWhileRunningGame(_token) onlyCorrectReferral(_referral) {
     Game storage game = _lastStartedGame(_token);
     require(game.creator != msg.sender, "Cannt join");
 
