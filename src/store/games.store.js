@@ -342,8 +342,8 @@ const state = {
       networks: {
         ETH: {
           '0x2a': "", // kovan
-          '0x3': "0x95AF8297e6F3f0b2f0D0759Def16832938DfBBDB", // ropsten
-          '0x539': "0xeFB87f57d99de666Bd29c819612A262E88c61e4D", // ganache
+          '0x3': "0x9d85b28aAc230b4a5776799bD0325a045f74DFCd", // ropsten
+          '0x539': "0xFeB4e8e83226709Be4FF72c004B91b57AA2F89d8", // ganache
         }
       },
       contract: null,
