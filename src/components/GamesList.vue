@@ -4,7 +4,7 @@
     <h2 class="games-title">{{ $t('games') }}</h2>
     <div class="w-100 __list d-flex">
       <div v-for="(_game, _index) in list" :key="'game_' + _index"
-        class="__game_card  " 
+        class="__game_card  "
         :class="{'__shadow_filter __selected' : _game.id === gGame.id, '__img_button': _game.id}"
         @click="gSelectGame(_game)"
         >
@@ -16,41 +16,41 @@
           <!-- Participants -->
           <div class="__participiants">
             <div>{{ $t('participants') }}</div>
-            <div class="text-monospace">{{_game.statistics.participants}}</div>  
+            <div class="text-monospace">{{_game.statistics.participants}}</div>
           </div>
           <!-- In -->
           <div class="__in">
             <img :src="gCurrentNetworkIcon" height="20" alt="ETH">
             <div>
               <div>{{ $t('in') }}</div>
-              <div class="text-monospace">{{_game.statistics.stakes | formatBalanceShort}}</div>  
-            </div>              
+              <div class="text-monospace">{{_game.statistics.stakes | formatBalanceShort}}</div>
+            </div>
           </div>
         </div>
         <!-- if game comming soon -->
         <div class="__info" v-if="!_game.id">
           <span class="__orange_text">{{ $t('new_game') }}</span>
-          <span class="text-truncate">{{ $t('coming_soon') }}</span>          
+          <span class="text-truncate">{{ $t('coming_soon') }}</span>
         </div>
         <div class="__corner" v-if="!_game.id"></div>
-      </div>      
-    </div>      
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
   export default {
-    name: 'GamesList',  
-    computed: {     
-      list() { 
+    name: 'GamesList',
+    computed: {
+      list() {
         let list = this.$store.getters['games/list']
         if (this.gBreakPoint('xs')) return list.slice(0, 2)
         if (this.gBreakPoint('sm')) return list.slice(0, 3)
         if (this.gBreakPoint('md')) return list.slice(0, 4)
         if (this.gBreakPoint('lg')) return list.slice(0, 3)
-        return list        
-      },      
-    },    
+        return list
+      },
+    },
     i18n: {
       messages: {
         en: {
@@ -59,13 +59,13 @@
           in: 'In:',
           new_game: 'NEW GAME',
           coming_soon: 'Coming soon...',
-        },          
-      }      
+        },
+      }
     }
   }
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   @import '@/assets/css/variables.scss';
   .__games_list {
     display: flex;
@@ -79,20 +79,20 @@
     }
     .__list {
       //overflow-y: auto;
-      //&::-webkit-scrollbar { 
-      //  height: 10px;         
+      //&::-webkit-scrollbar {
+      //  height: 10px;
       //}
-      //&::-webkit-scrollbar-track { 
-      //  background: #2e458229; 
+      //&::-webkit-scrollbar-track {
+      //  background: #2e458229;
       //  border: 0px solid transparent;
       //  border-radius: 4px;
       //}
-      //&::-webkit-scrollbar-thumb { 
-      //  background: #466ac5; 
+      //&::-webkit-scrollbar-thumb {
+      //  background: #466ac5;
       //  border: 0px solid transparent;
-      //  border-radius: 4px;        
+      //  border-radius: 4px;
       //}
-      //&::-webkit-scrollbar-thumb:hover { background: #304886; }         
+      //&::-webkit-scrollbar-thumb:hover { background: #304886; }
       .__game_card {
         margin-right: 1rem;
         &:last-child{
@@ -101,14 +101,14 @@
         box-sizing: border-box;
         position: relative;
         height: 160px;
-        width: 100%;        
+        width: 100%;
         background-color: $_white;
         padding: .4em;
         padding-bottom: 0;
         border-radius: $_content_block_border_radius;
         overflow: hidden;
         .__corner {
-          position: absolute;          
+          position: absolute;
           bottom: 0;
           left: 0;
           width :0px;
@@ -117,27 +117,27 @@
           border-right: 10px solid transparent;
           border-bottom: 10px solid $_orange;
           border-top: 10px solid transparent;
-          overflow: hidden;          
+          overflow: hidden;
         }
         .__game_image {
-          border-radius: ($_content_block_border_radius - .2);          
+          border-radius: ($_content_block_border_radius - .2);
           width: 100%;
           height: 118px;
           overflow: hidden;
           img{
-            border-radius: ($_content_block_border_radius - .2);  
+            border-radius: ($_content_block_border_radius - .2);
             width: 100%;
             height: 100%;
-            object-fit: cover; 
+            object-fit: cover;
             &.__ready{
               padding: .5rem;
               object-fit: none;
             }
-          }  
-        }       
+          }
+        }
         &.__selected, &.__ready {
-          .__corner {            
-            display: none;           
+          .__corner {
+            display: none;
           }
         } 
         .__info {
@@ -155,7 +155,7 @@
             }
             div:first-child {
               color: $_blue;
-            }            
+            }
           }
           .__participiants{
             padding-left: .1rem;
@@ -169,8 +169,8 @@
               height: 12px;
             }
           }
-        }        
-      }  
-    }    
+        }
+      }
+    }
   }
 </style>

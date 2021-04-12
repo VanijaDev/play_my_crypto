@@ -384,7 +384,7 @@ const actions = {
       })
     }
 
-    //  all data updates in event handler
+    //  all data updates in event handler LISTEN_FOR_EVENTS
   },
 
   WITHDRAW_PENDING_PMC: async ({
@@ -453,17 +453,190 @@ const actions = {
   WITHDRAW_GAMEPLAY_REFERRAL: async ({
     dispatch,
     rootState
-  }, addStakeAmount) => {
+  }) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_REFERRAL')
 
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
+
+    try {
+      const tx = await gameContract.withdrawReferralFee(ethers.constants.AddressZero);
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_REFERRAL - tx', tx);
+
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
+
+      const receipt = await tx.wait();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_REFERRAL - receipt', receipt)
+
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
+
+    dispatch('GET_BALANCE');
+    dispatch('games/GET_GAMES', null, {
+      root: true
+    });
   },
 
   WITHDRAW_GAMEPLAY_RAFFLE: async ({
     dispatch,
     rootState
-  }, addStakeAmount) => {
+  }) => {
     Vue.$log.debug('user/WITHDRAW_GAMEPLAY_RAFFLE')
 
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
+
+    try {
+      const tx = await gameContract.withdrawRaffleJackpots(ethers.constants.AddressZero);
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_RAFFLE - tx', tx);
+
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
+
+      const receipt = await tx.wait();
+      Vue.$log.debug('user/WITHDRAW_GAMEPLAY_RAFFLE - receipt', receipt)
+
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
+
+    dispatch('GET_BALANCE');
+    dispatch('games/GET_GAMES', null, {
+      root: true
+    });
+  },
+
+  WITHDRAW_PARTNER_FEE: async ({
+    dispatch,
+    rootState
+  }) => {
+    Vue.$log.debug('user/WITHDRAW_PARTNER_FEE')
+
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
+
+    try {
+      const tx = await gameContract.withdrawPartnerFee(ethers.constants.AddressZero);
+      Vue.$log.debug('user/WITHDRAW_PARTNER_FEE - tx', tx);
+
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
+
+      const receipt = await tx.wait();
+      Vue.$log.debug('user/WITHDRAW_PARTNER_FEE - receipt', receipt)
+
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
+
+    dispatch('GET_BALANCE');
+    dispatch('games/GET_GAMES', null, {
+      root: true
+    });
   },
 
   DESTROY: async ({

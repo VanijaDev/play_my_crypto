@@ -107,8 +107,6 @@
         }
       },
       selectNetwork(network) {
-        //  TODO: show message: "Please select Binance Smart Chain in MetaMask" || "Please select Ethereum Mainnet in MetaMask"
-        //  TODO: add check for current network
         this.$log.debug(network.id)
 
         if (network.id === "ETH") { //  && currentNetwork !== "ETH"

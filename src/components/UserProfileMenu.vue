@@ -103,10 +103,10 @@
                 <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userGameplayPendingWithdrawal(game)">
                   <img :src="game.image" height="25" alt="Gameplay">
                 </div> 
-                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userPartnerPendingWithdrawal(game)">
+                <div class="__card_block  __img_button __shadow_filter" :key="'pwlist_' + index" v-if="userPartnerPendingWithdrawal(game)" @click="withdrawPartnerFee()">
                   <img :src="game.imagePartner" height="25" alt="Partner">
                 </div> 
-              </template>                                      
+              </template>
             </div> 
           </li>  
         </ul>
@@ -115,11 +115,11 @@
   </div>  
 </template>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   @import '@/assets/css/variables.scss';
   .__user_profile_dd {
     margin-right: -2px;
-    .__user_profile{               
+    .__user_profile{
       .__up_text{
         span:first-child{
           text-align: right;
@@ -130,7 +130,7 @@
       }
       .__strong-text{
         font-weight: 700;
-        font-size: 1.1rem;      
+        font-size: 1.1rem;
       }
     }  
     .__drop_down_menu {
@@ -166,7 +166,7 @@
             position: absolute;
             right: 4px;
             height: 14px;
-            width: 14px;            
+            width: 14px;
           }
           .__card_list {
             padding: 0.5rem 0;
@@ -188,18 +188,18 @@
               }
             }
           }
-        }  
+        }
       }
-    }        
+    }
   }
 </style>
-<style lang="scss">  
+<style lang="scss">
   @import '@/assets/css/variables.scss';
   .__up_dd_toggle {
     box-shadow: none !important;
   }    
   .__up_dd_menu {
-    padding: 0 !important;   
+    padding: 0 !important;
     border-radius: $_content_block_border_radius !important;
   }  
 </style>
@@ -208,15 +208,15 @@
   import PriceUpDownArrowIcon from '@/components/icons/PriceUpDownArrowIcon.vue';
 
   export default {
-    name: 'UserProfileMenu', 
+    name: 'UserProfileMenu',
     components: { PriceUpDownArrowIcon },
-    data: () => ({      
+    data: () => ({
     }),
-    computed: {      
-      userGamesStarted() {  
+    computed: {
+      userGamesStarted() {
         return this.$store.getters['games/started']
       },
-      listOfGames() {         
+      listOfGames() {
         return this.$store.getters['games/listOfGames']
       },
       userGameplayPendingWithdrawal() { return function(game) {
@@ -238,6 +238,11 @@
         })
       }
     },
+    methods: {
+      withdrawPartnerFee() {
+        this.$store.dispatch('user/WITHDRAW_PARTNER_FEE');
+      }
+    },
     i18n: {
       messages: {
         en: {
@@ -256,7 +261,7 @@
           not_available: 'not available',
         },
       }
-    } 
+    }
   }
 </script>
 

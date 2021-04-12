@@ -67,7 +67,7 @@
             <span id="my_stat_7">{{gGameData.pendingGameplayPmcTokens | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_7" custom-class="__tooltip" >{{gGameData.pendingGameplayPmcTokens | formatBalance}}</b-tooltip>  
           </div>
-          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingGameplayPmcTokens)" @click="WITHDRAW_PENDING_PMC()">{{ $t('withdraw') }}</button> 
+          <button type="button" class="btn btn-primary __blue_button ml-1" :disabled="!isMoreThanZero(gGameData.pendingGameplayPmcTokens)" @click="withdraw_gameplay_pmc()">{{ $t('withdraw') }}</button> 
 
         </div>
         <!-- Referral -->
@@ -140,7 +140,7 @@
       withdraw_gameplay_prize() {
         this.$store.dispatch('user/WITHDRAW_GAMEPLAY_PRIZE');
       },
-      WITHDRAW_PENDING_PMC() {
+      withdraw_gameplay_pmc() {
         this.$store.dispatch('user/WITHDRAW_PENDING_PMC');
       },
       withdraw_gameplay_referral() {
