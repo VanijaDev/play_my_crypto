@@ -140,6 +140,7 @@ const actions = {
     //console.clear()
     Vue.$log.debug('blockchain/INIT')
     const networkIndex = state.networks.findIndex(network => network.chains.find(chain => chain.id === window.ethereum.chainId))
+    
     if (networkIndex > -1) {
       commit('SET_NETWORK', networkIndex)
       let accountAddress = null

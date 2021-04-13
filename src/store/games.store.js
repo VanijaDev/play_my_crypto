@@ -270,9 +270,9 @@ const mutations = {
     state.started = userGamesStarted;
   },
 
-  SET_GAMEPLAY: (state, {game, gameplay}) => {    
+  SET_GAMEPLAY: (state, {game, gameplay}) => {
     const index = state.list.findIndex(_game => _game.id === game.id)
-    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))    
+    Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))
   },
 
   SET_GAME_DATA: (state, {
@@ -342,8 +342,8 @@ const state = {
       networks: {
         ETH: {
           '0x2a': "", // kovan
-          '0x3': "", // ropsten
-          '0x539': "0x796190d0259281f8b2f76dE2b15579aDf0800AED", // ganache
+          '0x3': "0x7DFF7782196749344de4fA37C5060Dd1B86A86F3", // ropsten
+          '0x539': "0x1fd62c09Cf75cc3D201C0ed4858Ed71C17143d8B", // ganache
         }
       },
       contract: null,

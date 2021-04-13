@@ -268,7 +268,7 @@
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === 'join'">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >JOIN</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="joinDisabled" @click="joinGameClicked()">JOIN</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === 'playing_oponent'">
@@ -396,7 +396,13 @@
           referalAddress: null,
           seedPhrase: null,
           bet: null
-        }  
+        },
+        join: {
+          bet: null,
+          sideCountBTC: 0,
+          sideCountETH: 0,
+          referalAddress: null
+        }
       },
       timeLeft: { 
         total: 0,
@@ -405,59 +411,64 @@
         seconds: '00'
       },
       duration: 24 * 60 * 60 * 1000, // 24 h in millisecnds
-      timerId: null,
-      startButtonDisabled: false
+      timerId: null
     }),
+
+    load: {
+
+    },
+
     computed: {
       mode() {
         if (!this.gGame.gameplay || !this.gGame.info) {
-          return 'start'
+          return 'start';
         }
         
         // start 
         if (this.gGame.gameplay.gamesStarted 
           && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished))
-          return 'start'
+          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
+            return 'start';
+          }
          
-        // playing_creator or playing_oponent or join
+        // ongoing game
         if (this.gGame.gameplay.gamesStarted 
           && this.gGame.gameplay.gamesFinished 
           && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
-          // playing_creator
-            if ( this.gUser.accountAddress
+          
+            // playing_creator
+            if (this.gUser.accountAddress
               && this.gGame.info 
               && this.gGame.info.creator 
-              && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()
-            ) 
-            return 'playing_creator'
+              && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
+                return 'playing_creator';
+            }
             
             // playing_oponent
-            if (this.gGame.gameplay.gamesStarted 
-              && this.gGame.gameplay.gamesParticipatedToCheckPrize
+            if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
-              && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])
-            ) 
-            return 'playing_oponent'
+              && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
+                return 'playing_oponent';
+            }
 
             // join
-            return 'join'
-          }      
+            return 'join';
+          }
 
         // TODO next game modes
-        return null
+        return null;
       },
+
       startDisabled() {
-        if (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.startButtonDisabled) {
+        if (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.gUser.txGameplayInProgress) {
           try {
             if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
               return true;
             }
 
-            // if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.gameplay.bet))) return true 
-            // if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
-            //   return true;
-            // }
+             if (this.gUser.balanceETH.lt(ethers.utils.parseEther(this.gameplay.start.bet))) {
+              return true;
+            }
 
             return false;
           } catch (error) {
@@ -465,6 +476,10 @@
           }
         }
 
+        return true;
+      },
+
+      joinDisabled() {
         return true;
       },
 
@@ -476,11 +491,12 @@
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
     },
     created() {
-      // connection of game store (if need it)
-      //if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game')
-      //let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default
-      //this.$store.registerModule("game", store)
-      this.$store.dispatch('games/SET_CURRENT_GAME', this.id)
+      // // connection of game store (if need it)
+      // if (Object.prototype.hasOwnProperty.call(this.$store.state, 'game')) this.$store.unregisterModule('game');
+      // let store = (await import(/* webpackChunkName: "CoinFlip.store" */ "./CoinFlip.store")).default;
+      // this.$store.registerModule("game", store);
+
+      this.$store.dispatch('games/SET_CURRENT_GAME', this.id);
     },
     watch: {
       running() {
@@ -505,13 +521,16 @@
         if (t > 0) setTimeout(this.startCountdown, 1000);
       },
       startGameClicked() {
-        // this.startButtonDisabled = true;  //  TODO: how to enable again on error
-        this.$store.dispatch('coinflip/START_GAME', 
+        this.$store.dispatch('coinflip/START_GAME',
           { _selectedCoin: this.selectedCoin,
             _referalAddress: this.gameplay.start.referalAddress,
             _seedPhrase: this.gameplay.start.seedPhrase,
             _bet: this.gameplay.start.bet
           });
+      },
+
+      joinGameClicked() {
+        console.log("joinGameClicked()");
       }
     },
     i18n: {

@@ -15,13 +15,16 @@ const getters = {
 };
 
 const actions = {
-  START_GAME: async ({ rootState, dispatch }, { _selectedCoin, _referalAddress, _seedPhrase, _bet }) => {
-    Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referalAddress, _seedPhrase, _bet)
+  START_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referalAddress, _seedPhrase, _bet }) => {
+    Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referalAddress, _seedPhrase, _bet);
+
+
+    commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
 
     let coinSide = "0";
-    if (_selectedCoin === constants.coinSide_BTC) {
+    if (_selectedCoin === constants.COIN_SIDE_BTC) {
       coinSide = "1";
-    } else if (_selectedCoin === constants.coinSide_ETH) {
+    } else if (_selectedCoin === constants.COIN_SIDE_ETH) {
       coinSide = "2";
     } else {
       dispatch('notification/OPEN', {
@@ -70,14 +73,14 @@ const actions = {
       return;
     }
 
-return
+
     const curGameIdx = rootState.games.currentIndex;
     const gameContract = rootState.games.list[curGameIdx].contract;
 
     try {
       // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral) external payable {
       const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, coinSideHash, referral, {
-        value: 111111111111111111
+        value: ethers.utils.parseEther(_bet)
       });
       Vue.$log.debug('Coinflip/START_GAME - tx', tx);
 
@@ -114,6 +117,7 @@ return
           root: true
         })
       }
+
     } catch (error) {
       Vue.$log.error(error)
       dispatch('notification/OPEN', {
@@ -125,6 +129,8 @@ return
       })
     }
 
+    commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', false, { root: true });
+    
     dispatch('GET_BALANCE');
     dispatch('games/GET_GAMES', null, {
       root: true

@@ -9,7 +9,7 @@
         {{ $t('mm_connect_error') }}
       </div>
       <div v-if="notification.id === 'METAMASK_ERROR'">
-        {{ $t('mm_connect_error') }}
+        {{ $t('mm_error') }}
       </div>      
       <div v-if="notification.id === 'TRANSACTION_PENDING' || notification.id === 'TRANSACTION_MINED' || notification.id === 'TRANSACTION_ERROR'">
         <span class="mr-2">{{ $t('transaction') }}</span>
@@ -17,7 +17,6 @@
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_PENDING'">{{ $t('mining') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_MINED'">{{ $t('mined') }}</span>
         <span class="ml-2" v-if="notification.id === 'TRANSACTION_ERROR'">{{ $t('error') }}</span>
-        <span class="ml-2" v-if="notification.id === 'ERROR'"></span>
       </div>
      
       
@@ -95,6 +94,7 @@
     i18n: {
       messages: {
         en: {
+          mm_error: 'MetaMask error',
           mm_connect_error: 'Please connect MetaMask and select supported network',
           transaction: 'Transaction',
           mining: 'is being mined...',

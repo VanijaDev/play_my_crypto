@@ -8,6 +8,7 @@ const state = {
   gamesStarted: [],
   pmcAllowance: null,
   stakingData: {},
+  txGameplayInProgress: false
 };
 
 const getters = {
@@ -661,6 +662,10 @@ const mutations = {
 
   SET_STAKING_DATA: (state, stakingData) => {
     Object.keys(stakingData).forEach(key => Vue.set(state.stakingData, key, stakingData[key]))
+  },
+
+  SET_TX_GAMEPLAY_IN_PROGRESS: (state, isInProgress) => {
+    state.txGameplayInProgress = isInProgress;
   },
 
   DESTROY: (state) => {
