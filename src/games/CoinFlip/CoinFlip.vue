@@ -10,6 +10,7 @@
         <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-md-between" >
           
           <!-- Coin -->
+          <!-- TODO BNC selected coin -->
           <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="mode !== 'result'"> 
             
             <h4 class="__blue_text text-center mb-4" v-if="mode === 4">COIN SIDE</h4>
@@ -71,35 +72,35 @@
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace" >{{gameplay.join.bet | formatBalanceShort}}</span>
+                <span class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
               </div>
               
               <div class="__cf_line mb-2">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">{{gameplay.join.opponentsSum | anyBNValue}}</span>
+                <span class="ml-3 text-monospace">{{joinParticipiants | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __btc __selected">
                   <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">{{gameplay.join.sideCountBTC | anyBNValue}}</span>
+                <span class="ml-3 text-monospace">{{gGame.info.heads | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
                   <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">{{gameplay.join.sideCountETH | anyBNValue}}</span>
+                <span class="ml-3 text-monospace">{{gGame.info.tails | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25" v-model="gameplay.join.referralAddress">
               
               <div class="__timer d-flex mb-3">
-                <div>23 h</div>
-                <div>01 min</div>
-                <div>45 sec</div>
+                <div>{{timeLeft.hours}} h</div>
+                <div>{{timeLeft.minutes}} min</div>
+                <div>{{timeLeft.seconds}} sec</div>
               </div>
 
             </div>
@@ -288,99 +289,6 @@
   </div>
 </template>
 
-<style lang="scss" scoped> 
-  @import '@/assets/css/variables.scss';
-  
-  .__cf_view_block {
-    width: calc(100% - 11em);
-  }
-  
-  .__cf_line {
-    margin-bottom: .5rem;
-    .__cf_coin {
-      height: 2em;
-      width: 2em;
-    }
-  }
-  .__text_grow_1 {
-    font-size: 1.2rem;
-  }
-  .__timer {
-    div{
-      padding: .3rem .8rem;
-      background: rgba(247, 147, 26, 0.2);
-      border-radius: .2rem;
-      margin-right: .5rem;
-    }
-  }
-
-  .__cf_result_block{
-    margin-bottom: 1.5rem;
-    width: 8em;
-    align-self: center;
-  }
-
-  .__cf_coin_block {
-    margin-bottom: 1.5rem;
-    width: 11em;
-    align-self: center;
-    
-    .__cf_big_coin_circle_wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 9em;
-      width: 9em;
-      border-radius: 5em;
-      border: 3px solid $_violet;
-      margin: auto;
-      margin-bottom: 1rem;
-      
-      &.__selected_btc {
-        background-color: $_btc_color;
-        border: 3px solid $_btc_color;
-      }
-      &.__selected_eth {
-        background-color: $_eth_color;
-        border: 3px solid $_eth_color;
-      }
-      .__question{
-        font-size: 5rem;
-        font-weight: 700;
-        color: $_violet;
-      }
-      
-      img {
-        height: 6em;
-        width: 6em;
-      }
-    }
-  }
-  .__cf_coin {
-    height: 3em;
-    width: 3em;
-    border-radius: 1.5em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #858585;
-    cursor: pointer;
-    filter: saturate(0) contrast(50%) brightness(130%);
-    &:hover {
-      filter: saturate(1) contrast(100%) brightness(100%);
-    }
-    &.__selected {
-      filter: saturate(1) contrast(100%) brightness(100%);
-    }
-    &.__btc{
-      background-color: $_btc_color;
-    }
-    &.__eth{
-      background-color: $_eth_color;
-    }
-  }
-</style>
-
 <script>
   import { ethers, BigNumber } from "ethers";
   import constants from "../../utils/constants";
@@ -478,6 +386,9 @@
       joinDisabled() {
         return true;
       },
+      joinParticipiants() {
+        return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : 0
+      },
 
       running() {
         return (this.gGame.info && this.gGame.info.running)
@@ -544,3 +455,96 @@
     }
   }
 </script>
+
+<style lang="scss" scoped> 
+  @import '@/assets/css/variables.scss';
+  
+  .__cf_view_block {
+    width: calc(100% - 11em);
+  }
+  
+  .__cf_line {
+    margin-bottom: .5rem;
+    .__cf_coin {
+      height: 2em;
+      width: 2em;
+    }
+  }
+  .__text_grow_1 {
+    font-size: 1.2rem;
+  }
+  .__timer {
+    div{
+      padding: .3rem .8rem;
+      background: rgba(247, 147, 26, 0.2);
+      border-radius: .2rem;
+      margin-right: .5rem;
+    }
+  }
+
+  .__cf_result_block{
+    margin-bottom: 1.5rem;
+    width: 8em;
+    align-self: center;
+  }
+
+  .__cf_coin_block {
+    margin-bottom: 1.5rem;
+    width: 11em;
+    align-self: center;
+    
+    .__cf_big_coin_circle_wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 9em;
+      width: 9em;
+      border-radius: 5em;
+      border: 3px solid $_violet;
+      margin: auto;
+      margin-bottom: 1rem;
+      
+      &.__selected_btc {
+        background-color: $_btc_color;
+        border: 3px solid $_btc_color;
+      }
+      &.__selected_eth {
+        background-color: $_eth_color;
+        border: 3px solid $_eth_color;
+      }
+      .__question{
+        font-size: 5rem;
+        font-weight: 700;
+        color: $_violet;
+      }
+      
+      img {
+        height: 6em;
+        width: 6em;
+      }
+    }
+  }
+  .__cf_coin {
+    height: 3em;
+    width: 3em;
+    border-radius: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #858585;
+    cursor: pointer;
+    filter: saturate(0) contrast(50%) brightness(130%);
+    &:hover {
+      filter: saturate(1) contrast(100%) brightness(100%);
+    }
+    &.__selected {
+      filter: saturate(1) contrast(100%) brightness(100%);
+    }
+    &.__btc{
+      background-color: $_btc_color;
+    }
+    &.__eth{
+      background-color: $_eth_color;
+    }
+  }
+</style>
