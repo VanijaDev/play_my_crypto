@@ -135,6 +135,9 @@ export default {
       if (BigNumber.isBigNumber(val)) return parseFloat(ethers.utils.formatEther(val)).toFixed(5);
       return '0.00000'
     },
+    anyBNValue(val) {
+      return (BigNumber.isBigNumber(val)) ? val.toString() : '.......';
+    }
   },
 }
 

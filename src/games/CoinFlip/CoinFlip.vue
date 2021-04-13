@@ -55,7 +55,7 @@
             <div class="__cf_view" v-if="mode === 'start'">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referalAddress"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
@@ -71,30 +71,30 @@
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace">1.2345</span>
+                <span class="ml-3 text-monospace" >{{gameplay.join.bet | formatBalanceShort}}</span>
               </div>
               
               <div class="__cf_line mb-2">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">97</span>
+                <span class="ml-3 text-monospace">{{gameplay.join.opponentsSum | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __btc __selected">
                   <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">67</span>
+                <span class="ml-3 text-monospace">{{gameplay.join.sideCountBTC | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
                   <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">24</span>
+                <span class="ml-3 text-monospace">{{gameplay.join.sideCountETH | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25" v-model="gameplay.join.referralAddress">
               
               <div class="__timer d-flex mb-3">
                 <div>23 h</div>
@@ -393,15 +393,15 @@
       result: true,
       gameplay: {
         start: {
-          referalAddress: null,
+          referralAddress: null,
           seedPhrase: null,
           bet: null
         },
         join: {
           bet: null,
-          sideCountBTC: 0,
-          sideCountETH: 0,
-          referalAddress: null
+          sideCountBTC: null,
+          sideCountETH: null,
+          referralAddress: null
         }
       },
       timeLeft: { 
@@ -413,10 +413,6 @@
       duration: 24 * 60 * 60 * 1000, // 24 h in millisecnds
       timerId: null
     }),
-
-    load: {
-
-    },
 
     computed: {
       mode() {
@@ -523,7 +519,7 @@
       startGameClicked() {
         this.$store.dispatch('coinflip/START_GAME',
           { _selectedCoin: this.selectedCoin,
-            _referalAddress: this.gameplay.start.referalAddress,
+            _referralAddress: this.gameplay.start.referralAddress,
             _seedPhrase: this.gameplay.start.seedPhrase,
             _bet: this.gameplay.start.bet
           });

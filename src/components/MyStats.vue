@@ -11,7 +11,7 @@
             <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="my_stat_1">{{gGameData.playerStakeTotal | formatBalanceShort}}</span>
             <b-tooltip target="my_stat_1" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>  
-          </div>              
+          </div>
         </div>
         <!-- My out -->
         <div class="__text_line">
