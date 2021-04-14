@@ -1,6 +1,8 @@
 export default {
   CHAIN_ID_GANACHE: "0x539",
+  MIN_STAKE_ETH: "0.01",
+  COIN_SIDE_HEADS: "1",
+  COIN_SIDE_TAILS: "2",
   COIN_SIDE_BTC: "BTC",
-  COIN_SIDE_ETH: "ETH",
-  MIN_STAKE_ETH: "0.01"
+  COIN_SIDE_ETH: "ETH"
 }

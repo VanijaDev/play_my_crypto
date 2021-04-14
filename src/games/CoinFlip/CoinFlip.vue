@@ -15,20 +15,20 @@
             
             <h4 class="__blue_text text-center mb-4" v-if="mode === 4">COIN SIDE</h4>
 
-            <div class="__cf_big_coin_circle_wrapper __shadow " :class="{'__selected_btc' : selectedCoin === 'BTC', '__selected_eth' : selectedCoin === 'ETH',}">
+            <div class="__cf_big_coin_circle_wrapper __shadow " :class="{'__selected_btc' : selectedCoin === COIN_SIDE_HEADS, '__selected_eth' : selectedCoin === COIN_SIDE_TAILS,}">
               <div class="__question" v-show="!selectedCoin">?</div>
-              <img src="/img/bitcoin_icon.svg" alt="BTC" v-show="selectedCoin === 'BTC'">
-              <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === 'ETH'">
+              <img src="/img/bitcoin_icon.svg" alt="BTC" v-show="selectedCoin === COIN_SIDE_HEADS">
+              <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === COIN_SIDE_TAILS">
             </div>
 
             <div class="__cf_select_coin d-flex justify-content-between" v-if="mode !== 4">
               <div class="__img_button __shadow_filter">
-                <div class="__cf_coin  __btc" @click="selectedCoin = 'BTC'" :class="{'__selected' : selectedCoin === 'BTC'}">
+                <div class="__cf_coin  __btc" @click="selectedCoin = COIN_SIDE_HEADS" :class="{'__selected' : selectedCoin === COIN_SIDE_HEADS}">
                   <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
                 </div>
               </div>
               <div class="__img_button __shadow_filter">
-                <div class="__cf_coin  __eth " @click="selectedCoin = 'ETH'" :class="{'__selected' : selectedCoin === 'ETH'}">
+                <div class="__cf_coin  __eth " @click="selectedCoin = COIN_SIDE_TAILS" :class="{'__selected' : selectedCoin === COIN_SIDE_TAILS}">
                   <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
                 </div>
               </div>  
@@ -296,6 +296,8 @@
   export default {
     name: 'CoinFlipGame',
     data: () => ({
+      COIN_SIDE_HEADS: constants.COIN_SIDE_HEADS,
+      COIN_SIDE_TAILS: constants.COIN_SIDE_TAILS,
       id: 'CF',
       selectedCoin: null,
       result: true,

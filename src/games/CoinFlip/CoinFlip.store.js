@@ -18,15 +18,11 @@ const actions = {
   START_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referralAddress, _seedPhrase, _bet }) => {
     Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referralAddress, _seedPhrase, _bet);
 
-
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
 
-    let coinSide = "0";
-    if (_selectedCoin === constants.COIN_SIDE_BTC) {
-      coinSide = "1";
-    } else if (_selectedCoin === constants.COIN_SIDE_ETH) {
-      coinSide = "2";
-    } else {
+    let coinSide = _selectedCoin;
+    //  TODO: move to separate method
+    if (coinSide !== constants.COIN_SIDE_HEADS && coinSide !== constants.COIN_SIDE_TAILS) {
       dispatch('notification/OPEN', {
         id: 'ERROR',
         data: "Internal Error: wrong coin side.",
@@ -37,7 +33,6 @@ const actions = {
       return;
     }
     Vue.$log.debug('coinSide', coinSide);
-    
 
     const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [_seedPhrase]);
     // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
@@ -141,7 +136,52 @@ const actions = {
   JOIN_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referralAddress, _bet }) => {
     Vue.$log.debug('Coinflip/JOIN_GAME', _selectedCoin, _referralAddress, parseFloat(ethers.utils.formatEther(_bet)));
   
+    commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
 
+    let coinSide = _selectedCoin;
+    //  TODO: move to separate method
+    if (coinSide !== constants.COIN_SIDE_HEADS || coinSide !== constants.COIN_SIDE_TAILS) {
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: "Internal Error: wrong coin side.",
+        delay: 5
+      }, {
+        root: true
+      })
+      return;
+    }
+    Vue.$log.debug('coinSide', coinSide);
+
+
+    let referral = ethers.constants.AddressZero;
+    if (_referralAddress) {
+      if (!ethers.utils.isAddress(_referralAddress)) {
+        dispatch('notification/OPEN', {
+          id: 'ERROR',
+          data: "Error: invalid referral address.",
+          delay: 5
+        }, {
+          root: true
+        });
+        return;
+      } else {
+        referral = _referralAddress;
+      }
+    }
+    Vue.$log.debug('referral', referral);
+
+
+
+
+
+
+
+    commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', false, { root: true });
+    
+    dispatch('GET_BALANCE');
+    dispatch('games/GET_GAMES', null, {
+      root: true
+    });
   },
 
   // GET_PLAYER_STAKE_TOTAL: async ({
