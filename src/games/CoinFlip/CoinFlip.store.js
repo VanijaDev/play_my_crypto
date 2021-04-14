@@ -87,7 +87,6 @@ const actions = {
       }, {
         root: true
       })
-      this.$emit("eventName");
 
       const receipt = await tx.wait();
       Vue.$log.debug('Coinflip/START_GAME - receipt', receipt)
@@ -127,7 +126,9 @@ const actions = {
 
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', false, { root: true });
     
-    dispatch('GET_BALANCE');
+    dispatch('user/GET_BALANCE', null, {
+      root: true
+    });
     dispatch('games/GET_GAMES', null, {
       root: true
     });
@@ -140,7 +141,7 @@ const actions = {
 
     let coinSide = _selectedCoin;
     //  TODO: move to separate method
-    if (coinSide !== constants.COIN_SIDE_HEADS || coinSide !== constants.COIN_SIDE_TAILS) {
+    if (coinSide !== constants.COIN_SIDE_HEADS && coinSide !== constants.COIN_SIDE_TAILS) {
       dispatch('notification/OPEN', {
         id: 'ERROR',
         data: "Internal Error: wrong coin side.",
@@ -171,14 +172,66 @@ const actions = {
     Vue.$log.debug('referral', referral);
 
 
+    const curGameIdx = rootState.games.currentIndex;
+    const gameContract = rootState.games.list[curGameIdx].contract;
 
+    try {
+      // function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral)
+      const tx = await gameContract.joinGame(ethers.constants.AddressZero, 0, coinSide, referral, {
+        value: _bet.toString()
+      });
+      Vue.$log.debug('Coinflip/JOIN_GAME - tx', tx);
 
+      dispatch('notification/OPEN', {
+        id: 'TRANSACTION_PENDING',
+        data: {
+          tx: tx.hash
+        }
+      }, {
+        root: true
+      })
 
+      const receipt = await tx.wait();
+      Vue.$log.debug('Coinflip/JOIN_GAME - receipt', receipt)
 
+      if (receipt.status) {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_MINED',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      } else {
+        dispatch('notification/OPEN', {
+          id: 'TRANSACTION_ERROR',
+          data: {
+            tx: receipt.transactionHash
+          },
+          delay: 10
+        }, {
+          root: true
+        })
+      }
+
+    } catch (error) {
+      Vue.$log.error(error)
+      dispatch('notification/OPEN', {
+        id: 'ERROR',
+        data: `ERROR: ${error.message}`,
+        delay: 5
+      }, {
+        root: true
+      })
+    }
 
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', false, { root: true });
     
-    dispatch('GET_BALANCE');
+    dispatch('user/GET_BALANCE', null, {
+      root: true
+    });
     dispatch('games/GET_GAMES', null, {
       root: true
     });
