@@ -152,8 +152,8 @@
 
             </div>
 
-            <!-- playing_oponent -->
-            <div class="__cf_view" v-if="mode === 'playing_oponent'">
+            <!-- playing_opponent -->
+            <div class="__cf_view" v-if="mode === '_playing_opponent'">
 
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
@@ -198,7 +198,7 @@
             </div>
 
             <!-- View 4 -->
-            <div class="__cf_view" v-if="mode === 4">
+            <div class="__cf_view" v-if="mode === 'result'">
               
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
@@ -237,7 +237,7 @@
             </div> 
 
             <!-- View 5 -->
-            <div class="__cf_view" v-if="mode === 5">
+            <div class="__cf_view" v-if="mode === 'playing_opponent'">Start here
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
@@ -269,9 +269,9 @@
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === 'playing_creator'">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
-            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game">
+            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="gameplay.finish.seedPhrase">
           </div>
-          <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" >FINISH GAME</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" :disabled="finishDisabled" @click="finishGameClicked()" >FINISH GAME</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === 'join'">
@@ -279,7 +279,7 @@
         </div>
 
         
-        <div class="d-flex justify-content-center" v-if="mode === 'playing_oponent'">
+        <div class="d-flex justify-content-center" v-if="mode === 'playing_opponent'">
           <button style="visibility: hidden" type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
         </div>
 
@@ -316,6 +316,9 @@
         },
         join: {
           referralAddress: null
+        },
+        finish: {
+          seedPhrase: null,
         }
       },
       timeLeft: { 
@@ -356,11 +359,11 @@
                 return 'playing_creator';
             }
             
-            // playing_oponent
+            // playing_opponent
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                return 'playing_oponent';
+                return 'playing_opponent';
             }
 
             // join
@@ -372,35 +375,41 @@
       },
 
       startDisabled() {
-        if (this.selectedCoin && this.gameplay.start.seedPhrase && this.gameplay.start.bet && !this.gUser.txGameplayInProgress) {
-          try {
-            if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
-              return true;
-            }
+        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.start.seedPhrase || !this.gameplay.start.bet) {
+          return true;
+        }
 
-             if (this.gUser.balanceETH.lt(ethers.utils.parseEther(this.gameplay.start.bet))) {
-              return true;
-            }
-
-            return false;
-          } catch (error) {
+        try {
+          if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
             return true;
           }
+
+            if (this.gUser.balanceETH.lt(ethers.utils.parseEther(this.gameplay.start.bet))) {
+            return true;
+          }
+
+          return false;
+        } catch (error) {
+          return true;
         }
 
         return true;
       },
 
       joinDisabled() {
-        if (!this.selectedCoin) {
+        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gUser.balanceETH || this.gUser.balanceETH.lt(this.gGame.info.stake)) {
           return true;
         }
 
-        if (!this.gUser.balanceETH) {
+        return false;
+      },
+
+      finishDisabled() {
+        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.finish.seedPhrase) {
           return true;
         }
 
-        if (this.gUser.balanceETH.lt(this.gGame.info.stake)) {
+        if (this.joinParticipiantsSum.lt(BigNumber.from(2))) {
           return true;
         }
 
@@ -481,7 +490,7 @@
 
       startGameClicked() {
         this.$store.dispatch('coinflip/START_GAME',
-          { _selectedCoin: this.selectedCoin,
+          { _selectedCoinSide: this.selectedCoin,
             _referralAddress: this.gameplay.start.referralAddress,
             _seedPhrase: this.gameplay.start.seedPhrase,
             _bet: this.gameplay.start.bet
@@ -490,9 +499,16 @@
 
       joinGameClicked() {
         this.$store.dispatch('coinflip/JOIN_GAME',
-          { _selectedCoin: this.selectedCoin,
+          { _selectedCoinSide: this.selectedCoin,
             _referralAddress: this.gameplay.join.referralAddress,
             _bet: this.gGame.info.stake
+          });
+      },
+
+      finishGameClicked() {
+        this.$store.dispatch('coinflip/FINISH_GAME',
+          { _selectedCoinSide: this.selectedCoin,
+            _seedPhrase: this.gameplay.finish.seedPhrase,
           });
       }
     },
@@ -502,7 +518,7 @@
           start: 'START NEW GAME',
           join: 'JOIN GAME',
           playing_creator: 'PLAYING GAME',
-          playing_oponent: 'PLAYING GAME',
+          playing_opponent: 'PLAYING GAME',
           result: 'RESULT',
           timeout: 'TIME’S UP FOR THE ONGOING GAME',
           // TODO add rest of texts to translation
