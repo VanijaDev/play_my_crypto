@@ -21,7 +21,7 @@
               <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === COIN_SIDE_TAILS">
             </div>
 
-            <div class="__cf_select_coin d-flex justify-content-between" v-if="mode !== 4">
+            <div class="__cf_select_coin d-flex justify-content-between" v-if="mode === 'start' || mode === 'join'">
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __btc" @click="selectedCoin = COIN_SIDE_HEADS" :class="{'__selected' : selectedCoin === COIN_SIDE_HEADS}">
                   <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
@@ -72,7 +72,8 @@
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
+                <span id="join_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
+                <b-tooltip target="join_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
               
               <div class="__cf_line mb-2">
@@ -109,30 +110,31 @@
             <div class="__cf_view" v-if="mode === 'playing_creator'">
               
               <div class="__cf_line">Referral address:</div>
-              <div class="__cf_line text-monospace text-truncate mb-4">0xt84u8r0394urwklnedlkfjojdut7e458737w</div>
+              <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace">1.2345</span>
+                <span id="playing_creator_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
+                <b-tooltip target="playing_creator_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
 
               <div class="__cf_line mb-2">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">97</span>
+                <span class="ml-3 text-monospace">{{joinParticipiantsSum | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __btc __selected">
                   <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">67</span>
+                <span class="ml-3 text-monospace">{{gGame.info.heads | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __eth __selected">
                   <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">24</span>
+                <span class="ml-3 text-monospace">{{gGame.info.tails | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
@@ -153,36 +155,37 @@
             <div class="__cf_view" v-if="mode === 'playing_oponent'">
 
               <div class="__cf_line">Referral address:</div>
-              <div class="__cf_line text-monospace text-truncate mb-4">0xt84u8r0394urwklnedlkfjojdut7e458737w</div>
+              <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace">1.2345</span>
+                <span id="playing_creator_opponent" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
+                <b-tooltip target="playing_creator_opponent" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
               
               <div class="__cf_line mb-2">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">97</span>
+                <span class="ml-3 text-monospace">{{joinParticipiantsSum | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __btc __selected">
                   <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">67</span>
+                <span class="ml-3 text-monospace">{{gGame.info.heads | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-3">
                 <div class="__cf_coin __shadow __eth __selected">
                   <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">24</span>
+                <span class="ml-3 text-monospace">{{gGame.info.tails | anyBNValue}}</span>
               </div>
               
-              <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
+              <div style="visibility: hidden" class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Current profit:</span>
                 <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
-                <span class="ml-3 text-monospace __blue_text">2.1234</span>
+                <span class="ml-3 text-monospace __blue_text">0.00000</span>
               </div>
               
               <div class="__timer d-flex mb-3">
@@ -197,30 +200,31 @@
             <div class="__cf_view" v-if="mode === 4">
               
               <div class="__cf_line">Referral address:</div>
-              <div class="__cf_line text-monospace text-truncate mb-4">0xt84u8r0394urwklnedlkfjojdut7e458737w</div>
+              <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
                 <span>Game bet:</span>
-                <span class="ml-3 text-monospace">1.2345</span>
+                <span id="id_4_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
+                <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
 
               <div class="__cf_line mb-3">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">97</span>
+                <span class="ml-3 text-monospace">{{joinParticipiantsSum | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-2">
                 <div class="__cf_coin __shadow __btc __selected">
                   <img src="/img/bitcoin_icon.svg" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">67</span>
+                <span class="ml-3 text-monospace">{{gGame.info.heads | anyBNValue}}</span>
               </div>
 
               <div class="__cf_line d-flex align-items-center mb-4">
                 <div class="__cf_coin __shadow __eth __selected">
                   <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 </div>
-                <span class="ml-3 text-monospace">24</span>
+                <span class="ml-3 text-monospace">{{gGame.info.tails | anyBNValue}}</span>
               </div>
 
               <div class="__timer d-flex mb-3">
@@ -242,7 +246,8 @@
               <input type="text" class="form-control w-100 mb-3"  placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input type="text" class="form-control w-50 mb-3"  placeholder="1.2345">
+              <input id="id_5_bet" type="text" class="form-control w-50 mb-3"  placeholder="1.2345">
+                <!-- <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip> -->
 
               <div class="__timer d-flex mb-3">
                 <div>00 h</div>
@@ -272,8 +277,9 @@
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="joinDisabled" @click="joinGameClicked()">JOIN</button>
         </div>
 
+        
         <div class="d-flex justify-content-center" v-if="mode === 'playing_oponent'">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
+          <button style="visibility: hidden" type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === 4">
@@ -404,9 +410,17 @@
         return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : 0
       },
 
+      myReferralAddressForGame() {
+        return (this.gGame.data) ? this.gGame.data.referralInGame : ".....";
+      },
+
       running() {
         return (this.gGame.info && this.gGame.info.running)
-      }, 
+      },
+
+      coinSideForOpponent() {
+        return (this.gGameData && this.gGameData.coinSideForOpponent);
+      },
     },
     beforeDestroy() {
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
@@ -422,6 +436,14 @@
     watch: {
       running() {
         setTimeout(this.startCountdown, 1);
+      },
+
+      coinSideForOpponent() {
+        if (this.gGameData.coinSideForOpponent > 0) {
+          this.selectedCoin = this.gGameData.coinSideForOpponent.toString();
+        } else {
+          this.selectedCoin = null;
+        }
       }
     },
     methods: {

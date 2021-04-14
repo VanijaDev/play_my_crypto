@@ -10,7 +10,7 @@
           <div class="__img_value_block">
             <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
             <span id="my_stat_1">{{gGameData.playerStakeTotal | formatBalanceShort}}</span>
-            <b-tooltip target="my_stat_1" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>  
+            <b-tooltip target="my_stat_1" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>
           </div>
         </div>
         <!-- My out -->
@@ -25,7 +25,7 @@
             </span>
             <PriceUpDownArrowIcon class="__price_change_icon" v-if="gUserTotalOutChange" :direction="gUserTotalOutChange"/>
             
-            <b-tooltip target="my_stat_2" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>  
+            <b-tooltip target="my_stat_2" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>
           </div>              
         </div>
       </b-col>

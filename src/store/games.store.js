@@ -200,8 +200,11 @@ const actions = {
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
         referralFeeWithdrawnTotal: await game.contract.getReferralFeeWithdrawnTotal(ethers.constants.AddressZero),
-        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero)
+        partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero),
+        referralInGame: await game.contract.getReferralInGame(ethers.constants.AddressZero, game.info.idx),
+        coinSideForOpponent: await game.contract.opponentCoinSideForOpponent(ethers.constants.AddressZero, game.info.idx),
       }
+
       const prizeObj = (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0));
       gameData.pendingPrizeToWithdrawPrize = prizeObj.prize; // My Stats - Gameplay
       gameData.pendingPrizeToWithdrawPMCBonus = prizeObj.pmc_tokens;  // My Stats - Gameplay PMC bonus
@@ -329,8 +332,8 @@ const mutations = {
 };
 
 const state = {
-  currentId: null,
-  currentIndex: null,
+  currentId: null,  //  CF, RPS
+  currentIndex: null, //  idx in list
   started: [],
   list: [
     {
