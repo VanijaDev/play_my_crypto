@@ -21,7 +21,7 @@
               <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === COIN_SIDE_TAILS">
             </div>
 
-            <div class="__cf_select_coin d-flex justify-content-between" v-if="mode === 'start' || mode === 'join'">
+            <div class="__cf_select_coin d-flex justify-content-between" v-if="mode === 'start' || mode === 'join' || mode === 'playing_creator'">
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __btc" @click="selectedCoin = COIN_SIDE_HEADS" :class="{'__selected' : selectedCoin === COIN_SIDE_HEADS}">
                   <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
@@ -138,9 +138,10 @@
               </div>
 
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
-                <span class="mr-2 __blue_text">Current profit:</span>
+                <span class="mr-2 __blue_text">Approximate profit:</span>
                 <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
-                <span class="ml-3 text-monospace __blue_text">2.1234</span>
+                <span id="playing_creator_potential_profit" class="ml-3 text-monospace __blue_text">{{calculatePotentialProfit | formatBalanceShort}}</span>
+                <b-tooltip target="playing_creator_potential_profit" custom-class="__tooltip" >{{calculatePotentialProfit | formatBalance}}</b-tooltip>
               </div>
 
               <div class="__timer d-flex mb-3">
@@ -407,7 +408,7 @@
       },
 
       joinParticipiantsSum() {
-        return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : 0
+        return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : BigNumber.from(0);
       },
 
       myReferralAddressForGame() {
@@ -421,7 +422,21 @@
       coinSideForOpponent() {
         return (this.gGameData && this.gGameData.coinSideForOpponent);
       },
+
+      calculatePotentialProfit() {
+        let res = BigNumber.from(0);
+        if (this.gGame.info) {
+          if (this.selectedCoin == constants.COIN_SIDE_HEADS) {
+            res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1)).mul(95).div(100));
+          } else if (this.selectedCoin == constants.COIN_SIDE_TAILS) {
+            res = this.gGame.info.stake.add(this.gGame.info.heads.mul(this.gGame.info.stake).div(this.gGame.info.tails.add(1)).mul(95).div(100));
+          }
+        }
+
+        return res;
+      }
     },
+
     beforeDestroy() {
       this.$store.dispatch('games/SET_CURRENT_GAME', null)
     },
