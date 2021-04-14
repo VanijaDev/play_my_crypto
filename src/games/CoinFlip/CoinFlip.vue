@@ -77,7 +77,7 @@
               
               <div class="__cf_line mb-2">
                 <span>Participants:</span>
-                <span class="ml-3 text-monospace">{{joinParticipiants | anyBNValue}}</span>
+                <span class="ml-3 text-monospace">{{joinParticipiantsSum | anyBNValue}}</span>
               </div>
               
               <div class="__cf_line d-flex align-items-center mb-3">
@@ -95,7 +95,7 @@
               </div>
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25" v-model="gameplay.join.referralAddress">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.join.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
               
               <div class="__timer d-flex mb-3">
                 <div>{{timeLeft.hours}} h</div>
@@ -181,7 +181,7 @@
               
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Current profit:</span>
-                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">    
+                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 <span class="ml-3 text-monospace __blue_text">2.1234</span>
               </div>
               
@@ -306,9 +306,6 @@
           bet: null
         },
         join: {
-          bet: null,
-          sideCountBTC: null,
-          sideCountETH: null,
           referralAddress: null
         }
       },
@@ -324,6 +321,8 @@
 
     computed: {
       mode() {
+
+        // start 
         if (!this.gGame.gameplay || !this.gGame.info) {
           return 'start';
         }
@@ -333,7 +332,7 @@
           && this.gGame.gameplay.gamesFinished 
           && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
             return 'start';
-          }
+        }
          
         // ongoing game
         if (this.gGame.gameplay.gamesStarted 
@@ -357,7 +356,7 @@
 
             // join
             return 'join';
-          }
+        }
 
         // TODO next game modes
         return null;
@@ -384,9 +383,22 @@
       },
 
       joinDisabled() {
-        return true;
+        if (!this.selectedCoin) {
+          return true;
+        }
+
+        if (!this.gUser.balanceETH) {
+          return true;
+        }
+
+        if (this.gUser.balanceETH.lt(this.gGame.info.stake)) {
+          return true;
+        }
+
+        return false;
       },
-      joinParticipiants() {
+
+      joinParticipiantsSum() {
         return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : 0
       },
 
@@ -427,6 +439,7 @@
         }; 
         if (t > 0) setTimeout(this.startCountdown, 1000);
       },
+
       startGameClicked() {
         this.$store.dispatch('coinflip/START_GAME',
           { _selectedCoin: this.selectedCoin,
@@ -437,7 +450,11 @@
       },
 
       joinGameClicked() {
-        console.log("joinGameClicked()");
+        this.$store.dispatch('coinflip/JOIN_GAME',
+          { _selectedCoin: this.selectedCoin,
+            _referralAddress: this.gameplay.join.referralAddress,
+            _bet: this.gGame.info.stake
+          });
       }
     },
     i18n: {

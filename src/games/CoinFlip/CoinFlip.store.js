@@ -15,8 +15,8 @@ const getters = {
 };
 
 const actions = {
-  START_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referalAddress, _seedPhrase, _bet }) => {
-    Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referalAddress, _seedPhrase, _bet);
+  START_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referralAddress, _seedPhrase, _bet }) => {
+    Vue.$log.debug('Coinflip/START_GAME', _selectedCoin, _referralAddress, _seedPhrase, _bet);
 
 
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
@@ -39,15 +39,15 @@ const actions = {
     Vue.$log.debug('coinSide', coinSide);
     
 
-    const seedPhraseBytesHash = ethers.utils.solidityKeccak256([ "string", ], [ _seedPhrase ]);
+    const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [_seedPhrase]);
     // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
-    const coinSideHash = ethers.utils.solidityKeccak256([ "uint", "bytes", ], [ coinSide, seedPhraseBytesHash ])
+    const coinSideHash = ethers.utils.solidityKeccak256(["uint", "bytes",], [coinSide, seedPhraseBytesHash])
     Vue.$log.debug('coinSideHash', coinSideHash);
 
 
     let referral = ethers.constants.AddressZero;
-    if (_referalAddress) {
-      if (!ethers.utils.isAddress(_referalAddress)) {
+    if (_referralAddress) {
+      if (!ethers.utils.isAddress(_referralAddress)) {
         dispatch('notification/OPEN', {
           id: 'ERROR',
           data: "Error: invalid referral address.",
@@ -57,7 +57,7 @@ const actions = {
         });
         return;
       } else {
-        referral = _referalAddress;
+        referral = _referralAddress;
       }
     }
     Vue.$log.debug('referral', referral);
@@ -92,6 +92,7 @@ const actions = {
       }, {
         root: true
       })
+      this.$emit("eventName");
 
       const receipt = await tx.wait();
       Vue.$log.debug('Coinflip/START_GAME - receipt', receipt)
@@ -136,7 +137,13 @@ const actions = {
       root: true
     });
   },
+
+  JOIN_GAME: async ({ commit, rootState, dispatch }, { _selectedCoin, _referralAddress, _bet }) => {
+    Vue.$log.debug('Coinflip/JOIN_GAME', _selectedCoin, _referralAddress, parseFloat(ethers.utils.formatEther(_bet)));
   
+
+  },
+
   // GET_PLAYER_STAKE_TOTAL: async ({
   //   commit,
   //   state

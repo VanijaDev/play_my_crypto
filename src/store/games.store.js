@@ -131,7 +131,7 @@ const actions = {
           if (gamesStarted.gt(0)) {
             // GAME INFO
             const gameInfo = await game.contract.gameInfo(ethers.constants.AddressZero, gamesStarted - 1);
-            Vue.$log.debug('GET_GAMES_INFO', gameInfo)
+            // Vue.$log.debug('GET_GAMES_INFO', gameInfo)
             commit('SET_GAME_INFO', {
               game,
               gameInfo
