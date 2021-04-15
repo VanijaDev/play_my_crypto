@@ -274,7 +274,7 @@ const mutations = {
     state.started = userGamesStarted;
   },
 
-  SET_GAMEPLAY: (state, {game, gameplay}) => {
+  SET_GAMEPLAY: (state, { game, gameplay }) => {
     const index = state.list.findIndex(_game => _game.id === game.id)
     Object.keys(gameplay).forEach(key => Vue.set(state.list[index].gameplay, key, gameplay[key]))
   },

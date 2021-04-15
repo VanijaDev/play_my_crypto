@@ -13,7 +13,7 @@
           <!-- TODO BNC selected coin -->
           <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="mode !== this.MODE_RESULT"> 
             
-            <h4 class="__blue_text text-center mb-4" v-if="mode === MODE_RESULT">COIN SIDE</h4>
+           <!--  <h4 class="__blue_text text-center mb-4" v-if="mode === MODE_RESULT">COIN SIDE</h4> -->
 
             <div class="__cf_big_coin_circle_wrapper __shadow " :class="{'__selected_btc' : selectedCoin === COIN_SIDE_HEADS, '__selected_eth' : selectedCoin === COIN_SIDE_TAILS,}">
               <div class="__question" v-show="!selectedCoin">?</div>
@@ -42,11 +42,11 @@
           <!-- Result -->
           <div class="__cf_result_block  justify-content-center align-items-center order-1 order-sm-2 " v-if="mode === this.MODE_RESULT">
             
-            <div class="d-flex flex-column justify-content-center" v-if="result" @click="result = false">
+            <div class="d-flex flex-column justify-content-center" v-if="isWinner">
               <img src="/img/game_result_won.svg" alt="Won" width="100" class="mb-3 align-self-center">
               <h4 class="__blue_text text-center">You won!</h4>
             </div> 
-            <div class="d-flex flex-column justify-content-center" v-if="!result" @click="result = true">
+            <div class="d-flex flex-column justify-content-center" v-if="!isWinner">
               <img src="/img/game_result_loose.svg" alt="Won" width="100" class="mb-3 align-self-center">
               <h4 class="__blue_text text-center">You lost...</h4>
             </div>
@@ -231,11 +231,18 @@
                 </div>
                 <span class="ml-3 text-monospace">{{gGame.info.tails | anyBNValue}}</span>
               </div>
+              
+              <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
+                <span class="mr-2 __blue_text">Approximate profit:</span>
+                <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
+                <span id="result_potential_profit" class="ml-3 text-monospace __blue_text">{{calculatePotentialProfit | formatBalanceShort}}</span>
+                <b-tooltip target="result_potential_profit" custom-class="__tooltip" >{{calculatePotentialProfit | formatBalance}}</b-tooltip>
+              </div>
 
               <div class="__timer d-flex mb-3">
-                <div>23 h</div>
-                <div>01 min</div>
-                <div>45 sec</div>
+                <div>00 h</div>
+                <div>00 min</div>
+                <div>00 sec</div>
               </div>
 
             </div>
@@ -288,7 +295,7 @@
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_RESULT">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >>>></button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
@@ -315,6 +322,7 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
+      isWinner: false,
       currentMode: null,
       id: 'CF',
       selectedCoin: null,
@@ -345,19 +353,26 @@
     computed: {
       mode() {
         // start 
-        if (!this.gGame.gameplay || !this.gGame.info) {
-          return this.MODE_START;
-        }
-
-        // start 
-        if (!this.gGame.gameplay.gamesStarted 
-          && !this.gGame.gameplay.gamesFinished ) {
+        if (!this.gGame.gameplay) {
           return this.MODE_START;
         }
 
         //  start / result
-        if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-          return (this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
+        if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished) {
+          if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
+            // return (this.currentMode == this.MODE_PLAYING_CREATOR || this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
+            return this.MODE_RESULT;
+          }
+        }
+
+        // start 
+        if (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished ) {
+          return this.MODE_START;
+        }
+
+        // start 
+        if (!this.gGame.info) {
+          return this.MODE_START;
         }
          
         // ongoing game
@@ -450,7 +465,6 @@
 
         if (this.gGame.info) {
           if (this.selectedCoin == constants.COIN_SIDE_HEADS) {
-            // res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1)).mul(95).div(100));
             if (this.gGame.info.tails.gt(0)) {
               res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1))).mul(95).div(100);
             }
@@ -513,11 +527,18 @@
 
       startGameClicked() {
         this.$store.dispatch('coinflip/START_GAME',
-          { _selectedCoinSide: this.selectedCoin,
+          { _selectedCoinSide: this.currentMode,
             _referralAddress: this.gameplay.start.referralAddress,
             _seedPhrase: this.gameplay.start.seedPhrase,
             _bet: this.gameplay.start.bet
           });
+
+        // this.$store.dispatch('coinflip/START_GAME',
+        //   { _selectedCoinSide: this.selectedCoin,
+        //     _referralAddress: this.gameplay.start.referralAddress,
+        //     _seedPhrase: this.gameplay.start.seedPhrase,
+        //     _bet: this.gameplay.start.bet
+        //   });
       },
 
       joinGameClicked() {
