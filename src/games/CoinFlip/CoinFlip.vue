@@ -346,7 +346,6 @@
         minutes: '00',
         seconds: '00'
       },
-      duration: 24 * 60 * 60 * 1000, // 24 h in millisecnds
       timerId: null
     }),
 
@@ -357,17 +356,14 @@
           return this.MODE_START;
         }
 
-        //  start / result
-        if (this.gGame.gameplay.gamesStarted && this.gGame.gameplay.gamesFinished) {
-          if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-            // return (this.currentMode == this.MODE_PLAYING_CREATOR || this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
-            return this.MODE_RESULT;
-          }
-        }
-
         // start 
         if (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished ) {
           return this.MODE_START;
+        }
+
+        //  start / result
+        if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
+          return (this.currentMode == this.MODE_PLAYING_CREATOR || this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
         }
 
         // start 
@@ -377,22 +373,27 @@
          
         // ongoing game
         if (this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
-          
             // playing_creator
             if (this.gUser.accountAddress
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                return this.MODE_PLAYING_CREATOR;
+                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
+                  return this.MODE_PLAYING_CREATOR;
+                } else {
+                  return this.MODE_FINISH_TIMEOUT_START;
+                }
             }
             
             // playing_opponent
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                return this.MODE_PLAYING_OPPONENT;
+                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDSn) > new Date(Date.now())) {
+                  return this.MODE_PLAYING_OPPONENT;
+                } else {
+                  return this.MODE_FINISH_TIMEOUT_START;
+                }
             }
-
-            //  TODO: finish_timeout_start
 
             // join
             return this.MODE_JOIN;
@@ -514,7 +515,7 @@
           && BigNumber.isBigNumber(this.gGame.info.startTime)
           && this.gGame.info.startTime.gt(0)
           ) {
-          t = new Date((this.gGame.info.startTime.toString() * 1000) + this.duration) - new Date(Date.now())
+          t = new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) - new Date(Date.now())
         }
         this.timeLeft = {
           total:    t,
@@ -526,19 +527,19 @@
       },
 
       startGameClicked() {
-        this.$store.dispatch('coinflip/START_GAME',
-          { _selectedCoinSide: this.currentMode,
-            _referralAddress: this.gameplay.start.referralAddress,
-            _seedPhrase: this.gameplay.start.seedPhrase,
-            _bet: this.gameplay.start.bet
-          });
-
         // this.$store.dispatch('coinflip/START_GAME',
-        //   { _selectedCoinSide: this.selectedCoin,
+        //   { _selectedCoinSide: this.currentMode,
         //     _referralAddress: this.gameplay.start.referralAddress,
         //     _seedPhrase: this.gameplay.start.seedPhrase,
         //     _bet: this.gameplay.start.bet
         //   });
+
+        this.$store.dispatch('coinflip/START_GAME',
+          { _selectedCoinSide: this.selectedCoin,
+            _referralAddress: this.gameplay.start.referralAddress,
+            _seedPhrase: this.gameplay.start.seedPhrase,
+            _bet: this.gameplay.start.bet
+          });
       },
 
       joinGameClicked() {
