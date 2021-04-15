@@ -157,7 +157,7 @@
             </div>
 
             <!-- playing_opponent -->
-            <div class="__cf_view" v-if="mode === '_playing_opponent'">
+            <div class="__cf_view" v-if="mode === 'playing_opponent'">
 
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
