@@ -3,7 +3,7 @@ export default {
     ETH: {
       '0x2a': "", // kovan
       '0x3': "0x797Efac91bE79ED6B1f16DD90F94a16c018AA41C", // ropsten
-      '0x539': "0x12425dbb7b37FC199F4D2423b4c1dBC1a2cfaC89", // ganache
+      '0x539': "0xe549615545AadaEde7835CE9D5b8646c82C7B347", // ganache
     }
   },
   abi: [{
