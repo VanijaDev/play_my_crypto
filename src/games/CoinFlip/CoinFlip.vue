@@ -11,9 +11,9 @@
           
           <!-- Coin -->
           <!-- TODO BNC selected coin -->
-          <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="mode !== 'result'"> 
+          <div class="__cf_coin_block  justify-content-center align-items-center order-1 order-sm-2 mr-sm-3" v-if="mode !== this.MODE_RESULT"> 
             
-            <h4 class="__blue_text text-center mb-4" v-if="mode === 4">COIN SIDE</h4>
+            <h4 class="__blue_text text-center mb-4" v-if="mode === MODE_RESULT">COIN SIDE</h4>
 
             <div class="__cf_big_coin_circle_wrapper __shadow " :class="{'__selected_btc' : selectedCoin === COIN_SIDE_HEADS, '__selected_eth' : selectedCoin === COIN_SIDE_TAILS,}">
               <div class="__question" v-show="!selectedCoin">?</div>
@@ -22,10 +22,10 @@
             </div>
 
             <div class="__cf_select_coin d-flex justify-content-between"
-              v-if="mode === 'start' || 
-                    mode === 'join' || 
-                    mode === 'playing_creator' || 
-                    mode === 'finish_timeout_start'">
+              v-if="mode === this.MODE_START || 
+                    mode === this.MODE_JOIN || 
+                    mode === this.MODE_PLAYING_CREATOR || 
+                    mode === this.MODE_FINISH_TIMEOUT_START">
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __btc" @click="selectedCoin = COIN_SIDE_HEADS" :class="{'__selected' : selectedCoin === COIN_SIDE_HEADS}">
                   <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
@@ -40,7 +40,7 @@
           </div>
           
           <!-- Result -->
-          <div class="__cf_result_block  justify-content-center align-items-center order-1 order-sm-2 " v-if="mode === 'result'">
+          <div class="__cf_result_block  justify-content-center align-items-center order-1 order-sm-2 " v-if="mode === this.MODE_RESULT">
             
             <div class="d-flex flex-column justify-content-center" v-if="result" @click="result = false">
               <img src="/img/game_result_won.svg" alt="Won" width="100" class="mb-3 align-self-center">
@@ -57,7 +57,7 @@
           <div class="__cf_view_block mr-0 mr-sm-4 order-2 order-sm-1" :class="{'w-100' : gBreakPoint('xs')}">
             
             <!-- start -->
-            <div class="__cf_view" v-if="mode === 'start'">
+            <div class="__cf_view" v-if="mode === this.MODE_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
@@ -72,7 +72,7 @@
             </div> 
 
             <!-- join -->
-            <div class="__cf_view" v-if="mode === 'join'">
+            <div class="__cf_view" v-if="mode === this.MODE_JOIN">
               
               <div class="__cf_line">
                 <span>Game bet:</span>
@@ -111,7 +111,7 @@
             </div>
 
             <!-- playing_creator -->
-            <div class="__cf_view" v-if="mode === 'playing_creator'">
+            <div class="__cf_view" v-if="mode === this.MODE_PLAYING_CREATOR">
               
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
@@ -157,7 +157,7 @@
             </div>
 
             <!-- playing_opponent -->
-            <div class="__cf_view" v-if="mode === 'playing_opponent'">
+            <div class="__cf_view" v-if="mode === this.MODE_PLAYING_OPPONENT">
 
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
@@ -202,7 +202,7 @@
             </div>
 
             <!-- result -->
-            <div class="__cf_view" v-if="mode === 'result'">
+            <div class="__cf_view" v-if="mode === this.MODE_RESULT">
               
               <div class="__cf_line">Referral address:</div>
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
@@ -241,7 +241,7 @@
             </div>
 
             <!-- finish_timeout_start -->
-            <div class="__cf_view" v-if="mode === 'finish_timeout_start'">
+            <div class="__cf_view" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
@@ -266,11 +266,11 @@
         </div> 
 
         <!-- Footer -->
-        <div class="d-flex justify-content-center" v-if="mode === 'start'">
+        <div class="d-flex justify-content-center" v-if="mode === this.MODE_START">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="startDisabled" @click="startGameClicked()">START</button>
         </div>
 
-        <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === 'playing_creator'">
+        <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === this.MODE_PLAYING_CREATOR">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
             <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="gameplay.finish_timeout_start.seedPhrase">
@@ -278,20 +278,20 @@
           <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" :disabled="finishDisabled" @click="playGameClicked()" >FINISH GAME</button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="mode === 'join'">
+        <div class="d-flex justify-content-center" v-if="mode === this.MODE_JOIN">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="joinDisabled" @click="joinGameClicked()">JOIN</button>
         </div>
 
         
-        <div class="d-flex justify-content-center" v-if="mode === 'playing_opponent'">
+        <div class="d-flex justify-content-center" v-if="mode === this.MODE_PLAYING_OPPONENT">
           <button style="visibility: hidden" type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="mode === 4">
+        <div class="d-flex justify-content-center" v-if="mode === this.MODE_RESULT">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >>>></button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="mode === 'finish_timeout_start'">
+        <div class="d-flex justify-content-center" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >FINISH AND START NEW GAME</button>
         </div>
 
@@ -309,6 +309,13 @@
     data: () => ({
       COIN_SIDE_HEADS: constants.COIN_SIDE_HEADS,
       COIN_SIDE_TAILS: constants.COIN_SIDE_TAILS,
+      MODE_START: "MODE_START",
+      MODE_JOIN: "MODE_JOIN",
+      MODE_PLAYING_CREATOR: "MODE_PLAYING_CREATOR",
+      MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
+      MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
+      MODE_RESULT: "MODE_RESULT",
+      curentMode: null,
       id: 'CF',
       selectedCoin: null,
       result: true,
@@ -340,38 +347,46 @@
 
         // start 
         if (!this.gGame.gameplay || !this.gGame.info) {
-          return 'start';
+          // this.curentMode = this.MODE_START;
+          return this.MODE_START;
+        }
+
+        if (!this.gGame.gameplay.gamesStarted 
+          && !this.gGame.gameplay.gamesFinished ) {
+          return this.MODE_START;
+        }
+
+        //  result
+        if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
+          return this.MODE_START;
         }
         
         // start 
-        if (this.gGame.gameplay.gamesStarted 
-          && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-            return 'start';
+        if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
+            return this.MODE_START;
         }
          
         // ongoing game
-        if (this.gGame.gameplay.gamesStarted 
-          && this.gGame.gameplay.gamesFinished 
-          && this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
+        if (this.gGame.gameplay.gamesStarted.gt(this.gGame.gameplay.gamesFinished)) {
           
             // playing_creator
             if (this.gUser.accountAddress
-              && this.gGame.info 
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                return 'playing_creator';
+                return this.MODE_PLAYING_CREATOR;
             }
             
             // playing_opponent
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                return 'playing_opponent';
+                return this.MODE_PLAYING_OPPONENT;
             }
 
+            //  TODO: finish_timeout_start
+
             // join
-            return 'join';
+            return this.MODE_JOIN;
         }
 
         // TODO next game modes
@@ -438,11 +453,17 @@
 
       calculatePotentialProfit() {
         let res = BigNumber.from(0);
+
         if (this.gGame.info) {
           if (this.selectedCoin == constants.COIN_SIDE_HEADS) {
-            res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1)).mul(95).div(100));
+            // res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1)).mul(95).div(100));
+            if (this.gGame.info.tails.gt(0)) {
+              res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1))).mul(95).div(100);
+            }
           } else if (this.selectedCoin == constants.COIN_SIDE_TAILS) {
-            res = this.gGame.info.stake.add(this.gGame.info.heads.mul(this.gGame.info.stake).div(this.gGame.info.tails.add(1)).mul(95).div(100));
+            if (this.gGame.info.heads.gt(0)) {
+              res = this.gGame.info.stake.add(this.gGame.info.heads.mul(this.gGame.info.stake).div(this.gGame.info.tails.add(1))).mul(95).div(100);
+            }
           }
         }
 
@@ -519,12 +540,12 @@
     i18n: {
       messages: {
         en: {
-          start: 'START NEW GAME',
-          join: 'JOIN GAME',
-          playing_creator: 'PLAYING GAME',
-          playing_opponent: 'PLAYING GAME',
-          finish_timeout_start: 'TIME’S UP FOR THE ONGOING GAME',
-          result: 'RESULT',
+          MODE_START: 'START NEW GAME',
+          MODE_JOIN: 'JOIN GAME',
+          MODE_PLAYING_CREATOR: 'PLAYING GAME',
+          MODE_PLAYING_OPPONENT: 'PLAYING GAME',
+          MODE_FINISH_TIMEOUT_START: 'TIME’S UP FOR THE ONGOING GAME',
+          MODE_RESULT: 'RESULT',
           // TODO add rest of texts to translation
         },
       }
