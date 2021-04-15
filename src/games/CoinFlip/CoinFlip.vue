@@ -21,7 +21,11 @@
               <img :src="gCurrentNetworkIcon" alt="ETH" v-show="selectedCoin === COIN_SIDE_TAILS">
             </div>
 
-            <div class="__cf_select_coin d-flex justify-content-between" v-if="mode === 'start' || mode === 'join' || mode === 'playing_creator'">
+            <div class="__cf_select_coin d-flex justify-content-between"
+              v-if="mode === 'start' || 
+                    mode === 'join' || 
+                    mode === 'playing_creator' || 
+                    mode === 'finish_timeout_start'">
               <div class="__img_button __shadow_filter">
                 <div class="__cf_coin  __btc" @click="selectedCoin = COIN_SIDE_HEADS" :class="{'__selected' : selectedCoin === COIN_SIDE_HEADS}">
                   <img src="/img/bitcoin_icon.svg" height="25"  width="25" alt="BTC">
@@ -197,7 +201,7 @@
 
             </div>
 
-            <!-- View 4 -->
+            <!-- result -->
             <div class="__cf_view" v-if="mode === 'result'">
               
               <div class="__cf_line">Referral address:</div>
@@ -234,10 +238,10 @@
                 <div>45 sec</div>
               </div>
 
-            </div> 
+            </div>
 
-            <!-- View 5 -->
-            <div class="__cf_view" v-if="mode === 'playing_opponent'">Start here
+            <!-- finish_timeout_start -->
+            <div class="__cf_view" v-if="mode === 'finish_timeout_start'">
               
               <div class="__cf_line">Enter referral address (optional):</div>
               <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
@@ -269,9 +273,9 @@
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === 'playing_creator'">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
-            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="gameplay.finish.seedPhrase">
+            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="gameplay.finish_timeout_start.seedPhrase">
           </div>
-          <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" :disabled="finishDisabled" @click="finishGameClicked()" >FINISH GAME</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" :disabled="finishDisabled" @click="playGameClicked()" >FINISH GAME</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === 'join'">
@@ -287,7 +291,7 @@
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >>>></button>
         </div>
 
-        <div class="d-flex justify-content-center" v-if="mode === 5">
+        <div class="d-flex justify-content-center" v-if="mode === 'finish_timeout_start'">
           <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >FINISH AND START NEW GAME</button>
         </div>
 
@@ -317,7 +321,7 @@
         join: {
           referralAddress: null
         },
-        finish: {
+        finish_timeout_start: {
           seedPhrase: null,
         }
       },
@@ -405,7 +409,7 @@
       },
 
       finishDisabled() {
-        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.finish.seedPhrase) {
+        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.finish_timeout_start.seedPhrase) {
           return true;
         }
 
@@ -505,10 +509,10 @@
           });
       },
 
-      finishGameClicked() {
-        this.$store.dispatch('coinflip/FINISH_GAME',
+      playGameClicked() {
+        this.$store.dispatch('coinflip/PLAY_GAME',
           { _selectedCoinSide: this.selectedCoin,
-            _seedPhrase: this.gameplay.finish.seedPhrase,
+            _seedPhrase: this.gameplay.finish_timeout_start.seedPhrase,
           });
       }
     },
@@ -519,8 +523,8 @@
           join: 'JOIN GAME',
           playing_creator: 'PLAYING GAME',
           playing_opponent: 'PLAYING GAME',
+          finish_timeout_start: 'TIME’S UP FOR THE ONGOING GAME',
           result: 'RESULT',
-          timeout: 'TIME’S UP FOR THE ONGOING GAME',
           // TODO add rest of texts to translation
         },
       }

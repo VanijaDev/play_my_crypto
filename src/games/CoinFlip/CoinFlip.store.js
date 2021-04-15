@@ -235,8 +235,8 @@ const actions = {
     });
   },
 
-  FINISH_GAME: async ({ commit, rootState, dispatch }, { _selectedCoinSide, _seedPhrase }) => {
-    Vue.$log.debug('Coinflip/FINISH_GAME', _selectedCoinSide, _seedPhrase);
+  PLAY_GAME: async ({ commit, rootState, dispatch }, { _selectedCoinSide, _seedPhrase }) => {
+    Vue.$log.debug('Coinflip/PLAY_GAME', _selectedCoinSide, _seedPhrase);
 
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
 
@@ -275,7 +275,7 @@ const actions = {
     try {
       // function playGame(address _token, uint8 _coinSide, bytes32 _seedHash)
       const tx = await gameContract.playGame(ethers.constants.AddressZero, _selectedCoinSide, seedPhraseBytesHash);
-      Vue.$log.debug('Coinflip/START_GAME - tx', tx);
+      Vue.$log.debug('Coinflip/PLAY_GAME - tx', tx);
 
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
@@ -287,7 +287,7 @@ const actions = {
       })
 
       const receipt = await tx.wait();
-      Vue.$log.debug('Coinflip/START_GAME - receipt', receipt)
+      Vue.$log.debug('Coinflip/PLAY_GAME - receipt', receipt)
 
       if (receipt.status) {
         dispatch('notification/OPEN', {
