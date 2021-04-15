@@ -315,7 +315,7 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
-      curentMode: null,
+      currentMode: null,
       id: 'CF',
       selectedCoin: null,
       result: true,
@@ -344,26 +344,20 @@
 
     computed: {
       mode() {
-
         // start 
         if (!this.gGame.gameplay || !this.gGame.info) {
-          // this.curentMode = this.MODE_START;
           return this.MODE_START;
         }
 
+        // start 
         if (!this.gGame.gameplay.gamesStarted 
           && !this.gGame.gameplay.gamesFinished ) {
           return this.MODE_START;
         }
 
-        //  result
+        //  start / result
         if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-          return this.MODE_START;
-        }
-        
-        // start 
-        if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-            return this.MODE_START;
+          return (this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
         }
          
         // ongoing game
@@ -483,6 +477,10 @@
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id);
     },
     watch: {
+      mode(_mode) {
+        this.currentMode = _mode;
+      },
+
       running() {
         setTimeout(this.startCountdown, 1);
       },
