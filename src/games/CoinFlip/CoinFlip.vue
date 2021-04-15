@@ -60,7 +60,7 @@
             <div class="__cf_view" v-if="mode === this.MODE_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
@@ -251,14 +251,14 @@
             <div class="__cf_view" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3"  placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3"  placeholder="Hello World">
+              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.seedPhrase" placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input id="id_5_bet" type="text" class="form-control w-50 mb-3"  placeholder="1.2345">
+              <input id="id_5_bet" type="text" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345">
                 <!-- <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip> -->
 
               <div class="__timer d-flex mb-3">
@@ -299,7 +299,7 @@
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >FINISH AND START NEW GAME</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="startDisabled" @click="startGameClicked()">FINISH AND START NEW GAME</button>
         </div>
 
       </div>
@@ -377,7 +377,8 @@
             if (this.gUser.accountAddress
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
+                // if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) { TODO: uncomment
+                if (new Date((this.gGame.info.startTime.toString() * 1000)) > new Date(Date.now())) {
                   return this.MODE_PLAYING_CREATOR;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
@@ -388,7 +389,8 @@
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDSn) > new Date(Date.now())) {
+                // if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) { TODO: uncomment
+                if (new Date((this.gGame.info.startTime.toString() * 1000)) > new Date(Date.now())) {
                   return this.MODE_PLAYING_OPPONENT;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
