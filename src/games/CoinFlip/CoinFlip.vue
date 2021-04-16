@@ -235,8 +235,8 @@
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
                 <span class="mr-2 __blue_text">Approximate profit:</span>
                 <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
-                <span id="result_potential_profit" class="ml-3 text-monospace __blue_text">{{calculatePotentialProfit | formatBalanceShort}}</span>
-                <b-tooltip target="result_potential_profit" custom-class="__tooltip" >{{calculatePotentialProfit | formatBalance}}</b-tooltip>
+                <span id="result_potential_profit" class="ml-3 text-monospace __blue_text">{{lastGamePrize | formatBalanceShort}}</span>
+                <b-tooltip target="result_potential_profit" custom-class="__tooltip" >{{lastGamePrize | formatBalance}}</b-tooltip>
               </div>
 
               <div class="__timer d-flex mb-3">
@@ -316,6 +316,7 @@
   export default {
     name: 'CoinFlipGame',
     data: () => ({
+      id: 'CF',
       COIN_SIDE_HEADS: constants.COIN_SIDE_HEADS,
       COIN_SIDE_TAILS: constants.COIN_SIDE_TAILS,
       MODE_START: "MODE_START",
@@ -324,11 +325,9 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
-      isWinner: false,
       isShowResult: false,
-      id: 'CF',
+      isTXRunning: false,
       selectedCoin: null,
-      result: true,
       gameplay: {
         start: {
           referralAddress: null,
@@ -396,7 +395,7 @@
       },
 
       startDisabled() {
-        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.start.seedPhrase || !this.gameplay.start.bet) {
+        if (this.isTXRunning || !this.selectedCoin || !this.gameplay.start.seedPhrase || !this.gameplay.start.bet) {
           return true;
         }
 
@@ -418,7 +417,7 @@
       },
 
       joinDisabled() {
-        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gUser.balanceETH || this.gUser.balanceETH.lt(this.gGame.info.stake)) {
+        if (this.isTXRunning || !this.selectedCoin || !this.gUser.balanceETH || this.gUser.balanceETH.lt(this.gGame.info.stake)) {
           return true;
         }
 
@@ -426,7 +425,7 @@
       },
 
       finishDisabled() {
-        if (this.gUser.txGameplayInProgress || !this.selectedCoin || !this.gameplay.finish_timeout_start.seedPhrase) {
+        if (this.isTXRunning || !this.selectedCoin || !this.gameplay.finish_timeout_start.seedPhrase) {
           return true;
         }
 
@@ -438,7 +437,16 @@
       },
 
       joinParticipiantsSum() {
-        return (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) ? this.gGame.info.heads.add(this.gGame.info.tails).add(1) : BigNumber.from(0);
+        let res = BigNumber.from(0);
+
+        if (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) {
+          res = this.gGame.info.heads.add(this.gGame.info.tails);
+
+          if (!this.isShowResult) {
+            res = res.add(1);
+          }
+        }
+        return res;
       },
 
       myReferralAddressForGame() {
@@ -471,9 +479,29 @@
         return res;
       },
 
-      ...mapState({
-        txGameplayInProgress: state => state.user.txGameplayInProgress
-      })
+      lastGamePrize() {
+        if (this.gGame.gameplay.gamesParticipatedToCheckPrize
+          && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
+          && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
+            return this.gGameData.lastGamePrize.prize.div(100).mul(95);
+        }
+
+        return BigNumber.from(0);
+      },
+
+      isWinner() {
+        if (this.gGame.gameplay.gamesParticipatedToCheckPrize
+          && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
+          && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
+            return this.gGameData.lastGamePrize.prize.gt(0);
+        }
+
+        return false;
+      },
+
+      // ...mapState({
+      //   isTXRunning: state => state.user.isTXRunning
+      // })
     },
 
     beforeDestroy() {
@@ -488,8 +516,10 @@
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id);
     },
     watch: {
-      txGameplayInProgress(_oldValue, _newValue) {
-        // this.resetData();
+      isTXRunning(_newValue, _oldValue) {
+        if (_oldValue && !_newValue) {
+          this.resetData();
+        }
       },
 
       running() {
@@ -533,6 +563,7 @@
         }
 
         Vue.$log.debug('Coinflip/START_GAME', validatedCoinSide, validatedReferral, coinSideHash, ethers.utils.formatEther(validatedBet));
+        this.isTXRunning = true;
         try {
           // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral)
           const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, coinSideHash, validatedReferral, {
@@ -554,6 +585,7 @@
           this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
         }
 
+        this.isTXRunning = false;
         this.reloadAfterTXSuccess();
       },
 
@@ -576,6 +608,7 @@
         }
 
         Vue.$log.debug('Coinflip/JOIN_GAME', validatedCoinSide, validatedReferral, parseFloat(ethers.utils.formatEther(this.gGame.info.stake)));
+        this.isTXRunning = true;
         try {
           // function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral)
           const tx = await gameContract.joinGame(ethers.constants.AddressZero, 0, validatedCoinSide, validatedReferral, {
@@ -598,6 +631,7 @@
           this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
         }
 
+        this.isTXRunning = false;
         this.reloadAfterTXSuccess();
       },
 
@@ -623,6 +657,7 @@
         }
         
         Vue.$log.debug('Coinflip/PLAY_GAME', validatedCoinSide, _seedPhrase);
+        this.isTXRunning = true;
         try {
           // function playGame(address _token, uint8 _coinSide, bytes32 _seedHash)
           const tx = await gameContract.playGame(ethers.constants.AddressZero, validatedCoinSide, seedPhraseBytesHash);
@@ -644,6 +679,7 @@
           this.showTXNotification("ERROR", `ERROR: carefully check seed phrase, coin side and try again.`, 10);
         }
 
+        this.isTXRunning = false;
         this.reloadAfterTXSuccess();
       },
 
@@ -653,8 +689,16 @@
       },
 
       resetData() {
-        // this.gameplay.start.referralAddress = null;
-        // TODO
+        Vue.$log.debug('resetData');
+
+        this.isShowResult = false;
+        this.isTXRunning = false;
+        this.selectedCoin = null;
+        this.gameplay.start.referralAddress = null;
+        this.gameplay.start.seedPhrase = null;
+        this.gameplay.start.bet = null;
+        this.gameplay.join.referralAddress = null;
+        this.gameplay.finish_timeout_start.seedPhrase = null;
       },
 
       startCountdown() {
