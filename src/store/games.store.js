@@ -347,7 +347,7 @@ const state = {
         ETH: {
           '0x2a': "", // kovan
           '0x3': "0x7DFF7782196749344de4fA37C5060Dd1B86A86F3", // ropsten
-          '0x539': "0x4fed15Ce176d7D80Ea65cD1EAF865eD93153A1eB", // ganache
+          '0x539': "0xcd3e8f2CD3220c531ef5775CAe2888C013045633", // ganache
         }
       },
       contract: null,

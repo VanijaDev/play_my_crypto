@@ -21,6 +21,8 @@ const actions = {
     commit('user/SET_TX_GAMEPLAY_IN_PROGRESS', true, { root: true });
 
     //  TODO: move to separate method
+    // this.validateCoinSide(_selectedCoinSide);
+
     if (_selectedCoinSide !== constants.COIN_SIDE_HEADS && _selectedCoinSide !== constants.COIN_SIDE_TAILS) {
       dispatch('notification/OPEN', {
         id: 'ERROR',
@@ -351,6 +353,11 @@ const mutations = {
     state.info = info;
   },
 };
+
+//  HELPERS
+function validateCoinSide(_side) {
+  
+}
 
 export default {
   state,

@@ -308,6 +308,7 @@
 </template>
 
 <script>
+  import Vue from "vue"; 
   import { ethers, BigNumber } from "ethers";
   import constants from "../../utils/constants";
   import { mapState } from 'vuex';
@@ -527,6 +528,8 @@
       },
 
       startGameClicked() {
+
+
         this.$store.dispatch('coinflip/START_GAME',
           { _selectedCoinSide: this.selectedCoin,
             _referralAddress: this.gameplay.start.referralAddress,
