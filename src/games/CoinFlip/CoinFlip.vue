@@ -527,15 +527,81 @@
         if (t > 0) setTimeout(this.startCountdown, 1000);
       },
 
-      startGameClicked() {
+      async startGameClicked() {
+        const validatedCoinSide = this.validateCoinSide(this.selectedCoin);
+        if (!validatedCoinSide) {
+          return;
+        }
+        
+        const validatedReferral = this.validatedReferralAddress(this.gameplay.start.referralAddress);
+        if (!validatedReferral) {
+          return;
+        }
+
+        const validatedBet = this.validatedBetStart(this.gameplay.start.bet);
+        if (!validatedBet) {
+          return;
+        }
+
+        const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [this.gameplay.start.seedPhrase]);
+        // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
+        const coinSideHash = ethers.utils.solidityKeccak256(["uint", "bytes",], [validatedCoinSide, seedPhraseBytesHash])
 
 
-        this.$store.dispatch('coinflip/START_GAME',
-          { _selectedCoinSide: this.selectedCoin,
-            _referralAddress: this.gameplay.start.referralAddress,
-            _seedPhrase: this.gameplay.start.seedPhrase,
-            _bet: this.gameplay.start.bet
+        const curGameIdx = this.gCurrentIndex;
+        if (curGameIdx === null) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Internal Error: curGameIdx == null.",
+            delay: 5
+          }, {
+            root: true
+          })
+          return;
+        }
+
+        const gameContract = this.gGame.contract;
+        if (gameContract === null) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Internal Error: gameContract == null.",
+            delay: 5
+          }, {
+            root: true
+          })
+          return;
+        }
+
+        Vue.$log.debug('Coinflip/START_GAME', validatedCoinSide, validatedReferral, coinSideHash, ethers.utils.formatEther(validatedBet));
+
+        try {
+          // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral)
+          const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, coinSideHash, validatedReferral, {
+            value: validatedBet
           });
+          Vue.$log.debug('Coinflip/START_GAME - tx', tx);
+          this.showTXNotification("TRANSACTION_PENDING", tx.hash, 0);
+
+          const receipt = await tx.wait();
+          Vue.$log.debug('Coinflip/START_GAME - receipt', receipt)
+
+          if (receipt.status) {
+            this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
+          } else {
+            this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
+          }
+
+        } catch (error) {
+          Vue.$log.error(error)
+          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+        }
+        
+        this.$store.dispatch('user/GET_BALANCE', null, {
+          root: true
+        });
+        this.$store.dispatch('games/GET_GAMES', null, {
+          root: true
+        });
       },
 
       joinGameClicked() {
@@ -561,6 +627,81 @@
         this.isShowResult = false;
         //  TODO: GET_GAMES & other
       },
+
+
+      //  HELPERS
+      showTXNotification(_id, _text, _delay) {
+        this.$store.dispatch('notification/OPEN', {
+          id: _id,
+          data: {
+            tx: _text
+          },
+          delay: _delay
+        }, {
+          root: true
+        })
+      },
+
+      validateCoinSide(_coinSide) {
+        if (_coinSide === constants.COIN_SIDE_HEADS || _coinSide === constants.COIN_SIDE_TAILS) {
+          return _coinSide;
+        }
+
+        this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Internal Error: wrong coin side.",
+            delay: 5
+          }, {
+            root: true
+          })
+          return null;
+      },
+
+      validatedReferralAddress(_referralAddress) {
+        if (!_referralAddress) {
+          return ethers.constants.AddressZero;
+        }
+
+        if (!ethers.utils.isAddress(_referralAddress)) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Error: invalid referral address.",
+            delay: 5
+          }, {
+            root: true
+          });
+          return null;
+        }
+        
+        if (_referralAddress.toLowerCase() == this.gUser.accountAddress.toLowerCase()) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Error: please use different referral address.",
+            delay: 5
+          }, {
+            root: true
+          });
+          return null;
+        }
+
+        return _referralAddress;
+      },
+
+      validatedBetStart(_bet) {
+        if (!ethers.utils.parseEther(_bet).gte(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
+          this.$store.dispatch('notification/OPEN', {
+            id: 'ERROR',
+            data: "Error: Wrong amount to start game.",
+            delay: 5
+          }, {
+            root: true
+          });
+          return null;
+        }
+
+        return ethers.utils.parseEther(_bet);
+      }
+
     },
     i18n: {
       messages: {
@@ -576,6 +717,7 @@
       }
     }
   }
+
 </script>
 
 <style lang="scss" scoped> 
