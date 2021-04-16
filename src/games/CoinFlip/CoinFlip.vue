@@ -377,8 +377,7 @@
             if (this.gUser.accountAddress
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + this.timeLeft.total) > new Date(Date.now())) {
-                // if (new Date((this.gGame.info.startTime.toString() * 1000)) > new Date(Date.now())) {
+                if (this.timeLeft.total > 0) {
                   return this.MODE_PLAYING_CREATOR;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
@@ -389,8 +388,7 @@
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + this.timeLeft.total) > new Date(Date.now())) {
-                // if (new Date((this.gGame.info.startTime.toString() * 1000)) > new Date(Date.now())) {
+                if (this.timeLeft.total > 0) {
                   return this.MODE_PLAYING_OPPONENT;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
