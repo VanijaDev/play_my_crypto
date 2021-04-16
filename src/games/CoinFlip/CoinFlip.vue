@@ -526,12 +526,6 @@
         const coinSideHash = ethers.utils.solidityKeccak256(["uint", "bytes",], [validatedCoinSide, seedPhraseBytesHash])
 
 
-        const curGameIdx = this.gCurrentIndex;
-        if (curGameIdx === null) {
-          this.showTXNotification("ERROR", "Internal Error: curGameIdx == null.", 10);
-          return;
-        }
-
         const gameContract = this.gGame.contract;
         if (gameContract === null) {
           this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
@@ -539,7 +533,6 @@
         }
 
         Vue.$log.debug('Coinflip/START_GAME', validatedCoinSide, validatedReferral, coinSideHash, ethers.utils.formatEther(validatedBet));
-
         try {
           // function startGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral)
           const tx = await gameContract.startGame(ethers.constants.AddressZero, 0, coinSideHash, validatedReferral, {
@@ -576,22 +569,13 @@
         }
 
 
-        const curGameIdx = this.gCurrentIndex;
-        if (curGameIdx === null) {
-          this.showTXNotification("ERROR", "Internal Error: curGameIdx == null.", 10);
-          return;
-        }
-
         const gameContract = this.gGame.contract;
         if (gameContract === null) {
           this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
           return;
         }
 
-
         Vue.$log.debug('Coinflip/JOIN_GAME', validatedCoinSide, validatedReferral, parseFloat(ethers.utils.formatEther(this.gGame.info.stake)));
-
-
         try {
           // function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral)
           const tx = await gameContract.joinGame(ethers.constants.AddressZero, 0, validatedCoinSide, validatedReferral, {
@@ -617,18 +601,55 @@
         this.reloadAfterTXSuccess();
       },
 
-      playGameClicked() {
-        this.isShowResult = true;
+      async playGameClicked() {
+        const validatedCoinSide = this.validateCoinSide(this.selectedCoin);
+        if (!validatedCoinSide) {
+          return;
+        }
 
-        this.$store.dispatch('coinflip/PLAY_GAME',
-          { _selectedCoinSide: this.selectedCoin,
-            _seedPhrase: this.gameplay.finish_timeout_start.seedPhrase,
-          });
+        const _seedPhrase = this.gameplay.finish_timeout_start.seedPhrase;
+        if (!_seedPhrase || !_seedPhrase.length) {
+          this.showTXNotification("ERROR", "Internal Error: wrong seed phrase.", 10);
+          return;
+        }
+        const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [_seedPhrase]);
+        Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
+
+        
+        const gameContract = this.gGame.contract;
+        if (gameContract === null) {
+          this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
+          return;
+        }
+        
+        Vue.$log.debug('Coinflip/PLAY_GAME', validatedCoinSide, _seedPhrase);
+        try {
+          // function playGame(address _token, uint8 _coinSide, bytes32 _seedHash)
+          const tx = await gameContract.playGame(ethers.constants.AddressZero, validatedCoinSide, seedPhraseBytesHash);
+          Vue.$log.debug('Coinflip/PLAY_GAME - tx', tx);
+          this.showTXNotification("TRANSACTION_PENDING", tx.hash, 0);
+
+          const receipt = await tx.wait();
+          Vue.$log.debug('Coinflip/PLAY_GAME - receipt', receipt);
+
+          if (receipt.status) {
+            this.isShowResult = true;
+            this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
+          } else {
+            this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
+          }
+
+        } catch (error) {
+          Vue.$log.error(error)
+          this.showTXNotification("ERROR", `ERROR: carefully check seed phrase, coin side and try again.`, 10);
+        }
+
+        this.reloadAfterTXSuccess();
       },
 
       resultOKClicked() {
         this.isShowResult = false;
-        //  TODO: GET_GAMES & other
+        this.reloadAfterTXSuccess();
       },
 
       resetData() {
