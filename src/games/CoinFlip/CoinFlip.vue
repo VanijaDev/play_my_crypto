@@ -60,14 +60,14 @@
             <div class="__cf_view" v-if="mode === this.MODE_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.seedPhrase" placeholder="Hello World">
+              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input type="number" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345" step="0.1">
+              <input type="number" class="form-control w-50 mb-3" v-model="bet" placeholder="1.2345" step="0.1">
 
             </div> 
 
@@ -100,7 +100,7 @@
               </div>
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.join.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
               
               <div class="__timer d-flex mb-3">
                 <div>{{timeLeft.hours}} h</div>
@@ -251,14 +251,14 @@
             <div class="__cf_view" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
               
               <div class="__cf_line">Enter referral address (optional):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
+              <input type="text" class="form-control w-100 mb-3" v-model="referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
               <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="gameplay.start.seedPhrase" placeholder="Hello World">
+              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="Hello World">
 
               <div class="__cf_line">Game bet:</div>
-              <input id="id_5_bet" type="text" class="form-control w-50 mb-3" v-model="gameplay.start.bet" placeholder="1.2345">
+              <input id="id_5_bet" type="text" class="form-control w-50 mb-3" v-model="bet" placeholder="1.2345">
                 <!-- <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip> -->
 
               <div class="__timer d-flex mb-3">
@@ -280,7 +280,7 @@
         <div class="d-flex  flex-column flex-sm-row  justify-content-center justify-content-sm-between" v-if="mode === this.MODE_PLAYING_CREATOR">
           <div class="flex-grow-1 mr-0 mr-sm-3  mb-3 mb-sm-0 ">
             <div class="__cf_line">Enter seed phrase:</div>
-            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="gameplay.finish_timeout_start.seedPhrase">
+            <input type="text" class="form-control w-100"  placeholder="Phrase used  to start game" v-model="seedPhrase">
           </div>
           <button type="button" class="btn btn-primary btn-lg __blue_button align-self-center h-100" :disabled="finishDisabled" @click="playGameClicked()" >FINISH GAME</button>
         </div>
@@ -299,7 +299,7 @@
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="startDisabled" @click="startGameClicked()">FINISH AND START NEW GAME</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" :disabled="startDisabled" @click="finishTimeoutStartGameClicked()">FINISH AND START NEW GAME</button>
         </div>
 
       </div>
@@ -330,19 +330,9 @@
       isShowResult: false,
       isTXRunning: false,
       selectedCoin: null,
-      gameplay: {
-        start: {
-          referralAddress: null,
-          seedPhrase: null,
-          bet: null
-        },
-        join: {
-          referralAddress: null
-        },
-        finish_timeout_start: {
-          seedPhrase: null,
-        }
-      },
+      referralAddress: null,
+      seedPhrase: null,
+      bet: null,
       timeLeft: { 
         total: 0,
         hours: '00',
@@ -355,6 +345,7 @@
     computed: {
       mode() {
         if (this.isTimeout) {
+          console.log("------------ MODE_FINISH_TIMEOUT_START 0");
           return this.MODE_FINISH_TIMEOUT_START;
         }
 
@@ -377,6 +368,7 @@
                 if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
                   return this.MODE_PLAYING_CREATOR;
                 } else {
+          console.log("------------ MODE_FINISH_TIMEOUT_START 1");
                   return this.MODE_FINISH_TIMEOUT_START;
                 }
             }
@@ -388,6 +380,7 @@
                 if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
                   return this.MODE_PLAYING_OPPONENT;
                 } else {
+          console.log("------------ MODE_FINISH_TIMEOUT_START 2");
                   return this.MODE_FINISH_TIMEOUT_START;
                 }
             }
@@ -399,16 +392,16 @@
       },
 
       startDisabled() {
-        if (this.isTXRunning || !this.selectedCoin || !this.gameplay.start.seedPhrase || !this.gameplay.start.bet) {
+        if (this.isTXRunning || !this.selectedCoin || !this.seedPhrase || !this.bet) {
           return true;
         }
 
         try {
-          if (ethers.utils.parseEther(this.gameplay.start.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
+          if (ethers.utils.parseEther(this.bet).lt(ethers.utils.parseEther(constants.MIN_STAKE_ETH))) {
             return true;
           }
 
-            if (this.gUser.balanceETH.lt(ethers.utils.parseEther(this.gameplay.start.bet))) {
+            if (this.gUser.balanceETH.lt(ethers.utils.parseEther(this.bet))) {
             return true;
           }
 
@@ -429,7 +422,7 @@
       },
 
       finishDisabled() {
-        if (this.isTXRunning || !this.selectedCoin || !this.gameplay.finish_timeout_start.seedPhrase) {
+        if (this.isTXRunning || !this.selectedCoin || !this.seedPhrase) {
           return true;
         }
 
@@ -553,17 +546,17 @@
           return;
         }
         
-        const validatedReferral = this.validatedReferralAddress(this.gameplay.start.referralAddress);
+        const validatedReferral = this.validatedReferralAddress(this.referralAddress);
         if (!validatedReferral) {
           return;
         }
 
-        const validatedBet = this.validatedBetStart(this.gameplay.start.bet);
+        const validatedBet = this.validatedBetStart(this.bet);
         if (!validatedBet) {
           return;
         }
 
-        const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [this.gameplay.start.seedPhrase]);
+        const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [this.seedPhrase]);
         // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
         const coinSideHash = ethers.utils.solidityKeccak256(["uint", "bytes",], [validatedCoinSide, seedPhraseBytesHash])
 
@@ -607,7 +600,7 @@
           return;
         }
         
-        const validatedReferral = this.validatedReferralAddress(this.gameplay.join.referralAddress);
+        const validatedReferral = this.validatedReferralAddress(this.referralAddress);
         if (!validatedReferral) {
           return;
         }
@@ -653,7 +646,7 @@
           return;
         }
 
-        const _seedPhrase = this.gameplay.finish_timeout_start.seedPhrase;
+        const _seedPhrase = this.seedPhrase;
         if (!_seedPhrase || !_seedPhrase.length) {
           this.showTXNotification("ERROR", "Internal Error: wrong seed phrase.", 10);
           return;
@@ -695,6 +688,60 @@
         this.reloadAfterTXSuccess();
       },
 
+      async finishTimeoutStartGameClicked() {
+        const validatedCoinSide = this.validateCoinSide(this.selectedCoin);
+        if (!validatedCoinSide) {
+          return;
+        }
+        
+        const validatedReferral = this.validatedReferralAddress(this.referralAddress);
+        if (!validatedReferral) {
+          return;
+        }
+
+        const validatedBet = this.validatedBetStart(this.bet);
+        if (!validatedBet) {
+          return;
+        }
+
+        const seedPhraseBytesHash = ethers.utils.solidityKeccak256(["string",], [this.seedPhrase]);
+        // Vue.$log.debug('seedPhraseBytesHash', seedPhraseBytesHash);
+        const coinSideHash = ethers.utils.solidityKeccak256(["uint", "bytes",], [validatedCoinSide, seedPhraseBytesHash])
+
+
+        const gameContract = this.gGame.contract;
+        if (gameContract === null) {
+          this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
+          return;
+        }
+
+        Vue.$log.debug('Coinflip/FINISH_TIMEOUT_START_GAME', validatedCoinSide, validatedReferral, coinSideHash, ethers.utils.formatEther(validatedBet));
+        this.isTXRunning = true;
+        try {
+          // function finishTimeoutGame(address _token, uint256 _tokens, bytes32 _coinSideHash, address _referral)
+          const tx = await gameContract.finishTimeoutGame(ethers.constants.AddressZero, 0, coinSideHash, validatedReferral, {
+            value: validatedBet
+          });
+          Vue.$log.debug('Coinflip/FINISH_TIMEOUT_START_GAME - tx', tx);
+          this.showTXNotification("TRANSACTION_PENDING", tx.hash, 0);
+
+          const receipt = await tx.wait();
+          Vue.$log.debug('Coinflip/FINISH_TIMEOUT_START_GAME - receipt', receipt)
+
+          if (receipt.status) {
+            this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
+          } else {
+            this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
+          }
+        } catch (error) {
+          Vue.$log.error(error)
+          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+        }
+
+        this.isTXRunning = false;
+        this.reloadAfterTXSuccess();
+      },
+
       resultOKClicked() {
         this.isShowResult = false;
         this.reloadAfterTXSuccess();
@@ -705,11 +752,9 @@
 
         this.isTimeout = false;
         this.selectedCoin = null;
-        this.gameplay.start.referralAddress = null;
-        this.gameplay.start.seedPhrase = null;
-        this.gameplay.start.bet = null;
-        this.gameplay.join.referralAddress = null;
-        this.gameplay.finish_timeout_start.seedPhrase = null;
+        this.referralAddress = null;
+        this.seedPhrase = null;
+        this.bet = null;
       },
 
       startCountdown() {
@@ -728,7 +773,10 @@
         }; 
         if (t > 0) {
           setTimeout(this.startCountdown, 1000);
-        } else {
+        } else if (this.currentMode == this.MODE_PLAYING_CREATOR ||
+                   this.currentMode == this.MODE_PLAYING_OPPONENT ||
+                   this.currentMode == this.MODE_JOIN) {
+          console.log("--------- this.isTimeout = true;");
           this.isTimeout = true;
         }
       },
