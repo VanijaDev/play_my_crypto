@@ -505,28 +505,6 @@
       }
     },
     methods: {
-      resetData() {
-        // this.gameplay.start.referralAddress = null;
-        // TODO
-      },
-
-      startCountdown() {
-        let t = 0
-        if (this.running 
-          && BigNumber.isBigNumber(this.gGame.info.startTime)
-          && this.gGame.info.startTime.gt(0)) {
-            t = new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) - new Date(Date.now())
-        }
-
-        this.timeLeft = {
-          total:    t,
-          hours:    t > 0 ? ('0' + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2) : '00',
-          minutes:  t > 0 ? ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2) : '00',
-          seconds:  t > 0 ? ('0' + Math.floor((t / 1000) % 60)).slice(-2) : '00', 
-        }; 
-        if (t > 0) setTimeout(this.startCountdown, 1000);
-      },
-
       async startGameClicked() {
         const validatedCoinSide = this.validateCoinSide(this.selectedCoin);
         if (!validatedCoinSide) {
@@ -550,25 +528,13 @@
 
         const curGameIdx = this.gCurrentIndex;
         if (curGameIdx === null) {
-          this.$store.dispatch('notification/OPEN', {
-            id: 'ERROR',
-            data: "Internal Error: curGameIdx == null.",
-            delay: 5
-          }, {
-            root: true
-          })
+          this.showTXNotification("ERROR", "Internal Error: curGameIdx == null.", 10);
           return;
         }
 
         const gameContract = this.gGame.contract;
         if (gameContract === null) {
-          this.$store.dispatch('notification/OPEN', {
-            id: 'ERROR',
-            data: "Internal Error: gameContract == null.",
-            delay: 5
-          }, {
-            root: true
-          })
+          this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
           return;
         }
 
@@ -590,28 +556,65 @@
           } else {
             this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
           }
-
         } catch (error) {
           Vue.$log.error(error)
           this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
         }
-        
-        this.$store.dispatch('user/GET_BALANCE', null, {
-          root: true
-        });
-        this.$store.dispatch('games/GET_GAMES', null, {
-          root: true
-        });
+
+        this.reloadAfterTXSuccess();
       },
 
-      joinGameClicked() {
-        this.isShowResult = true;
+      async joinGameClicked() {
+        const validatedCoinSide = this.validateCoinSide(this.selectedCoin);
+        if (!validatedCoinSide) {
+          return;
+        }
+        
+        const validatedReferral = this.validatedReferralAddress(this.gameplay.join.referralAddress);
+        if (!validatedReferral) {
+          return;
+        }
 
-        this.$store.dispatch('coinflip/JOIN_GAME',
-          { _selectedCoinSide: this.selectedCoin,
-            _referralAddress: this.gameplay.join.referralAddress,
-            _bet: this.gGame.info.stake
+
+        const curGameIdx = this.gCurrentIndex;
+        if (curGameIdx === null) {
+          this.showTXNotification("ERROR", "Internal Error: curGameIdx == null.", 10);
+          return;
+        }
+
+        const gameContract = this.gGame.contract;
+        if (gameContract === null) {
+          this.showTXNotification("ERROR", "Internal Error: gameContract == null.", 10);
+          return;
+        }
+
+
+        Vue.$log.debug('Coinflip/JOIN_GAME', validatedCoinSide, validatedReferral, parseFloat(ethers.utils.formatEther(this.gGame.info.stake)));
+
+
+        try {
+          // function joinGame(address _token, uint256 _tokens, uint8 _coinSide, address _referral)
+          const tx = await gameContract.joinGame(ethers.constants.AddressZero, 0, validatedCoinSide, validatedReferral, {
+            value: this.gGame.info.stake
           });
+          Vue.$log.debug('Coinflip/JOIN_GAME - tx', tx);
+          this.showTXNotification("TRANSACTION_PENDING", tx.hash, 0);
+
+          const receipt = await tx.wait();
+          Vue.$log.debug('Coinflip/JOIN_GAME - receipt', receipt);
+
+          if (receipt.status) {
+            this.isShowResult = true;
+            this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
+          } else {
+            this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
+          }
+        } catch (error) {
+          Vue.$log.error(error);
+          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+        }
+
+        this.reloadAfterTXSuccess();
       },
 
       playGameClicked() {
@@ -626,6 +629,28 @@
       resultOKClicked() {
         this.isShowResult = false;
         //  TODO: GET_GAMES & other
+      },
+
+      resetData() {
+        // this.gameplay.start.referralAddress = null;
+        // TODO
+      },
+
+      startCountdown() {
+        let t = 0
+        if (this.running 
+          && BigNumber.isBigNumber(this.gGame.info.startTime)
+          && this.gGame.info.startTime.gt(0)) {
+            t = new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) - new Date(Date.now())
+        }
+
+        this.timeLeft = {
+          total:    t,
+          hours:    t > 0 ? ('0' + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2) : '00',
+          minutes:  t > 0 ? ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2) : '00',
+          seconds:  t > 0 ? ('0' + Math.floor((t / 1000) % 60)).slice(-2) : '00', 
+        }; 
+        if (t > 0) setTimeout(this.startCountdown, 1000);
       },
 
 
@@ -700,6 +725,15 @@
         }
 
         return ethers.utils.parseEther(_bet);
+      },
+
+      reloadAfterTXSuccess() {
+        this.$store.dispatch('user/GET_BALANCE', null, {
+          root: true
+        });
+        this.$store.dispatch('games/GET_GAMES', null, {
+          root: true
+        });
       }
 
     },
