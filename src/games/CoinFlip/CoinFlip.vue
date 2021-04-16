@@ -295,7 +295,7 @@
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_RESULT">
-          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" >OK</button>
+          <button type="button" class="btn btn-primary btn-lg __blue_button px-5" @click="resultOKClicked()" >OK</button>
         </div>
 
         <div class="d-flex justify-content-center" v-if="mode === this.MODE_FINISH_TIMEOUT_START">
@@ -310,6 +310,7 @@
 <script>
   import { ethers, BigNumber } from "ethers";
   import constants from "../../utils/constants";
+  import { mapState } from 'vuex';
   
   export default {
     name: 'CoinFlipGame',
@@ -323,7 +324,7 @@
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
       isWinner: false,
-      currentMode: null,
+      isShowResult: false,
       id: 'CF',
       selectedCoin: null,
       result: true,
@@ -352,23 +353,13 @@
     computed: {
       mode() {
         // start 
-        if (!this.gGame.gameplay) {
-          return this.MODE_START;
-        }
-
-        // start 
-        if (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished ) {
+        if ((!this.gGame.gameplay) || (!this.gGame.info) || (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished )) {
           return this.MODE_START;
         }
 
         //  start / result
         if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
-          return (this.currentMode == this.MODE_PLAYING_CREATOR || this.currentMode == this.MODE_PLAYING_OPPONENT) ? this.MODE_RESULT : this.MODE_START;
-        }
-
-        // start 
-        if (!this.gGame.info) {
-          return this.MODE_START;
+          return (this.isShowResult) ? this.MODE_RESULT : this.MODE_START;
         }
          
         // ongoing game
@@ -377,7 +368,7 @@
             if (this.gUser.accountAddress
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                if (this.timeLeft.total > 0) {
+                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
                   return this.MODE_PLAYING_CREATOR;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
@@ -388,7 +379,7 @@
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                if (this.timeLeft.total > 0) {
+                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
                   return this.MODE_PLAYING_OPPONENT;
                 } else {
                   return this.MODE_FINISH_TIMEOUT_START;
@@ -477,7 +468,11 @@
         }
 
         return res;
-      }
+      },
+
+      ...mapState({
+        txGameplayInProgress: state => state.user.txGameplayInProgress
+      })
     },
 
     beforeDestroy() {
@@ -492,8 +487,8 @@
       this.$store.dispatch('games/SET_CURRENT_GAME', this.id);
     },
     watch: {
-      mode(_mode) {
-        this.currentMode = _mode;
+      txGameplayInProgress(_oldValue, _newValue) {
+        // this.resetData();
       },
 
       running() {
@@ -509,14 +504,19 @@
       }
     },
     methods: {
+      resetData() {
+        // this.gameplay.start.referralAddress = null;
+        // TODO
+      },
+
       startCountdown() {
         let t = 0
         if (this.running 
           && BigNumber.isBigNumber(this.gGame.info.startTime)
-          && this.gGame.info.startTime.gt(0)
-          ) {
-          t = new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) - new Date(Date.now())
+          && this.gGame.info.startTime.gt(0)) {
+            t = new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) - new Date(Date.now())
         }
+
         this.timeLeft = {
           total:    t,
           hours:    t > 0 ? ('0' + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2) : '00',
@@ -527,13 +527,6 @@
       },
 
       startGameClicked() {
-        // this.$store.dispatch('coinflip/START_GAME',
-        //   { _selectedCoinSide: this.currentMode,
-        //     _referralAddress: this.gameplay.start.referralAddress,
-        //     _seedPhrase: this.gameplay.start.seedPhrase,
-        //     _bet: this.gameplay.start.bet
-        //   });
-
         this.$store.dispatch('coinflip/START_GAME',
           { _selectedCoinSide: this.selectedCoin,
             _referralAddress: this.gameplay.start.referralAddress,
@@ -543,6 +536,8 @@
       },
 
       joinGameClicked() {
+        this.isShowResult = true;
+
         this.$store.dispatch('coinflip/JOIN_GAME',
           { _selectedCoinSide: this.selectedCoin,
             _referralAddress: this.gameplay.join.referralAddress,
@@ -551,11 +546,18 @@
       },
 
       playGameClicked() {
+        this.isShowResult = true;
+
         this.$store.dispatch('coinflip/PLAY_GAME',
           { _selectedCoinSide: this.selectedCoin,
             _seedPhrase: this.gameplay.finish_timeout_start.seedPhrase,
           });
-      }
+      },
+
+      resultOKClicked() {
+        this.isShowResult = false;
+        //  TODO: GET_GAMES & other
+      },
     },
     i18n: {
       messages: {
