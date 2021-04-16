@@ -325,6 +325,7 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
+      isTimeout: false,
       currentMode: null,
       isShowResult: false,
       isTXRunning: false,
@@ -353,6 +354,10 @@
 
     computed: {
       mode() {
+        if (this.isTimeout) {
+          return this.MODE_FINISH_TIMEOUT_START;
+        }
+
         // start 
         if ((!this.gGame.gameplay) || (!this.gGame.info) || (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished )) {
           return this.MODE_START;
@@ -390,8 +395,6 @@
             // join
             return this.MODE_JOIN;
         }
-
-        // TODO next game modes
         return null;
       },
 
@@ -700,6 +703,7 @@
       resetDataForViewUI() {
         Vue.$log.debug('resetDataForViewUI');
 
+        this.isTimeout = false;
         this.selectedCoin = null;
         this.gameplay.start.referralAddress = null;
         this.gameplay.start.seedPhrase = null;
@@ -722,7 +726,11 @@
           minutes:  t > 0 ? ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2) : '00',
           seconds:  t > 0 ? ('0' + Math.floor((t / 1000) % 60)).slice(-2) : '00', 
         }; 
-        if (t > 0) setTimeout(this.startCountdown, 1000);
+        if (t > 0) {
+          setTimeout(this.startCountdown, 1000);
+        } else {
+          this.isTimeout = true;
+        }
       },
 
 
