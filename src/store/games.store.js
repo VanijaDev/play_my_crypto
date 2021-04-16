@@ -203,6 +203,7 @@ const actions = {
         partnerFeeWithdrawnTotal: await game.contract.getPartnerFeeWithdrawnTotal(ethers.constants.AddressZero),
         referralInGame: await game.contract.getReferralInGame(ethers.constants.AddressZero, game.info.idx),
         coinSideForOpponent: await game.contract.opponentCoinSideForOpponent(ethers.constants.AddressZero, game.info.idx),
+        lastGamePrize: await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 1),
       }
 
       const prizeObj = (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0));

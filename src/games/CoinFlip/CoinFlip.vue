@@ -325,6 +325,7 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
+      currentMode: null,
       isShowResult: false,
       isTXRunning: false,
       selectedCoin: null,
@@ -442,7 +443,7 @@
         if (this.gGame.info && this.gGame.info.heads && this.gGame.info.tails) {
           res = this.gGame.info.heads.add(this.gGame.info.tails);
 
-          if (!this.isShowResult) {
+          if (this.currentMode != this.MODE_RESULT) {
             res = res.add(1);
           }
         }
@@ -518,8 +519,16 @@
     watch: {
       isTXRunning(_newValue, _oldValue) {
         if (_oldValue && !_newValue) {
-          this.resetData();
+          this.resetDataForViewUI();
         }
+      },
+
+      mode(_newValue, _oldValue) {
+       if (_newValue === this.MODE_PLAYING_CREATOR || _newValue === this.MODE_PLAYING_OPPONENT) {
+         this.isShowResult = true;
+       }
+
+       this.currentMode = _newValue;
       },
 
       running() {
@@ -688,11 +697,9 @@
         this.reloadAfterTXSuccess();
       },
 
-      resetData() {
-        Vue.$log.debug('resetData');
+      resetDataForViewUI() {
+        Vue.$log.debug('resetDataForViewUI');
 
-        this.isShowResult = false;
-        this.isTXRunning = false;
         this.selectedCoin = null;
         this.gameplay.start.referralAddress = null;
         this.gameplay.start.seedPhrase = null;
