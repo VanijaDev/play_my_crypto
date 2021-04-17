@@ -1,9 +1,13 @@
 export default {
   networks: {
     ETH: {
-      '0x2a': "", // kovan
+      '0x1': "", // Main
       '0x3': "0x797Efac91bE79ED6B1f16DD90F94a16c018AA41C", // ropsten
       '0x539': "0xCEE8d9c396d59513b99686D4Fa4defA0ACf8A410", // ganache
+    },
+    BSC: {
+      '0x38': "", // main
+      '0x61': "0xd08958E1ADBC1128a3AE06cDeF334F960eFD821b", // Test
     }
   },
   abi: [{

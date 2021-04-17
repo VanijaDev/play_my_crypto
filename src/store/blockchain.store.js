@@ -12,17 +12,9 @@ const state = {
       icon: '/img/ethereum_icon.svg',
       explorerBaseURL: 'https://etherscan.io/tx/',
       chains: [
-        //{ id: '0x1', name: 'Mainnet' },
-        {
-          id: '0x3',
-          name: 'Ropsten'
-        }, {
-          id: '0x2a',
-          name: 'Kovan'
-        }, {
-          id: '0x539',
-          name: 'Ganache'
-        },
+        { id: '0x1', name: 'Mainnet' },
+        { id: '0x3', name: 'Ropsten' },
+        { id: '0x539', name: 'Ganache' },
       ]
     },
     {
@@ -31,18 +23,8 @@ const state = {
       icon: '/img/binance_icon.svg',
       explorerBaseURL: 'https://bscscan.com/tx/',
       chains: [
-        {
-          id: '0x56',
-          name: 'Mainnet'
-        },
-        {
-          id: '0x61',
-          name: 'Testnet'
-        },
-        {
-          id: '0x97',
-          name: 'Chapel'
-        },
+        { id: '0x38', name: 'Mainnet' },
+        { id: '0x61', name: 'Testnet' },
       ]
     }
   ],

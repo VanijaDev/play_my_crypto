@@ -346,9 +346,13 @@ const state = {
       imagePartner: '/img/game_coin_flip_partner.svg',
       networks: {
         ETH: {
-          '0x2a': "", // kovan
+          '0x1': "", // Main
           '0x3': "0x7DFF7782196749344de4fA37C5060Dd1B86A86F3", // ropsten
           '0x539': "0x3d99E6DB0d1ECcc6C3d4D8bf6cF44DA7f2f9bd1B", // ganache
+        },
+        BSC: {
+          '0x38': "", // Main
+          '0x61': "0xCaCA0a013F1aD48ed14b06e440d15C33df2D8631", // Test
         }
       },
       contract: null,
