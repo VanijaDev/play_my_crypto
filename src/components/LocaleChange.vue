@@ -10,19 +10,19 @@
 
 <script>
 export default {
-  name: 'LocaleChange',  
-  data: () => ({  
-    langs: ['en', 'ch']    
+  name: 'LocaleChange',
+  data: () => ({
+    langs: ['en', 'uk']
   }),
-  mounted () {  
+  mounted () {
     let locale = localStorage.getItem('PMC_LOCALE')
     if (!locale) {
       if (navigator.languages != undefined) {
         try {
           locale = navigator.languages[0].split('-')[0].toLowerCase()
         } catch (error) { 
-          locale = 'en'         
-        }        
+          locale = 'en'
+        }
         this.$log.debug('navigator', locale)
       } else {
         locale = 'en'
@@ -41,7 +41,7 @@ export default {
   methods: {
     setLocale() {
       localStorage.setItem('PMC_LOCALE', this.$i18n.locale)
-    },    
+    },
   }
 }
 </script>

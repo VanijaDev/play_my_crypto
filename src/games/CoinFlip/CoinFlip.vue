@@ -44,7 +44,7 @@
             
             <div class="d-flex flex-column justify-content-center" v-if="isWinner">
               <img src="/img/game_result_won.svg" alt="Won" width="100" class="mb-3 align-self-center">
-              <h4 class="__blue_text text-center">You won!</h4>
+              <h4 class="__blue_text text-center">{{ $t(YOU_WON) }}</h4>
             </div> 
             <div class="d-flex flex-column justify-content-center" v-if="!isWinner">
               <img src="/img/game_result_loose.svg" alt="Won" width="100" class="mb-3 align-self-center">
@@ -349,14 +349,7 @@
           return this.MODE_START;
         }
 
-        //  timeout
-        // if (this.isTimeout) {
-        //   console.log("------------ MODE_FINISH_TIMEOUT_START 0");
-        //   return this.MODE_FINISH_TIMEOUT_START;
-        // }
-
         if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) <= new Date(Date.now())) {
-          console.log("------------ MODE_FINISH_TIMEOUT_START 1");
           return this.MODE_FINISH_TIMEOUT_START;
         }
 
@@ -447,12 +440,10 @@
       },
 
       running() {
-        console.log("--------   running()");
         return (this.gGame.info && this.gGame.info.running)
       },
 
       gameStartedAt() {
-        console.log("--------   gameStartedAt()");
         return (this.gGame.info && this.gGame.info.startTime)
       },
 
@@ -534,12 +525,10 @@
       },
 
       running() {
-        console.log("--------   watch - running()");
         setTimeout(this.startCountdown, 1);
       },
 
       gameStartedAt() {
-        console.log("--------   watch - gameStartedAt()");
         setTimeout(this.startCountdown, 1);
       },
 
@@ -765,7 +754,6 @@
       },
 
       startCountdown() {
-        console.log("------- startCountdown() new");
         let t = 0;
         if (this.running 
           && BigNumber.isBigNumber(this.gGame.info.startTime)
@@ -785,8 +773,6 @@
         } else if (this.currentMode == this.MODE_PLAYING_CREATOR ||
                    this.currentMode == this.MODE_PLAYING_OPPONENT ||
                    this.currentMode == this.MODE_JOIN) {
-          console.log("--------- setTimeout == 0");
-          // this.isTimeout = true;
 
           this.reloadAfterTXFinished();
         }
@@ -885,8 +871,8 @@
           MODE_PLAYING_OPPONENT: 'PLAYING GAME',
           MODE_FINISH_TIMEOUT_START: 'TIME’S UP FOR THE ONGOING GAME',
           MODE_RESULT: 'RESULT',
-          // TODO add rest of texts to translation
-        },
+          YOU_WON: "You won!",
+        }
       }
     }
   }
