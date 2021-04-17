@@ -30,9 +30,14 @@ const state = {
       name: 'BINANCE',
       icon: '/img/binance_icon.svg',
       explorerBaseURL: 'https://bscscan.com/tx/',
-      chains: [{
+      chains: [
+        {
           id: '0x56',
           name: 'Mainnet'
+        },
+        {
+          id: '0x61',
+          name: 'Testnet'
         },
         {
           id: '0x97',
