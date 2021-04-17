@@ -946,8 +946,8 @@
         border: 3px solid $_btc_color;
       }
       &.__selected_eth {
-        background-color: $_eth_color;
-        border: 3px solid $_eth_color;
+        background-color: $_altcoin_color;
+        border: 3px solid $_altcoin_color;
       }
       .__question{
         font-size: 5rem;
@@ -981,7 +981,7 @@
       background-color: $_btc_color;
     }
     &.__eth{
-      background-color: $_eth_color;
+      background-color: $_altcoin_color;
     }
   }
 </style>
