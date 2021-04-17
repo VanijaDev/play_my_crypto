@@ -325,7 +325,7 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
-      isTimeout: false,
+      // isTimeout: false,
       currentMode: null,
       isShowResult: false,
       isTXRunning: false,
@@ -344,14 +344,20 @@
 
     computed: {
       mode() {
-        if (this.isTimeout) {
-          console.log("------------ MODE_FINISH_TIMEOUT_START 0");
-          return this.MODE_FINISH_TIMEOUT_START;
-        }
-
         // start 
         if ((!this.gGame.gameplay) || (!this.gGame.info) || (!this.gGame.gameplay.gamesStarted && !this.gGame.gameplay.gamesFinished )) {
           return this.MODE_START;
+        }
+
+        //  timeout
+        // if (this.isTimeout) {
+        //   console.log("------------ MODE_FINISH_TIMEOUT_START 0");
+        //   return this.MODE_FINISH_TIMEOUT_START;
+        // }
+
+        if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) <= new Date(Date.now())) {
+          console.log("------------ MODE_FINISH_TIMEOUT_START 1");
+          return this.MODE_FINISH_TIMEOUT_START;
         }
 
         //  start / result
@@ -365,24 +371,14 @@
             if (this.gUser.accountAddress
               && this.gGame.info.creator 
               && this.gGame.info.creator.toLowerCase() === this.gUser.accountAddress.toLowerCase()) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
-                  return this.MODE_PLAYING_CREATOR;
-                } else {
-          console.log("------------ MODE_FINISH_TIMEOUT_START 1");
-                  return this.MODE_FINISH_TIMEOUT_START;
-                }
+                return this.MODE_PLAYING_CREATOR;
             }
             
             // playing_opponent
             if (this.gGame.gameplay.gamesParticipatedToCheckPrize
               && this.gGame.gameplay.gamesParticipatedToCheckPrize.length > 0
               && this.gGame.gameplay.gamesStarted.sub(1).eq(this.gGame.gameplay.gamesParticipatedToCheckPrize[this.gGame.gameplay.gamesParticipatedToCheckPrize.length - 1])) {
-                if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) > new Date(Date.now())) {
-                  return this.MODE_PLAYING_OPPONENT;
-                } else {
-          console.log("------------ MODE_FINISH_TIMEOUT_START 2");
-                  return this.MODE_FINISH_TIMEOUT_START;
-                }
+                return this.MODE_PLAYING_OPPONENT;
             }
 
             // join
@@ -451,7 +447,13 @@
       },
 
       running() {
+        console.log("--------   running()");
         return (this.gGame.info && this.gGame.info.running)
+      },
+
+      gameStartedAt() {
+        console.log("--------   gameStartedAt()");
+        return (this.gGame.info && this.gGame.info.startTime)
       },
 
       coinSideForOpponent() {
@@ -515,19 +517,29 @@
     watch: {
       isTXRunning(_newValue, _oldValue) {
         if (_oldValue && !_newValue) {
-          this.resetDataForViewUI();
+          this.reloadAfterTXFinished();
         }
       },
 
       mode(_newValue, _oldValue) {
-       if (_newValue === this.MODE_PLAYING_CREATOR || _newValue === this.MODE_PLAYING_OPPONENT) {
-         this.isShowResult = true;
-       }
+        // this.isTimeout = false;
+
+        if (_newValue === this.MODE_PLAYING_CREATOR || _newValue === this.MODE_PLAYING_OPPONENT) {
+          this.isShowResult = true;
+        }
+
+        this.resetDataForViewUI();
 
        this.currentMode = _newValue;
       },
 
       running() {
+        console.log("--------   watch - running()");
+        setTimeout(this.startCountdown, 1);
+      },
+
+      gameStartedAt() {
+        console.log("--------   watch - gameStartedAt()");
         setTimeout(this.startCountdown, 1);
       },
 
@@ -591,7 +603,6 @@
         }
 
         this.isTXRunning = false;
-        this.reloadAfterTXSuccess();
       },
 
       async joinGameClicked() {
@@ -637,7 +648,6 @@
         }
 
         this.isTXRunning = false;
-        this.reloadAfterTXSuccess();
       },
 
       async playGameClicked() {
@@ -685,7 +695,6 @@
         }
 
         this.isTXRunning = false;
-        this.reloadAfterTXSuccess();
       },
 
       async finishTimeoutStartGameClicked() {
@@ -739,18 +748,16 @@
         }
 
         this.isTXRunning = false;
-        this.reloadAfterTXSuccess();
       },
 
       resultOKClicked() {
         this.isShowResult = false;
-        this.reloadAfterTXSuccess();
+        this.reloadAfterTXFinished();
       },
 
       resetDataForViewUI() {
         Vue.$log.debug('resetDataForViewUI');
 
-        this.isTimeout = false;
         this.selectedCoin = null;
         this.referralAddress = null;
         this.seedPhrase = null;
@@ -758,7 +765,8 @@
       },
 
       startCountdown() {
-        let t = 0
+        console.log("------- startCountdown() new");
+        let t = 0;
         if (this.running 
           && BigNumber.isBigNumber(this.gGame.info.startTime)
           && this.gGame.info.startTime.gt(0)) {
@@ -771,13 +779,16 @@
           minutes:  t > 0 ? ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2) : '00',
           seconds:  t > 0 ? ('0' + Math.floor((t / 1000) % 60)).slice(-2) : '00', 
         }; 
+        
         if (t > 0) {
           setTimeout(this.startCountdown, 1000);
         } else if (this.currentMode == this.MODE_PLAYING_CREATOR ||
                    this.currentMode == this.MODE_PLAYING_OPPONENT ||
                    this.currentMode == this.MODE_JOIN) {
-          console.log("--------- this.isTimeout = true;");
-          this.isTimeout = true;
+          console.log("--------- setTimeout == 0");
+          // this.isTimeout = true;
+
+          this.reloadAfterTXFinished();
         }
       },
 
@@ -855,7 +866,7 @@
         return ethers.utils.parseEther(_bet);
       },
 
-      reloadAfterTXSuccess() {
+      reloadAfterTXFinished() {
         this.$store.dispatch('user/GET_BALANCE', null, {
           root: true
         });
