@@ -6,7 +6,7 @@ import "./PMC_IStaking.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-/**
+/** 
  * @notice ETH only. 
  * User, who has PMC stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
  */
