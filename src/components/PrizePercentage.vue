@@ -1,5 +1,5 @@
 <template>
-  <!-- TODO : data origin -->  
+  <!-- TODO : data origin -->
   <div class="__content-block __cb_blue h-100 p-4">
     <b-row class="h-100">
       <!-- *** -->
@@ -8,7 +8,7 @@
           <span id="percent_1">95%</span>
           <span v-html="$t('p1')"></span>  
           <b-tooltip target="percent_1" custom-class="__tooltip" >{{percent_1 | formatBalance}}</b-tooltip>
-        </div>                
+        </div>
       </b-col>
       <!-- *** -->
       <b-col cols="6" sm="4">
@@ -16,7 +16,7 @@
           <span id="percent_2">1%</span>
           <span v-html="$t('p2')"></span>
           <b-tooltip target="percent_2" custom-class="__tooltip" v-if="gGame.data && gGame.data.referralFeeWithdrawnTotal" >{{gGame.data.referralFeeWithdrawnTotal | formatBalance}}</b-tooltip>
-        </div>  
+        </div>
       </b-col>
       <!-- *** -->
       <b-col cols="6" sm="4">
@@ -24,7 +24,7 @@
           <span id="percent_3">1%</span>
           <span v-html="$t('p3')"></span>
           <b-tooltip target="percent_3" custom-class="__tooltip" v-if="gGame.data && gGame.data.raffleJackpotsWonTotal">{{gGame.data.raffleJackpotsWonTotal | formatBalance}}</b-tooltip> 
-        </div>  
+        </div>
       </b-col>
     
       <!-- *** -->
@@ -33,7 +33,7 @@
           <span id="percent_4">1%</span>
           <span v-html="$t('p4')"></span>
           <b-tooltip target="percent_4" custom-class="__tooltip" v-if="gGame.data && gGame.data.partnerFeeWithdrawnTotal">{{gGame.data.partnerFeeWithdrawnTotal | formatBalance}}</b-tooltip> 
-        </div>  
+        </div>
       </b-col>
       <!-- *** -->
       <b-col cols="6" sm="4">
@@ -41,14 +41,14 @@
           <span id="percent_5">1%</span>
           <span v-html="$t('p5')"></span>
           <b-tooltip target="percent_5" custom-class="__tooltip" >{{percent_5 | formatBalance}}</b-tooltip>
-        </div>  
+        </div>
       </b-col>
       <!-- *** -->
       <b-col cols="6" sm="4">
         <div class="__prize-percentage mt-2">
-          <span id="percent_6">100%</span>
+          <span id="percent_6">25%</span>
           <span v-html="$t('p6')"></span>
-        </div>  
+        </div>
       </b-col>
     </b-row>
   </div>
@@ -72,17 +72,17 @@
         en: {
           p1: 'of prize goes <br> to winner',
           p2: 'of prize goes to <br> winner`s referral address',
-          p3: 'of prize goes <br> to raffle',          
+          p3: 'of prize goes <br> to raffle',
           p4: 'of prize goes to <br>our partner project',
           p5: 'of prize goes to <br>staking pool',
-          p6: 'of fair P2P <br> (player-to-player) gaming',            
-        },          
-      }      
-    }  
+          p6: 'of PMC during other <br> player\'s withdraw',
+        },
+      }
+    }
   }
 </script>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   .__prize-percentage{
     display: flex;
     flex-direction: column;

@@ -52,25 +52,25 @@
               <span id="up_3" >{{gGameData.playerStakeTotal | formatBalanceShort}}</span>
               <b-tooltip target="up_3" custom-class="__tooltip" >{{gGameData.playerStakeTotal | formatBalance}}</b-tooltip>
             </div>
-          </li>     
+          </li>
           <li class="list-group-item __list_item ">
             <div class=" d-flex justify-content-between align-items-center mb-2">
               <div class="__blue_text">{{ $t('total_out') }}</div>
               <div class="d-flex align-items-center text-monospace">
-                <img class="__currency_img" :src="gCurrentNetworkIcon" height="25" alt="Telegram logo">                
+                <img class="__currency_img" :src="gCurrentNetworkIcon" height="25" alt="Telegram logo">
                 <span id="up_4" :class="{'__price_change_down' : gUserTotalOutChange === 'down', '__price_change_up' : gUserTotalOutChange === 'up' }">
-                  {{gGameData.playerWithdrawedTotal | formatBalanceShort}}
+                  {{totalWithdrawn | formatBalanceShort}}
                 </span>
                 <PriceUpDownArrowIcon class="__price_change_icon" v-if="gUserTotalOutChange" :direction="gUserTotalOutChange"/>
                 <b-tooltip target="up_4" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}}</b-tooltip>
               </div>
-            </div>            
+            </div>
             <div class="pl-3">
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('gameplay') }}</span>
-                <span id="up_5">{{gGameData.pendingPrizeToWithdrawPrize | formatBalanceShort}}</span>
-                <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.pendingPrizeToWithdrawPrize | formatBalance}} + {{gGameData.pendingPrizeToWithdrawPMCBonus | formatBalance}} PMC</b-tooltip>
-              </div>  
+                <span id="up_5">{{gGameData.playerWithdrawedTotal | formatBalanceShort}}</span>
+                <b-tooltip target="up_5" custom-class="__tooltip" >{{gGameData.playerWithdrawedTotal | formatBalance}} + {{gGameData.playerWithdrawedPMCTotal | formatBalance}} PMC</b-tooltip>
+              </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('referral') }}</span>
                 <span id="up_6">{{gGameData.referralFeeWithdrawn | formatBalanceShort}}</span>
@@ -78,8 +78,8 @@
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('raffle') }}</span>
-                <span id="up_7">{{gGameData.raffleJackpotPending | formatBalanceShort}}</span>
-                <b-tooltip target="up_7" custom-class="__tooltip" >{{gGameData.raffleJackpotPending | formatBalance}}</b-tooltip>
+                <span id="up_7">{{gGameData.raffleJackpotWithdrawn | formatBalanceShort}}</span>
+                <b-tooltip target="up_7" custom-class="__tooltip" >{{gGameData.raffleJackpotWithdrawn | formatBalance}}</b-tooltip>
               </div>
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('staking') }}</span>
@@ -89,11 +89,11 @@
               <div class="d-flex justify-content-between align-items-center text-monospace mb-2">
                 <span>{{ $t('partnership') }}</span>
                 <span id="up_9">{{gGameData.partnerFeeWithdrawn | formatBalanceShort}}</span>
-                <b-tooltip target="up_9" custom-class="__tooltip" >{{gGameData.partnerFeeWithdrawn | formatBalance}}</b-tooltip>                
+                <b-tooltip target="up_9" custom-class="__tooltip" >{{gGameData.partnerFeeWithdrawn | formatBalance}}</b-tooltip>
               </div>
             </div>
-          </li>  
-        </ul>  
+          </li>
+        </ul>
         <ul class="list-group __list_group">          
           <li class="list-group-item __list_item">
             <div class="d-flex justify-content-between"><span class="__blue_text">{{ $t('pending_withdrawal') }}</span></div>  <!-- <span class="text-monospace" v-if="!userGameplayOrPartnerPendingWithdrawal">{{ $t('not_available') }}</span> -->
@@ -206,6 +206,7 @@
 
 <script>
   import PriceUpDownArrowIcon from '@/components/icons/PriceUpDownArrowIcon.vue';
+  import { ethers, BigNumber } from "ethers";
 
   export default {
     name: 'UserProfileMenu',
@@ -236,6 +237,27 @@
         return this.listOfGames.find(game => {
           return this.userGameplayPendingWithdrawal(game) || this.userPartnerPendingWithdrawal(game)
         })
+      },
+      totalWithdrawn() {
+        let res = BigNumber.from(0);
+
+        if (this.gGameData.playerWithdrawedTotal) {
+          res = res.add(this.gGameData.playerWithdrawedTotal);
+        }
+        if (this.gGameData.referralFeeWithdrawn) {
+          res = res.add(this.gGameData.referralFeeWithdrawn);
+        }
+        if (this.gGameData.raffleJackpotWithdrawn) {
+          res = res.add(this.gGameData.raffleJackpotWithdrawn);
+        }
+        if (this.gUser.stakingData.stakingRewardWithdrawn) {
+          res = res.add(this.gUser.stakingData.stakingRewardWithdrawn);
+        }
+        if (this.gGameData.partnerFeeWithdrawn) {
+          res = res.add(this.gGameData.partnerFeeWithdrawn);
+        }
+
+        return res;
       }
     },
     methods: {

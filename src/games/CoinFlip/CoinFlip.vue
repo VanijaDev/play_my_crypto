@@ -44,7 +44,7 @@
             
             <div class="d-flex flex-column justify-content-center" v-if="isWinner">
               <img src="/img/game_result_won.svg" alt="Won" width="100" class="mb-3 align-self-center">
-              <h4 class="__blue_text text-center">{{ $t(YOU_WON) }}</h4>
+              <h4 class="__blue_text text-center">{{ $t("YOU_WON") }}</h4>
             </div> 
             <div class="d-flex flex-column justify-content-center" v-if="!isWinner">
               <img src="/img/game_result_loose.svg" alt="Won" width="100" class="mb-3 align-self-center">
@@ -457,11 +457,11 @@
         if (this.gGame.info) {
           if (this.selectedCoin == constants.COIN_SIDE_HEADS) {
             if (this.gGame.info.tails.gt(0)) {
-              res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1))).mul(95).div(100);
+              res = this.gGame.info.stake.add(this.gGame.info.tails.mul(this.gGame.info.stake).div(this.gGame.info.heads.add(1)));
             }
           } else if (this.selectedCoin == constants.COIN_SIDE_TAILS) {
             if (this.gGame.info.heads.gt(0)) {
-              res = this.gGame.info.stake.add(this.gGame.info.heads.mul(this.gGame.info.stake).div(this.gGame.info.tails.add(1))).mul(95).div(100);
+              res = this.gGame.info.stake.add(this.gGame.info.heads.mul(this.gGame.info.stake).div(this.gGame.info.tails.add(1)));
             }
           }
         }
@@ -747,6 +747,8 @@
       resetDataForViewUI() {
         Vue.$log.debug('resetDataForViewUI');
 
+        this.isShowResult = false;
+        
         this.selectedCoin = null;
         this.referralAddress = null;
         this.seedPhrase = null;

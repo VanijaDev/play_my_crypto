@@ -1,6 +1,6 @@
 <template>
 
-  <header ref="header">    
+  <header ref="header">
     <nav class="navbar navbar-light bg-light">
       <b-container :class="{'px-0': gBreakPoint('sm', 'lt')}">
         <b-row no-gutters class="w-100">
@@ -8,8 +8,8 @@
             <!-- logo -->
             <div class="d-flex align-items-center">
               <a class="align-self-center" href="/">
-                <img src="/img/logo.svg" :height="gBreakPoint('sm', 'gte') ? 80 : 50" alt="Logo">
-              </a>              
+                <img src="/img/logo.svg" :height="gBreakPoint('sm', 'gte') ? 55 : 50" alt="Logo">
+              </a>
             </div>
             
             <!-- contact us -->
@@ -17,22 +17,22 @@
             <div class="d-flex align-items-center" v-if="gBreakPoint('lg', 'gte')">
               <div class="__strong-text mr-2">
                 {{ $t('contact_us') }}
-              </div>              
+              </div>
               <div class="__img_button">
                 <img src="/img/telegram.svg" height="40" width="40" alt="Telegram logo" class="__shadow_filter" @click="gOpenTelegram()">
-              </div>                         
+              </div>
             </div>
 
-            <!-- choose crypto -->            
+            <!-- choose crypto -->
             <div class="d-flex align-items-center">
               <div class="__strong-text mr-2" v-if="gBreakPoint('md', 'gte')">
                 {{ $t('choose_crypto') }}
               </div>
               <div class="__currency_select_block d-flex align-items-center">
                 <div v-for="network in gBlockchain.networks" :key="'network_select_' + network.id"
-                  class="d-flex flex-column justify-content-center align-items-center mr-3  " 
+                  class="d-flex flex-column justify-content-center align-items-center mr-3  "
                   :class="{'__selected' : gNetwork.id === network.id, '__img_button' : gNetwork.id !== network.id }"
-                  @click="selectNetwork(network)" 
+                  @click="selectNetwork(network)"
                   >
                   <img :src="network.icon" height="40" width="40" :alt="network.id">
                   <div class="mt-1" v-if="gBreakPoint('sm', 'gte')">{{network.name}}</div>
@@ -43,14 +43,14 @@
             <UserProfileMenu/>
               
           </b-col>
-        </b-row>        
-      </b-container>  
+        </b-row>
+      </b-container>
     </nav>
     <Notification/>
-  </header>  
+  </header>
 </template>
 
-<style lang="scss" scoped>  
+<style lang="scss" scoped>
   @import '@/assets/css/variables.scss';
   header{
     position: fixed;
@@ -61,17 +61,17 @@
       border-bottom: 1px solid #e0e0e0;
       .__strong-text{
         font-weight: 700;
-        font-size: 1.15rem;      
+        font-size: 1.15rem;
       }
       .__currency_select_block {
         .__img_button {
           filter: opacity(60%) saturate(0%);
           &.__selected, &:hover {
             filter: opacity(100%) saturate(100%);
-          }          
+          }
         }
-      }      
-    }    
+      }
+    }
   }
 </style>
 
@@ -87,41 +87,41 @@
       Notification,
       //LocaleChange,
     },
-    data: () => ({      
-    }),    
+    data: () => ({
+    }),
     mounted () {
       //setInterval(() => { this.detectHeight() }, 100)
       setTimeout(() => { this.detectHeight() }, 10)
       window.addEventListener("resize", this.detectHeight);
     },
-    beforeDestroy () {      
+    beforeDestroy () {
       window.removeEventListener("resize", this.detectHeight);
-    },  
-    computed: {        
+    },
+    computed: {
       
     },
-    methods: {      
-      detectHeight: function () { 
+    methods: {
+      detectHeight: function () {
         if (this.$refs?.header?.clientHeight) {
-          this.$store.dispatch('UI_HEADER_HEIGHT_SET', this.$refs.header.clientHeight) 
+          this.$store.dispatch('UI_HEADER_HEIGHT_SET', this.$refs.header.clientHeight)
         }
       },
       selectNetwork(network) {
         this.$log.debug(network.id)
 
-        if (network.id === "ETH") { //  && currentNetwork !== "ETH"
+        if (network.id === "ETH") {
           this.$store.dispatch('notification/OPEN', {
             id: 'ERROR',
             data: `Please select Ethereum Mainnet in MetaMask`,
-            //delay: 5
+            delay: 10
           }, {
             root: true
           })
-        } else if (network.id === "BSC") { //  && currentNetwork !== "BSC"
+        } else if (network.id === "BSC") {
           this.$store.dispatch('notification/OPEN', {
             id: 'ERROR',
             data: `Please select Binance Smart Chain in MetaMask`,
-            //delay: 5
+            delay: 10
           }, {
             root: true
           })
@@ -134,9 +134,9 @@
         en: {
           contact_us: 'Contact us:',
           choose_crypto: 'Choose crypto:',
-        },          
-      }      
+        },
+      }
     }
-  }  
+  }
 </script>
 

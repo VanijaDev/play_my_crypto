@@ -2,8 +2,8 @@ export default {
   networks: {
     ETH: {
       '0x1': "", // Main
-      '0x3': "0x7Ee50E633CAf28FD9CC1020a0D75b137A242f1C0", // ropsten
-      '0x539': "0x23DFD4c7d038189d42b75E6DD7584d7eA9608384", // ganache
+      '0x3': "", // ropsten
+      '0x539': "0xc5572401285D742B06Ca3A2265c1823BE67952ad", // ganache
     },
     BSC: {
       '0x38': "", // Main

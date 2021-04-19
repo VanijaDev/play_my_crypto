@@ -54,7 +54,7 @@
     i18n: {
       messages: {
         en: {
-          games: 'Games',
+          games: 'P2P Games',
           participants: 'Participants:',
           in: 'In:',
           new_game: 'NEW GAME',

@@ -60,7 +60,7 @@
         </div>
         <!-- Gameplay PMC-->
         <div class="__text_line mb-3">
-          <span class="w-25">{{ $t('pending_pmc') }}</span>          
+          <span class="w-25">{{ $t('pending_pmc') }}</span>
           
           <div class="__img_value_block">
             <img src="/img/logo.svg" height="25"  width="25" alt="ETH">
@@ -127,7 +127,7 @@
           participants: 'Participants:',
           pending_withdrawal: 'Pending withdrawal',
           gameplay_eth: 'Gameplay:',
-          pending_pmc: 'PMC:',
+          pending_pmc: 'Pending PMC:',
           referral: 'Referral:',
           raffle: 'Raffle:',
           withdraw: 'Withdraw',

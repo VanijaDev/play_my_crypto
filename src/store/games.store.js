@@ -193,6 +193,7 @@ const actions = {
       const gameData = {
         playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
         playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
+        playerWithdrawedPMCTotal: await game.contract.playerWithdrawedPMCTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
         referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
         partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
         referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
@@ -227,6 +228,7 @@ const actions = {
     try {
       const raffleData = {
         raffleJackpotPending: await game.contract.getRaffleJackpotPending(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
+        raffleJackpotWithdrawn: await game.contract.getRaffleJackpotWithdrawn(ethers.constants.AddressZero, rootState.user.accountAddress), // Pending withdrawal -> Raffle
         raffleJackpot: await game.contract.getRaffleJackpot(ethers.constants.AddressZero), // Ongoing raffle -> Jackpot
         raffleParticipants: 0, // Ongoing raffle -  Participants .length
         raffleJackpotsWonTotal: await game.contract.getRaffleJackpotsWonTotal(ethers.constants.AddressZero), // Platform Stats - Jackpots won
@@ -347,8 +349,8 @@ const state = {
       networks: {
         ETH: {
           '0x1': "", // Main
-          '0x3': "0x7DFF7782196749344de4fA37C5060Dd1B86A86F3", // ropsten
-          '0x539': "0x3d99E6DB0d1ECcc6C3d4D8bf6cF44DA7f2f9bd1B", // ganache
+          '0x3': "", // ropsten
+          '0x539': "0x67e9618D9ab62122558C7ee8Ae24014B6211F0d4", // ganache
         },
         BSC: {
           '0x38': "", // Main
