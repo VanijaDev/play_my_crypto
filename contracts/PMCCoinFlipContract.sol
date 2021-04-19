@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
 import "./PMC.sol";
 import "./PMCRaffle.sol";
@@ -17,8 +17,6 @@ import "./PMCGovernanceCompliant.sol";
  */
 
 contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle {
-  using SafeMath for uint256;
-
   enum CoinSide {
     none,
     heads,
@@ -156,11 +154,11 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
     uint256 gameIdx = game.idx;
 
-    require(game.startTime.add(gameMaxDuration) >= block.timestamp, "Game time out");
+    require(game.startTime + gameMaxDuration >= block.timestamp, "Game time out");
     require(opponentCoinSideInGame[_token][gameIdx][msg.sender] == CoinSide.none, "Already joined");
 
     opponentCoinSideInGame[_token][gameIdx][msg.sender] = CoinSide(_coinSide);
-    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
+    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads + 1 : game.tails = game.tails + 1;
     referralInGame[_token][gameIdx][msg.sender] = (_referral != address(0)) ? _referral : owner();
 
     gamesParticipatedToCheckPrize[_token][msg.sender].push(gameIdx);
@@ -179,37 +177,37 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     Game storage game = _lastStartedGame(_token);
 
     require(game.creator == msg.sender, "Not creator");
-    require(game.startTime.add(gameMaxDuration) >= block.timestamp, "Time out");
+    require(game.startTime + gameMaxDuration >= block.timestamp, "Time out");
     require(keccak256(abi.encodePacked(uint256(_coinSide), _seedHash)) == game.creatorCoinSide, "Wrong hash value");
-    require(game.heads.add(game.tails) > 0, "No opponents");
+    require(game.heads + game.tails > 0, "No opponents");
 
     delete game.running;
     game.creatorCoinSide = keccak256(abi.encodePacked(uint256(_coinSide)));
-    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads.add(1) : game.tails = game.tails.add(1);
+    (CoinSide(_coinSide) == CoinSide.heads) ? game.heads = game.heads + 1 : game.tails = game.tails + 1;
   
     uint256 opponentReward;
     if ((game.heads > 0) && (game.tails > 0)) {
       uint256 singlePlayerReward;
       if (CoinSide(_coinSide) == CoinSide.heads) {
-        singlePlayerReward = game.stake.mul(game.tails).div(game.heads);
+        singlePlayerReward = game.stake * game.tails / game.heads;
         if (game.heads > 1) {
           opponentReward = singlePlayerReward;
         }
       } else {
-        singlePlayerReward = game.stake.mul(game.heads).div(game.tails);
+        singlePlayerReward = game.stake * game.heads / game.tails;
         if (game.tails > 1) {
           opponentReward = singlePlayerReward;
         }
       }
 
-      game.creatorPrize = game.stake.add(singlePlayerReward);
+      game.creatorPrize = game.stake + singlePlayerReward;
     } else {
-      uint256 opponentsOnly = (game.heads > 0) ? game.heads.sub(1) : game.tails.sub(1);
-      opponentReward = game.stake.div(opponentsOnly);
+      uint256 opponentsOnly = (game.heads > 0) ? game.heads - 1 : game.tails - 1;
+      opponentReward = game.stake / opponentsOnly;
     }
 
     if (opponentReward > 0) {
-      game.opponentPrize = game.stake.add(opponentReward);
+      game.opponentPrize = game.stake + opponentReward;
     }
     runRaffle(_token);
 
@@ -237,17 +235,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     }
     
     Game storage game = _lastStartedGame(_token);
-    require(game.startTime.add(gameMaxDuration) < block.timestamp, "Still running");
+    require(game.startTime + gameMaxDuration < block.timestamp, "Still running");
 
     _increaseStakes(_token, stake);
     
     delete game.running;
-    uint256 opponents = game.heads.add(game.tails);
+    uint256 opponents = game.heads + game.tails;
     if (opponents > 0) {
-      uint256 opponentReward = game.stake.div(opponents);
-      game.opponentPrize = game.stake.add(opponentReward);
+      uint256 opponentReward = game.stake / opponents;
+      game.opponentPrize = game.stake + opponentReward;
     } else {
-      stake = stake.add(game.stake);
+      stake = stake + game.stake;
     }
 
     updateGameMinStakeETHIfNeeded();
@@ -279,17 +277,17 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 subIdx;
 
     while (loop > 0) {
-      subIdx = subIdx.add(1);
+      subIdx = subIdx + 1;
       
-      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(subIdx)];
+      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length - subIdx];
       Game storage game = games[_token][gameToCheckIdx];
 
       if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
-          prize = prize.add(game.creatorPrize);
+          prize = prize + game.creatorPrize;
 
           if (_isEth(_token)) {
-            pmc_tokens = pmc_tokens.add(game.creatorPrize.div(100));  //  1%
+            pmc_tokens = pmc_tokens + game.creatorPrize / 100;  //  1%
           }
         }
       } else {
@@ -297,16 +295,16 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
           bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
             
           if (timeout || keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
-            prize = prize.add(game.opponentPrize);
+            prize = prize + game.opponentPrize;
 
             if (timeout && _isEth(_token)) {
-              pmc_tokens = pmc_tokens.add(game.opponentPrize.div(100));  //  1%
+              pmc_tokens = pmc_tokens + game.opponentPrize / 100;  //  1%
             }
           }
         }
       }
 
-      loop = loop.sub(1);
+      loop = loop - 1;
     }
   }
 
@@ -329,20 +327,20 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 loop = ((_maxLoop > 0) && (_maxLoop < gamesToCheck)) ? _maxLoop : gamesToCheck;
 
     while (loop > 0) {
-      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length.sub(1)];
+      uint256 gameToCheckIdx = gamesParticipatedToCheckPrize[_token][msg.sender][gamesParticipatedToCheckPrize[_token][msg.sender].length - 1];
       Game storage game = games[_token][gameToCheckIdx];
 
       if (msg.sender == game.creator) {
         if (game.creatorPrize > 0) {
-          prize = prize.add(game.creatorPrize);
+          prize = prize + game.creatorPrize;
 
           if (_isEth(_token)) {
-            pmc_tokens = pmc_tokens.add(game.creatorPrize.div(100));  //  1%
+            pmc_tokens = pmc_tokens + game.creatorPrize / 100;  //  1%
           }
 
           //  referral fees
           address referral = referralInGame[_token][game.idx][msg.sender];
-          uint256 referralFee = game.creatorPrize.div(100);  //  1%
+          uint256 referralFee = game.creatorPrize / 100;  //  1%
 
           if (prevReferral != referral) {
             if (prevReferralAmount > 0) {
@@ -354,23 +352,23 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
             prevReferral = referral;
           }
           
-          prevReferralAmount = prevReferralAmount.add(referralFee);
+          prevReferralAmount = prevReferralAmount + referralFee;
         }
       } else {
         if (game.opponentPrize > 0) {
           bool timeout = (game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.heads))) && game.creatorCoinSide != keccak256(abi.encodePacked(uint256(CoinSide.tails))));
             
           if (timeout || keccak256(abi.encodePacked(uint256(opponentCoinSideInGame[_token][game.idx][msg.sender]))) == game.creatorCoinSide) {
-            prize = prize.add(game.opponentPrize);
+            prize = prize + game.opponentPrize;
 
             if (timeout && _isEth(_token)) {
-              pmc_tokens = pmc_tokens.add(game.opponentPrize.div(100));  //  1%
+              pmc_tokens = pmc_tokens + game.opponentPrize / 100;  //  1%
             }
 
             
             //  referral fees
             address referral = referralInGame[_token][game.idx][msg.sender];
-            uint256 referralFee = game.opponentPrize.div(100);  //  1%
+            uint256 referralFee = game.opponentPrize / 100;  //  1%
 
             if (prevReferral != referral) {
               if (prevReferralAmount > 0) {
@@ -382,13 +380,13 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
               prevReferral = referral;
             }
               
-            prevReferralAmount = prevReferralAmount.add(referralFee);
+            prevReferralAmount = prevReferralAmount + referralFee;
           }
         }
       }
 
       gamesParticipatedToCheckPrize[_token][msg.sender].pop();
-      loop = loop.sub(1);
+      loop = loop - 1;
     }
     
     addFee(FeeType.referral, _token, prevReferralAmount, prevReferral);
@@ -420,19 +418,19 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
         feeNumber = feeNumber - 1;
       }
 
-      transferAmount = pendingPrize.mul((100 - feeNumber)).div(100);
-      msg.sender.transfer(transferAmount);
+      transferAmount = pendingPrize * (100 - feeNumber) / 100;
+      payable(msg.sender).transfer(transferAmount);
     } else {
       feeNumber = (partner == address(0)) ? FEE_NUMBER_TOKEN - 1 : FEE_NUMBER_TOKEN;
 
-      transferAmount = pendingPrize.mul((100 - feeNumber)).div(100);
-      ERC20(_token).transfer(msg.sender, transferAmount);
+      transferAmount = pendingPrize * (100 - feeNumber) / 100;
+      ERC20(_token).transfer(payable(msg.sender), transferAmount);
     }
     
     //  fee
-    uint256 feeTotal = pendingPrize.sub(transferAmount);
-    uint256 singleFee = feeTotal.div(feeNumber);
-    uint256 usedFee = singleFee.mul(2);  //  referral + raffle
+    uint256 feeTotal = pendingPrize - transferAmount;
+    uint256 singleFee = feeTotal / feeNumber;
+    uint256 usedFee = singleFee * 2;  //  referral + raffle
 
     //  raffle
     addToRaffle(_token, singleFee);
@@ -440,19 +438,19 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     //  partner fee
     if (partner != address(0)) {
       addFee(FeeType.partner, _token, singleFee, partner);
-      usedFee = usedFee.add(singleFee);
+      usedFee = usedFee + singleFee;
     }
 
     //  staking
     if (_isEth(_token) && (stakingAddr != address(0))) {
       addFee(FeeType.stake, _token, singleFee, address(0));
-      usedFee = usedFee.add(singleFee);
+      usedFee = usedFee + singleFee;
     }
     
     //  dev fee
-    addFee(FeeType.dev, _token, feeTotal.sub(usedFee), address(0));
+    addFee(FeeType.dev, _token, feeTotal - usedFee, address(0));
     
-    playerWithdrawedTotal[_token][msg.sender] = playerWithdrawedTotal[_token][msg.sender].add(transferAmount);
+    playerWithdrawedTotal[_token][msg.sender] = playerWithdrawedTotal[_token][msg.sender] + transferAmount;
     emit CF_PrizeWithdrawn(_token, msg.sender, transferAmount, pendingPMC);
   }
   
@@ -462,12 +460,12 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    */
   function distributePMC(uint256 _pmc) private {
     if (_pmc > 0) {
-      playerPendingWithdrawalPMC[owner()] = playerPendingWithdrawalPMC[owner()].add(_pmc.div(100));
+      playerPendingWithdrawalPMC[owner()] = playerPendingWithdrawalPMC[owner()] + _pmc / 100;
       
-      uint256 singleAmount = _pmc.div(4);
-      uint256 senderAmount = singleAmount.add(playerPendingWithdrawalPMC[msg.sender]);
+      uint256 singleAmount = _pmc / 4;
+      uint256 senderAmount = singleAmount + playerPendingWithdrawalPMC[msg.sender];
       delete playerPendingWithdrawalPMC[msg.sender];
-      playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(senderAmount);
+      playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender] + senderAmount;
       PMC(pmcAddr).mint(msg.sender, senderAmount);
       
       address zeroAddr = address(0);
@@ -475,7 +473,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
         for (uint8 i = 1; i <= 3; i ++) {
           uint256 idx = _rand(zeroAddr, i);
           address winner = raffleParticipants[zeroAddr][idx];
-          playerPendingWithdrawalPMC[winner] = playerPendingWithdrawalPMC[winner].add(singleAmount);
+          playerPendingWithdrawalPMC[winner] = playerPendingWithdrawalPMC[winner] + singleAmount;
         }  
       }
     }
@@ -490,7 +488,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
 
     delete playerPendingWithdrawalPMC[msg.sender];
     PMC(pmcAddr).mint(msg.sender, pmc);
-    playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender].add(pmc);
+    playerWithdrawedPMCTotal[msg.sender] = playerWithdrawedPMCTotal[msg.sender] + pmc;
   }
   
   //  PENDING WITHDRAWAL -->
@@ -519,8 +517,8 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
    * @param _amount Stake value.
    */
   function _increaseStakes(address _token, uint256 _amount) private {
-    playerStakeTotal[_token][msg.sender] = playerStakeTotal[_token][msg.sender].add(_amount);
-    betsTotal[_token] = betsTotal[_token].add(_amount);
+    playerStakeTotal[_token][msg.sender] = playerStakeTotal[_token][msg.sender] + _amount;
+    betsTotal[_token] = betsTotal[_token] + _amount;
   }
 
   /***
@@ -536,7 +534,7 @@ contract PMCCoinFlipContract is PMCGovernanceCompliant, PMCFeeManager, PMCRaffle
     uint256 startedGames = gamesStarted(_token);
     require(startedGames > 0, "No running games");
 
-    uint256 ongoingGameIdx = startedGames.sub(1);
+    uint256 ongoingGameIdx = startedGames - 1;
     return games[_token][ongoingGameIdx];
   }
 

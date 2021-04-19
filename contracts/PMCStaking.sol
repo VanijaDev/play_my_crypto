@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
 import "./PMC.sol";
 import "./PMC_IStaking.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 
-/** 
- * @notice ETH only. 
+/**
+ * @notice ETH only.
  * User, who has PMC stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
  */
 contract PMCStaking is Ownable, PMC_IStaking {
-  using SafeMath for uint256;
-
   address public pmcAddr;
   
   struct StateForIncome {
@@ -97,13 +94,13 @@ contract PMCStaking is Ownable, PMC_IStaking {
       (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
       
       if (reward > 0) {
-        pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender].add(reward);
+        pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender] + reward;
         incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
       }
     }
 
-    stakeOf[msg.sender] = stakeOf[msg.sender].add(_tokens);
-    tokensStaked = tokensStaked.add(_tokens);
+    stakeOf[msg.sender] = stakeOf[msg.sender] + _tokens;
+    tokensStaked = tokensStaked + _tokens;
 
     emit Stake(msg.sender, _tokens);
   }
@@ -118,7 +115,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     withdrawReward(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
 
     delete stakeOf[msg.sender];
-    tokensStaked = tokensStaked.sub(tokens);
+    tokensStaked = tokensStaked - tokens;
 
     if (tokensStaked == 0) {
       incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount();
@@ -141,12 +138,12 @@ contract PMCStaking is Ownable, PMC_IStaking {
     if (reward > 0) {
       incomeIdxToStartCalculatingRewardOf[msg.sender] = idx;
       if (pendingRewardOf[msg.sender] > 0) {
-        reward = reward.add(pendingRewardOf[msg.sender]);
+        reward = reward + pendingRewardOf[msg.sender];
         delete pendingRewardOf[msg.sender];
       }
 
-      stakingRewardWithdrawnOf[msg.sender] = stakingRewardWithdrawnOf[msg.sender].add(reward);
-      msg.sender.transfer(reward);
+      stakingRewardWithdrawnOf[msg.sender] = stakingRewardWithdrawnOf[msg.sender] + reward;
+      payable(msg.sender).transfer(reward);
     }
   }
 
@@ -162,13 +159,13 @@ contract PMCStaking is Ownable, PMC_IStaking {
       if (stakeOf[msg.sender] > 0) {
         uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
         if (startIdx < incomesLength) {
-          uint256 incomesToCalculate = incomesLength.sub(startIdx);
-          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx.add(_maxLoop) : startIdx.add(incomesToCalculate);
+          uint256 incomesToCalculate = incomesLength - startIdx;
+          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx + _maxLoop : startIdx + incomesToCalculate;
       
           for (uint256 i = startIdx; i < stopIdx; i++) {
             StateForIncome storage incomeTmp = incomes[i];
-            uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income.mul(stakeOf[msg.sender]).div(incomeTmp.tokensStaked) : incomeTmp.income;
-            reward = reward.add(incomeReward);
+            uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income * stakeOf[msg.sender] / incomeTmp.tokensStaked : incomeTmp.income;
+            reward = reward + incomeReward;
           }
 
           _incomeIdxToStartCalculatingRewardOf = stopIdx;

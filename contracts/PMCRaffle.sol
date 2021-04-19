@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -9,8 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @dev Runs automatically when game is played by creator.
  */
 abstract contract PMCRaffle is Ownable {
-  using SafeMath for uint256;
-
   struct RaffleResult {
     address winner;
     uint256 prize;
@@ -37,7 +34,7 @@ abstract contract PMCRaffle is Ownable {
    */
   function addToRaffle(address _token, uint256 _amount) internal {
     if (_amount > 0) {
-      raffleJackpot[_token] = raffleJackpot[_token].add(_amount);
+      raffleJackpot[_token] = raffleJackpot[_token] + _amount;
       raffleParticipants[_token].push(msg.sender);
     }
   }
@@ -126,8 +123,8 @@ abstract contract PMCRaffle is Ownable {
     if (raffleJackpot[_token] > 0 && raffleParticipants[_token].length > 0) {
       uint256 winnerIdx = _rand(_token, 0);
       address winnerAddr = raffleParticipants[_token][winnerIdx];
-      raffleJackpotPending[_token][winnerAddr] = raffleJackpotPending[_token][winnerAddr].add(raffleJackpot[_token]);
-      raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token].add(raffleJackpot[_token]);
+      raffleJackpotPending[_token][winnerAddr] = raffleJackpotPending[_token][winnerAddr] + raffleJackpot[_token];
+      raffleJackpotsWonTotal[_token] = raffleJackpotsWonTotal[_token] + raffleJackpot[_token];
       raffleResults[_token].push(RaffleResult(winnerAddr, raffleJackpot[_token]));
 
       emit CF_RafflePlayed(_token, winnerAddr, raffleJackpot[_token]);
@@ -160,10 +157,10 @@ abstract contract PMCRaffle is Ownable {
     
     delete raffleJackpotPending[_token][msg.sender];
 
-    raffleJackpotWithdrawn[_token][msg.sender] = raffleJackpotWithdrawn[_token][msg.sender].add(amountToSend);
+    raffleJackpotWithdrawn[_token][msg.sender] = raffleJackpotWithdrawn[_token][msg.sender] + amountToSend;
 
     if (_token == address(0)) {
-      msg.sender.transfer(amountToSend);
+      payable(msg.sender).transfer(amountToSend);
     } else {
       ERC20(_token).transfer(msg.sender, amountToSend);
     }

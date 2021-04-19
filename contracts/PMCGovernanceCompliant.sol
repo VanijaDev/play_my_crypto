@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -9,8 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @dev Smart Contract used to handle Governance.
  */
 abstract contract PMCGovernanceCompliant is Ownable {
-  using SafeMath for uint256;
-  
   address public governance;
 
   uint256 public gameMinStakeETH;

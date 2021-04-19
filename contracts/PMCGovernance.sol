@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
 import "./PMCGovernanceCompliant.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -12,8 +11,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @dev Common Governance for all games.
  */
 contract PMCGovernance is Ownable {
-  using SafeMath for uint256;
-
   enum ProposalType {
     minStake,
     gameMaxDuration,
@@ -91,7 +88,7 @@ contract PMCGovernance is Ownable {
 
     for (uint256 i = 0; i < games.length; i++) {
       if (games[i] == _game) {
-        games[i] = games[games.length.sub(1)];
+        games[i] = games[games.length - 1];
         games.pop();
         return;
       }
@@ -176,13 +173,13 @@ contract PMCGovernance is Ownable {
 
     if (proposalMinStakeValueParticipating[msg.sender] == 0) {
       proposalMinStakeValueParticipating[msg.sender] = _minStake;
-      proposalsMinStake[_minStake].votersTotal = proposalsMinStake[_minStake].votersTotal.add(1);
+      proposalsMinStake[_minStake].votersTotal = proposalsMinStake[_minStake].votersTotal + 1;
     } else {
       require(proposalsMinStake[_minStake].voterVotedAt[msg.sender] > proposalsMinStake[_minStake].startedAt, "Quit first");
     }
 
-    proposalsMinStake[_minStake].tokensTotal = proposalsMinStake[_minStake].tokensTotal.add(_pmcTokens);
-    proposalsMinStake[_minStake].tokensOfVoter[msg.sender] = proposalsMinStake[_minStake].tokensOfVoter[msg.sender].add(_pmcTokens);
+    proposalsMinStake[_minStake].tokensTotal = proposalsMinStake[_minStake].tokensTotal + _pmcTokens;
+    proposalsMinStake[_minStake].tokensOfVoter[msg.sender] = proposalsMinStake[_minStake].tokensOfVoter[msg.sender] + _pmcTokens;
     proposalsMinStake[_minStake].voterVotedAt[msg.sender] = block.timestamp;
   
     emit ProposalVoted(msg.sender, ProposalType.minStake, address(0));
@@ -199,7 +196,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply().mul(MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply() * MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL / 100;
     if (proposalsMinStake[_minStake].tokensTotal < tokensToAccept) {
       return;
     }
@@ -261,13 +258,13 @@ contract PMCGovernance is Ownable {
 
     if (proposalGameMaxDurationValueParticipating[msg.sender] == 0) {      
       proposalGameMaxDurationValueParticipating[msg.sender] = _duration;
-      proposalsGameMaxDuration[_duration].votersTotal = proposalsGameMaxDuration[_duration].votersTotal.add(1);
+      proposalsGameMaxDuration[_duration].votersTotal = proposalsGameMaxDuration[_duration].votersTotal + 1;
     } else {
       require(proposalsGameMaxDuration[_duration].voterVotedAt[msg.sender] > proposalsGameMaxDuration[_duration].startedAt, "Quit first");
     }
 
-    proposalsGameMaxDuration[_duration].tokensTotal = proposalsGameMaxDuration[_duration].tokensTotal.add(_pmcTokens);
-    proposalsGameMaxDuration[_duration].tokensOfVoter[msg.sender] = proposalsGameMaxDuration[_duration].tokensOfVoter[msg.sender].add(_pmcTokens);
+    proposalsGameMaxDuration[_duration].tokensTotal = proposalsGameMaxDuration[_duration].tokensTotal + _pmcTokens;
+    proposalsGameMaxDuration[_duration].tokensOfVoter[msg.sender] = proposalsGameMaxDuration[_duration].tokensOfVoter[msg.sender] + _pmcTokens;
     proposalsGameMaxDuration[_duration].voterVotedAt[msg.sender] = block.timestamp;
     
     emit ProposalVoted(msg.sender, ProposalType.gameMaxDuration, address(0));
@@ -284,7 +281,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply().mul(MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply() * MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL / 100;
     if (proposalsGameMaxDuration[_duration].tokensTotal < tokensToAccept) {
       return;
     }
@@ -347,13 +344,13 @@ contract PMCGovernance is Ownable {
   
     if (proposalAddTokenValueParticipating[msg.sender] == address(0)) {
       proposalAddTokenValueParticipating[msg.sender] = _token;
-      proposalsAddToken[_token].votersTotal = proposalsAddToken[_token].votersTotal.add(1);
+      proposalsAddToken[_token].votersTotal = proposalsAddToken[_token].votersTotal + 1;
     } else {
       require(proposalsAddToken[_token].voterVotedAt[msg.sender] > proposalsAddToken[_token].startedAt, "Quit first");
     }
     
-    proposalsAddToken[_token].tokensTotal = proposalsAddToken[_token].tokensTotal.add(_pmcTokens);
-    proposalsAddToken[_token].tokensOfVoter[msg.sender] = proposalsAddToken[_token].tokensOfVoter[msg.sender].add(_pmcTokens);
+    proposalsAddToken[_token].tokensTotal = proposalsAddToken[_token].tokensTotal + _pmcTokens;
+    proposalsAddToken[_token].tokensOfVoter[msg.sender] = proposalsAddToken[_token].tokensOfVoter[msg.sender] + _pmcTokens;
     proposalsAddToken[_token].voterVotedAt[msg.sender] = block.timestamp;
     
     emit ProposalVoted(msg.sender, ProposalType.addToken, _token);
@@ -370,7 +367,7 @@ contract PMCGovernance is Ownable {
       return;
     }
 
-    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply().mul(MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL).div(100);
+    uint256 tokensToAccept = ERC20(pmcAddr).totalSupply() * MIN_PMC_MINTED_PERCENT_TO_ACCEPT_PROPOSAL / 100;
     if (proposalsAddToken[_token].tokensTotal < tokensToAccept) {
       return;
     }
@@ -407,9 +404,9 @@ contract PMCGovernance is Ownable {
     uint256 votedValue = proposalMinStakeValueParticipating[msg.sender];
     require(votedValue > 0, "No votes");
     
-    proposalsMinStake[votedValue].votersTotal = proposalsMinStake[votedValue].votersTotal.sub(1);
+    proposalsMinStake[votedValue].votersTotal = proposalsMinStake[votedValue].votersTotal - 1;
     uint256 tokensVoted = proposalsMinStake[votedValue].tokensOfVoter[msg.sender];
-    proposalsMinStake[votedValue].tokensTotal = proposalsMinStake[votedValue].tokensTotal.sub(tokensVoted);
+    proposalsMinStake[votedValue].tokensTotal = proposalsMinStake[votedValue].tokensTotal - tokensVoted;
     
     delete proposalsMinStake[votedValue].tokensOfVoter[msg.sender];
     delete proposalsMinStake[votedValue].voterVotedAt[msg.sender];
@@ -427,9 +424,9 @@ contract PMCGovernance is Ownable {
     uint256 votedValue = proposalGameMaxDurationValueParticipating[msg.sender];
     require(votedValue > 0, "No votes");
 
-    proposalsGameMaxDuration[votedValue].votersTotal = proposalsGameMaxDuration[votedValue].votersTotal.sub(1);
+    proposalsGameMaxDuration[votedValue].votersTotal = proposalsGameMaxDuration[votedValue].votersTotal - 1;
     uint256 tokensVoted = proposalsGameMaxDuration[votedValue].tokensOfVoter[msg.sender];
-    proposalsGameMaxDuration[votedValue].tokensTotal = proposalsGameMaxDuration[votedValue].tokensTotal.sub(tokensVoted);
+    proposalsGameMaxDuration[votedValue].tokensTotal = proposalsGameMaxDuration[votedValue].tokensTotal - tokensVoted;
     
     delete proposalsGameMaxDuration[votedValue].tokensOfVoter[msg.sender];
     delete proposalsGameMaxDuration[votedValue].voterVotedAt[msg.sender];
@@ -447,9 +444,9 @@ contract PMCGovernance is Ownable {
     address votedValue = proposalAddTokenValueParticipating[msg.sender];
     require(votedValue != address(0), "No votes");
 
-    proposalsAddToken[votedValue].votersTotal = proposalsAddToken[votedValue].votersTotal.sub(1);
+    proposalsAddToken[votedValue].votersTotal = proposalsAddToken[votedValue].votersTotal - 1;
     uint256 tokensVoted = proposalsAddToken[votedValue].tokensOfVoter[msg.sender];
-    proposalsAddToken[votedValue].tokensTotal = proposalsAddToken[votedValue].tokensTotal.sub(tokensVoted);
+    proposalsAddToken[votedValue].tokensTotal = proposalsAddToken[votedValue].tokensTotal - tokensVoted;
     
     delete proposalsAddToken[votedValue].tokensOfVoter[msg.sender];
     delete proposalsAddToken[votedValue].voterVotedAt[msg.sender];

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.3;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -12,8 +11,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * staking - separate Smart Contract
  */
 contract PMCFeeManager is Ownable {
-  using SafeMath for uint256;
-
   enum FeeType {
     partner,
     referral,
@@ -61,16 +58,16 @@ contract PMCFeeManager is Ownable {
     if (_amount > 0) {
       if (_type == FeeType.partner) {
         if (partner != address(0)) {
-          partnerFeePending[_token][partner] = partnerFeePending[_token][partner].add(_amount);
+          partnerFeePending[_token][partner] = partnerFeePending[_token][partner] + _amount;
         }
       } else if (_type == FeeType.referral) {
         if (_referralAddress != address(0)) {
-          referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress].add(_amount);
+          referralFeePending[_token][_referralAddress] = referralFeePending[_token][_referralAddress] + _amount;
         }
       } else if (_type == FeeType.dev) {
-        devFeePending[_token] = devFeePending[_token].add(_amount);
+        devFeePending[_token] = devFeePending[_token] + _amount;
       } else if (_type == FeeType.stake) {
-        stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH.add(_amount);
+        stakeRewardPoolPending_ETH = stakeRewardPoolPending_ETH + _amount;
       } else {
         revert("Wrong fee type");
       }
@@ -170,13 +167,13 @@ contract PMCFeeManager is Ownable {
     require(feeTmp > 0, "no fee");
 
     delete partnerFeePending[_token][msg.sender];
-    partnerFeeWithdrawn[_token][msg.sender] = partnerFeeWithdrawn[_token][msg.sender].add(feeTmp);
-    partnerFeeWithdrawnTotal[_token] = partnerFeeWithdrawnTotal[_token].add(feeTmp);
+    partnerFeeWithdrawn[_token][msg.sender] = partnerFeeWithdrawn[_token][msg.sender] + feeTmp;
+    partnerFeeWithdrawnTotal[_token] = partnerFeeWithdrawnTotal[_token] + feeTmp;
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
     } else {
-      msg.sender.transfer(feeTmp);
+      payable(msg.sender).transfer(feeTmp);
     }
   }
   
@@ -189,13 +186,13 @@ contract PMCFeeManager is Ownable {
     require(feeTmp > 0, "no fee");
 
     delete referralFeePending[_token][msg.sender];
-    referralFeeWithdrawn[_token][msg.sender] = referralFeeWithdrawn[_token][msg.sender].add(feeTmp);
-    referralFeeWithdrawnTotal[_token] = referralFeeWithdrawnTotal[_token].add(feeTmp);
+    referralFeeWithdrawn[_token][msg.sender] = referralFeeWithdrawn[_token][msg.sender] + feeTmp;
+    referralFeeWithdrawnTotal[_token] = referralFeeWithdrawnTotal[_token] + feeTmp;
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
     } else {
-      msg.sender.transfer(feeTmp);
+      payable(msg.sender).transfer(feeTmp);
     }
   }
 
@@ -208,13 +205,13 @@ contract PMCFeeManager is Ownable {
     require(feeTmp > 0, "no fee");
 
     delete devFeePending[_token];
-    devFeeWithdrawn[_token] = devFeeWithdrawn[_token].add(feeTmp);
-    devFeeWithdrawnTotal[_token] = devFeeWithdrawnTotal[_token].add(feeTmp);
+    devFeeWithdrawn[_token] = devFeeWithdrawn[_token]+ feeTmp;
+    devFeeWithdrawnTotal[_token] = devFeeWithdrawnTotal[_token] + feeTmp;
 
     if (_token != address(0)) {
       ERC20(_token).transfer(msg.sender, feeTmp);
     } else {
-      msg.sender.transfer(feeTmp);
+      payable(msg.sender).transfer(feeTmp);
     }
   }
 }
