@@ -149,14 +149,7 @@ contract("PMCStaking", function (accounts) {
       }), "Wrong sender");
     });
 
-    it("should fail if Wrong value", async function () {
-      await expectRevert(staking.replenishRewardPool({
-        from: game.address,
-        value: ether("0")
-      }), "Wrong value");
-    });
-
-    it("should push StateForIncome with correct params for 0 pmc", async function () {
+    it("should push StateForReplenishment with correct params for 0 pmc", async function () {
       //  0 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -205,9 +198,9 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check 0
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("1")), "Wrong amount, 0");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount, 0");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0")), "Wrong tokensStakedAmount, 0");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("1")), "Wrong amount, 0");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).replenishment.cmp(ether("0.0033")), "Wrong amount, 0");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).tokensStakedAmount.cmp(ether("0")), "Wrong tokensStakedAmount, 0");
 
       //  2 - Token, should not modify
       await game.startGame(testToken.address, 100, creatorHash, CREATOR_REFERRAL_0, {
@@ -231,12 +224,12 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check, should be the same
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("1")), "Wrong amount 1");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount 0, 1");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0")), "Wrong tokensStakedAmount 0, 1");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("1")), "Wrong amount 1");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).replenishment.cmp(ether("0.0033")), "Wrong amount 0, 1");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).tokensStakedAmount.cmp(ether("0")), "Wrong tokensStakedAmount 0, 1");
     });
 
-    it("should push StateForIncome with correct params for 0 pmc", async function () {
+    it("should push StateForReplenishment with correct params for 0 pmc", async function () {
       //  0 - ETH
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -265,7 +258,7 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check 0
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("0")), "Wrong amount, 0");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("0")), "Wrong amount, 0");
 
       //  make stake
       // console.log((await pmc.balanceOf(CREATOR_0)).toString());
@@ -301,9 +294,9 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check 1
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("1")), "Wrong amount, 1");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount, 1");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount, 1");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("1")), "Wrong amount, 1");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).replenishment.cmp(ether("0.0033")), "Wrong amount, 1");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount, 1");
 
 
       //  2 - ETH
@@ -330,13 +323,13 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check 1
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("2")), "Wrong amount, 2");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("2")), "Wrong amount, 2");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount for 0, 2");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).replenishment.cmp(ether("0.0033")), "Wrong amount for 0, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 2");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).income.cmp(ether("0.0018")), "Wrong amount for 1, 2");
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(1)).replenishment.cmp(ether("0.0018")), "Wrong amount for 1, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
 
       //  3 - ETH
 
@@ -373,27 +366,27 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  check 3
-      assert.equal(0, (await staking.getIncomeCount.call()).cmp(new BN("3")), "Wrong amount, 3");
+      assert.equal(0, (await staking.getReplenishmentCount.call()).cmp(new BN("3")), "Wrong amount, 3");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).income.cmp(ether("0.0033")), "Wrong amount for 0, 3");
-      assert.equal(0, (await staking.getIncomeInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 3");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).replenishment.cmp(ether("0.0033")), "Wrong amount for 0, 3");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(0)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 0, 3");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).income.cmp(ether("0.0018")), "Wrong amount for 1, 2");
-      assert.equal(0, (await staking.getIncomeInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(1)).replenishment.cmp(ether("0.0018")), "Wrong amount for 1, 2");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(1)).tokensStakedAmount.cmp(ether("0.0004125")), "Wrong tokensStakedAmount for 1, 2");
 
-      assert.equal(0, (await staking.getIncomeInfo.call(2)).income.cmp(ether("0.00333")), "Wrong amount for 1, 3");
-      assert.equal(0, (await staking.getIncomeInfo.call(2)).tokensStakedAmount.cmp(ether("0.001245")), "Wrong tokensStakedAmount for 1, 3");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(2)).replenishment.cmp(ether("0.00333")), "Wrong amount for 1, 3");
+      assert.equal(0, (await staking.getReplenishmentInfo.call(2)).tokensStakedAmount.cmp(ether("0.001245")), "Wrong tokensStakedAmount for 1, 3");
     });
   });
 
-  describe("calculateRewardAndStartIncomeIdx", function () {
+  describe("calculateRewardAndStartReplenishmentIdx", function () {
     it("should return 0,0 if not stake", async function () {
       //  0
-      let res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      let res = await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_1
       });
       assert.equal(0, (new BN("0")).cmp(res.reward), "reward should be 0 on 0");
-      assert.equal(0, (new BN("0")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 0");
+      assert.equal(0, (new BN("0")).cmp(res._replenishmentIdxToStartCalculatingRewardOf), "_replenishmentIdxToStartCalculatingRewardOf should be 0 on 0");
 
       //  replenish - 0
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
@@ -452,11 +445,11 @@ contract("PMCStaking", function (accounts) {
       });
 
       //  1
-      res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      res = await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_1
       });
       assert.equal(0, (new BN("0")).cmp(res.reward), "reward should be 0 on 1");
-      assert.equal(0, (new BN("0")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 1");
+      assert.equal(0, (new BN("0")).cmp(res._replenishmentIdxToStartCalculatingRewardOf), "_replenishmentIdxToStartCalculatingRewardOf should be 0 on 1");
     });
 
     it("should return correct reward & idx to start on, for maxLoop 0", async function () {
@@ -562,11 +555,11 @@ contract("PMCStaking", function (accounts) {
 
       //  calculate
       //  CREATOR_0
-      let CREATOR_0_res_0 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_0_res_0 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_0
       });
       assert.equal(0, (CREATOR_0_res_0.reward).cmp(ether("0.0069")), "wrong for CREATOR_0 0, should be 0.0069 eth");
-      assert.equal(0, (CREATOR_0_res_0._incomeIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong for CREATOR 0");
+      assert.equal(0, (CREATOR_0_res_0._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong for CREATOR 0");
 
       //  stake CREATOR_1
       const pmc_tokens_CREATOR_1 = await pmc.balanceOf.call(CREATOR_1);
@@ -606,18 +599,18 @@ contract("PMCStaking", function (accounts) {
 
       //  calculate
       //  CREATOR_0
-      let CREATOR_0_res_1 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_0_res_1 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_0
       });
       assert.equal(0, (CREATOR_0_res_1.reward).cmp(ether("0.008918823529411764")), "wrong for CREATOR_0 1");
-      assert.equal(0, (CREATOR_0_res_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0 1");
+      assert.equal(0, (CREATOR_0_res_1._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0 1");
 
       //  CREATOR_1
-      let CREATOR_1_res_1 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_1_res_1 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_1
       });
       assert.equal(0, (CREATOR_1_res_1.reward).cmp(ether("0.003181176470588235")), "wrong for CREATOR_1 1");
-      assert.equal(0, (CREATOR_1_res_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_1 1");
+      assert.equal(0, (CREATOR_1_res_1._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_1 1");
 
 
       //  play game 4
@@ -658,18 +651,18 @@ contract("PMCStaking", function (accounts) {
 
       //  calculate
       //  CREATOR_0
-      let CREATOR_0_res_2 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_0_res_2 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_0
       });
       assert.equal(0, (CREATOR_0_res_2.reward).cmp(ether("0.008918823529411764")), "wrong for CREATOR_0_res_2");
-      assert.equal(0, (CREATOR_0_res_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0_res_2");
+      assert.equal(0, (CREATOR_0_res_2._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_0_res_2");
 
       //  CREATOR_1
-      let CREATOR_1_res_2 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_1_res_2 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_1
       });
       assert.equal(0, (CREATOR_1_res_2.reward).cmp(ether("0.003181176470588235")), "wrong for CREATOR_1_res_2");
-      assert.equal(0, (CREATOR_1_res_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_2");
+      assert.equal(0, (CREATOR_1_res_2._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong for CREATOR_1_res_2");
 
 
       //  play game 5
@@ -702,18 +695,18 @@ contract("PMCStaking", function (accounts) {
 
       //  calculate
       //  CREATOR_0
-      let CREATOR_0_res_3 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_0_res_3 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_0
       });
       assert.equal(0, (CREATOR_0_res_3.reward).cmp(ether("0.011274117647058822")), "wrong for CREATOR_0_res_3");
-      assert.equal(0, (CREATOR_0_res_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong for CREATOR_0_res_3");
+      assert.equal(0, (CREATOR_0_res_3._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong for CREATOR_0_res_3");
 
       //  CREATOR_1
-      let CREATOR_1_res_3 = await staking.calculateRewardAndStartIncomeIdx(0, {
+      let CREATOR_1_res_3 = await staking.calculateRewardAndStartReplenishmentIdx(0, {
         from: CREATOR_1
       });
       assert.equal(0, (CREATOR_1_res_3.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_res_3");
-      assert.equal(0, (CREATOR_1_res_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong ixd for CREATOR_1_res_3");
+      assert.equal(0, (CREATOR_1_res_3._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong ixd for CREATOR_1_res_3");
 
       // console.log(CREATOR_1_res_3.reward.toString()); //   0.006066666666666666 / (0.00165 + 0.0026) * 0.0026 = 0.003711372549 + 0.003181176470588235 = 0.00689254902
 
@@ -721,99 +714,99 @@ contract("PMCStaking", function (accounts) {
 
 
       // maxLoop = 1
-      let CREATOR_0_maxloop_1 = await staking.calculateRewardAndStartIncomeIdx.call(1, {
+      let CREATOR_0_maxloop_1 = await staking.calculateRewardAndStartReplenishmentIdx.call(1, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_1.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_1.reward).cmp(ether("0.0033")), "wrong reward for CREATOR_0_maxloop_1");
-      assert.equal(0, (CREATOR_0_maxloop_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("1")), "wrong idx for CREATOR_0_maxloop_1");
+      assert.equal(0, (CREATOR_0_maxloop_1._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("1")), "wrong idx for CREATOR_0_maxloop_1");
 
-      let CREATOR_1_maxloop_1 = await staking.calculateRewardAndStartIncomeIdx.call(1, {
+      let CREATOR_1_maxloop_1 = await staking.calculateRewardAndStartReplenishmentIdx.call(1, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_1.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_1.reward).cmp(ether("0.003181176470588235")), "wrong reward for CREATOR_1_maxloop_1");
-      assert.equal(0, (CREATOR_1_maxloop_1._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_1_maxloop_1");
+      assert.equal(0, (CREATOR_1_maxloop_1._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_1_maxloop_1");
 
 
       // maxLoop = 2
-      let CREATOR_0_maxloop_2 = await staking.calculateRewardAndStartIncomeIdx.call(2, {
+      let CREATOR_0_maxloop_2 = await staking.calculateRewardAndStartReplenishmentIdx.call(2, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_2.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_2.reward).cmp(ether("0.0069")), "wrong reward for CREATOR_0_maxloop_2");
-      assert.equal(0, (CREATOR_0_maxloop_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong idx for CREATOR_0_maxloop_2");
+      assert.equal(0, (CREATOR_0_maxloop_2._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("2")), "wrong idx for CREATOR_0_maxloop_2");
 
-      let CREATOR_1_maxloop_2 = await staking.calculateRewardAndStartIncomeIdx.call(2, {
+      let CREATOR_1_maxloop_2 = await staking.calculateRewardAndStartReplenishmentIdx.call(2, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_2.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_2.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_2");
-      assert.equal(0, (CREATOR_1_maxloop_2._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_2");
+      assert.equal(0, (CREATOR_1_maxloop_2._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_2");
 
 
       // maxLoop = 3
-      let CREATOR_0_maxloop_3 = await staking.calculateRewardAndStartIncomeIdx.call(3, {
+      let CREATOR_0_maxloop_3 = await staking.calculateRewardAndStartReplenishmentIdx.call(3, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_3.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_3.reward).cmp(ether("0.008918823529411764")), "wrong reward for CREATOR_0_maxloop_3");
-      assert.equal(0, (CREATOR_0_maxloop_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_0_maxloop_3");
+      assert.equal(0, (CREATOR_0_maxloop_3._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("3")), "wrong idx for CREATOR_0_maxloop_3");
 
-      let CREATOR_1_maxloop_3 = await staking.calculateRewardAndStartIncomeIdx.call(3, {
+      let CREATOR_1_maxloop_3 = await staking.calculateRewardAndStartReplenishmentIdx.call(3, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_3.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_3.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_3");
-      assert.equal(0, (CREATOR_1_maxloop_3._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_3");
+      assert.equal(0, (CREATOR_1_maxloop_3._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_3");
 
 
       // maxLoop = 4
-      let CREATOR_0_maxloop_4 = await staking.calculateRewardAndStartIncomeIdx.call(4, {
+      let CREATOR_0_maxloop_4 = await staking.calculateRewardAndStartReplenishmentIdx.call(4, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_4.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_4.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_4");
-      assert.equal(0, (CREATOR_0_maxloop_4._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_4");
+      assert.equal(0, (CREATOR_0_maxloop_4._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_4");
 
-      let CREATOR_1_maxloop_4 = await staking.calculateRewardAndStartIncomeIdx.call(4, {
+      let CREATOR_1_maxloop_4 = await staking.calculateRewardAndStartReplenishmentIdx.call(4, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_4.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_4.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_4");
-      assert.equal(0, (CREATOR_1_maxloop_4._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_4");
+      assert.equal(0, (CREATOR_1_maxloop_4._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_4");
 
 
       // maxLoop = 5
-      let CREATOR_0_maxloop_5 = await staking.calculateRewardAndStartIncomeIdx.call(5, {
+      let CREATOR_0_maxloop_5 = await staking.calculateRewardAndStartReplenishmentIdx.call(5, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_5.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_5.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_5");
-      assert.equal(0, (CREATOR_0_maxloop_5._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_5");
+      assert.equal(0, (CREATOR_0_maxloop_5._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_5");
 
-      let CREATOR_1_maxloop_5 = await staking.calculateRewardAndStartIncomeIdx.call(5, {
+      let CREATOR_1_maxloop_5 = await staking.calculateRewardAndStartReplenishmentIdx.call(5, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_5.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_5.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_5");
-      assert.equal(0, (CREATOR_1_maxloop_5._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_5");
+      assert.equal(0, (CREATOR_1_maxloop_5._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_5");
 
 
       // maxLoop = 9
-      let CREATOR_0_maxloop_9 = await staking.calculateRewardAndStartIncomeIdx.call(9, {
+      let CREATOR_0_maxloop_9 = await staking.calculateRewardAndStartReplenishmentIdx.call(9, {
         from: CREATOR_0
       });
       // console.log(CREATOR_0_maxloop_9.reward.toString());
       assert.equal(0, (CREATOR_0_maxloop_9.reward).cmp(ether("0.011274117647058822")), "wrong reward for CREATOR_0_maxloop_9");
-      assert.equal(0, (CREATOR_0_maxloop_9._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_9");
+      assert.equal(0, (CREATOR_0_maxloop_9._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_0_maxloop_9");
 
-      let CREATOR_1_maxloop_9 = await staking.calculateRewardAndStartIncomeIdx.call(9, {
+      let CREATOR_1_maxloop_9 = await staking.calculateRewardAndStartReplenishmentIdx.call(9, {
         from: CREATOR_1
       });
       // console.log(CREATOR_1_maxloop_9.reward.toString());
       assert.equal(0, (CREATOR_1_maxloop_9.reward).cmp(ether("0.006892549019607842")), "wrong reward for CREATOR_1_maxloop_9");
-      assert.equal(0, (CREATOR_1_maxloop_9._incomeIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_9");
+      assert.equal(0, (CREATOR_1_maxloop_9._replenishmentIdxToStartCalculatingRewardOf).cmp(new BN("4")), "wrong idx for CREATOR_1_maxloop_9");
     });
   });
 
@@ -868,7 +861,7 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await pmc.balanceOf(staking.address)).cmp(pmc_tokens_CREATOR_0), "wrong for CREATOR_0");
     });
 
-    it("should set incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes if user is first staker, but were multiple replenishments", async function () {
+    it("should set replenishmentIdxToStartCalculatingRewardOf[msg.sender] = replenishmentIdxToStartCalculatingRewardIfNoStakes if user is first staker, but were multiple replenishments", async function () {
       //  play game 1
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_0, {
         from: CREATOR_0,
@@ -966,7 +959,7 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0");
 
 
       //  stake OWNER
@@ -982,10 +975,10 @@ contract("PMCStaking", function (accounts) {
         from: OWNER
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for OWNER");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong replenishmentIdxToStartCalculatingRewardOf for OWNER");
     });
 
-    it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender]", async function () {
+    it("should set correct replenishmentIdxToStartCalculatingRewardOf[msg.sender]", async function () {
       //  play game 1
       await game.startGame(constants.ZERO_ADDRESS, 0, creatorHash, CREATOR_REFERRAL_1, {
         from: CREATOR_1,
@@ -1083,7 +1076,7 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("0")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0");
 
 
       //  stake OWNER
@@ -1099,7 +1092,7 @@ contract("PMCStaking", function (accounts) {
         from: OWNER
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for OWNER");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(OWNER)).cmp(new BN("3")), "wrong replenishmentIdxToStartCalculatingRewardOf for OWNER");
 
 
       //  play game 3
@@ -1131,7 +1124,7 @@ contract("PMCStaking", function (accounts) {
       await staking.stake(pmc_tokens_CREATOR_1, {
         from: CREATOR_1
       });
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_1");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_1");
     });
 
     it("should update pendingRewardOf[msg.sender] if pending stakes present", async function () {
@@ -1311,7 +1304,7 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, ((await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0.011778260869565217")))); //  0.0102 + 0.0033 / (0.0004125 + 0.00045) * 0.0004125 = 0.01177826087
     });
 
-    it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender] if pending stakes present", async function () {
+    it("should set correct replenishmentIdxToStartCalculatingRewardOf[msg.sender] if pending stakes present", async function () {
       //  stake CREATOR_0
       assert.equal(0, (await staking.pendingRewardOf.call(CREATOR_0)).cmp(ether("0")), "should be 0 before 0");
       let pmc_tokens_CREATOR_0 = await pmc.balanceOf.call(CREATOR_0);
@@ -1392,7 +1385,7 @@ contract("PMCStaking", function (accounts) {
       // await staking.stake(pmc_tokens_CREATOR_0, {
       //   from: CREATOR_0
       // });
-      // assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("2")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 0");
+      // assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("2")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0 0");
       // return;
 
 
@@ -1435,7 +1428,7 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 1");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("3")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0 1");
 
 
       //  stake CREATOR_1
@@ -1487,7 +1480,7 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
       // console.log((await staking.pendingRewardOf.call(CREATOR_0)).toString());
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("4")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0 2");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("4")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0 2");
     });
 
     it("should update stakeOf[msg.sender]", async function () {
@@ -1961,16 +1954,16 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, balanceBefore.sub(gasSpent).cmp(balanceAfter), "wrong balanceAfter");
     });
 
-    it("should set correct incomeIdxToStartCalculatingRewardOf[msg.sender]", async function () {
+    it("should set correct replenishmentIdxToStartCalculatingRewardOf[msg.sender]", async function () {
       //  0
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("1")), "wrong idx before");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("1")), "wrong idx before");
 
       await staking.withdrawReward(0, {
         from: CREATOR_1
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("3")), "wrong idx after")
-      assert.equal(0, (await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("3")), "wrong idx after")
+      assert.equal(0, (await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_1
       })).reward.cmp(ether("0")), "wrong reward after 0");
 
@@ -2007,8 +2000,8 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_1
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong idx after 1")
-      assert.equal(0, (await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_1)).cmp(new BN("4")), "wrong idx after 1")
+      assert.equal(0, (await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_1
       })).reward.cmp(ether("0")), "wrong reward after 0");
     });
@@ -2102,7 +2095,7 @@ contract("PMCStaking", function (accounts) {
 
     it("should transfer correct amount", async function () {
       //  0
-      let reward = (await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      let reward = (await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_0
       })).reward;
 
@@ -2338,7 +2331,7 @@ contract("PMCStaking", function (accounts) {
     });
 
     it("should transfer reward", async function () {
-      let reward = (await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      let reward = (await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_0
       })).reward;
       // console.log(reward.toString());
@@ -2379,20 +2372,20 @@ contract("PMCStaking", function (accounts) {
       assert.equal(0, (await staking.tokensStaked.call()).cmp(ether("0.00045")), "wrong after");
     });
 
-    it("should set incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount() if no stakes", async function () {
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("0")), "wrong before");
+    it("should set replenishmentIdxToStartCalculatingRewardIfNoStakes = getReplenishmentCount() if no stakes", async function () {
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("0")), "wrong before");
 
       await staking.unstake({
         from: CREATOR_0
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("0")), "wrong before 1");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("0")), "wrong before 1");
 
       await staking.unstake({
         from: CREATOR_1
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("3")), "wrong after");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("3")), "wrong after");
 
       //  check
       // stake CREATOR_0
@@ -2401,14 +2394,14 @@ contract("PMCStaking", function (accounts) {
         from: CREATOR_0
       });
 
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("3")), "wrong incomeIdxToStartCalculatingRewardOf for CREATOR_0");
-      assert.equal(0, (await staking.incomeIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("3")), "wrong after 1");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardOf.call(CREATOR_0)).cmp(new BN("3")), "wrong replenishmentIdxToStartCalculatingRewardOf for CREATOR_0");
+      assert.equal(0, (await staking.replenishmentIdxToStartCalculatingRewardIfNoStakes.call()).cmp(new BN("3")), "wrong after 1");
 
-      let res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      let res = await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_0
       });
       assert.equal(0, (new BN("0")).cmp(res.reward), "reward should be 0 on 1");
-      assert.equal(0, (new BN("0")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 1");
+      assert.equal(0, (new BN("0")).cmp(res._replenishmentIdxToStartCalculatingRewardOf), "_replenishmentIdxToStartCalculatingRewardOf should be 0 on 1");
 
 
       //  check reward
@@ -2440,13 +2433,13 @@ contract("PMCStaking", function (accounts) {
       // }); //  0.18 ETH
 
       //  check 2
-      res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      res = await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_0
       });
       // console.log(res.reward.toString());
-      // console.log(res._incomeIdxToStartCalculatingRewardOf.toString());
+      // console.log(res._replenishmentIdxToStartCalculatingRewardOf.toString());
       assert.equal(0, (ether("0.0039")).cmp(res.reward), "wrong reward on 1");
-      assert.equal(0, (new BN("4")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 1");
+      assert.equal(0, (new BN("4")).cmp(res._replenishmentIdxToStartCalculatingRewardOf), "_replenishmentIdxToStartCalculatingRewardOf should be 0 on 1");
 
 
       //  play game 1
@@ -2471,13 +2464,13 @@ contract("PMCStaking", function (accounts) {
 
 
       // check 2
-      res = await staking.calculateRewardAndStartIncomeIdx.call(0, {
+      res = await staking.calculateRewardAndStartReplenishmentIdx.call(0, {
         from: CREATOR_0
       });
       // console.log(res.reward.toString());
-      // console.log(res._incomeIdxToStartCalculatingRewardOf.toString());
+      // console.log(res._replenishmentIdxToStartCalculatingRewardOf.toString());
       assert.equal(0, (ether("0.005751")).cmp(res.reward), "wrong reward on 2");
-      assert.equal(0, (new BN("5")).cmp(res._incomeIdxToStartCalculatingRewardOf), "_incomeIdxToStartCalculatingRewardOf should be 0 on 2");
+      assert.equal(0, (new BN("5")).cmp(res._replenishmentIdxToStartCalculatingRewardOf), "_replenishmentIdxToStartCalculatingRewardOf should be 0 on 2");
     });
 
     it("should transfer PMC", async function () {

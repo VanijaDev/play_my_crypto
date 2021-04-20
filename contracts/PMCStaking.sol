@@ -1,35 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.3;
 
-import "./PMC.sol";
 import "./PMC_IStaking.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @notice ETH only.
  * User, who has PMC stake will get reward from all the games on the platform. Replenishment from each game goes to single staking pool.
  */
 contract PMCStaking is Ownable, PMC_IStaking {
-  address public pmcAddr;
+  ERC20 public pmcAddr;
   
-  struct StateForIncome {
-    uint256 income;
+  struct StateForReplenishment {
+    uint256 replenishment;
     uint256 tokensStaked;
   }
 
   uint256 public tokensStaked;
-  uint256 public incomeIdxToStartCalculatingRewardIfNoStakes;
-  StateForIncome[] private incomes;
+  uint256 public replenishmentIdxToStartCalculatingRewardIfNoStakes;
+  StateForReplenishment[] private replenishments;
 
-  mapping(address => uint256) public incomeIdxToStartCalculatingRewardOf;
+  mapping(address => uint256) public replenishmentIdxToStartCalculatingRewardOf;
   mapping(address => uint256) public pendingRewardOf;
   mapping(address => uint256) public stakeOf;
   mapping(address => uint256) public stakingRewardWithdrawnOf;
 
-  mapping(address => bool) public gameplaySupported;
+  mapping(address => bool) public gameplaySupported;  //  used to prevent spamming with small amounts as each replenishment is added to array.
 
-  event Unstake(address indexed addr);
   event Stake(address indexed addr, uint256 indexed tokens);
+  event Unstake(address indexed addr);
   
   /***
    * @dev Constructor.
@@ -40,7 +40,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     require(_pmc != address(0), "Wrong _pmc");
     require(_gameplay != address(0), "Wrong _gameplay");
     
-    pmcAddr = _pmc;
+    pmcAddr = ERC20(_pmc);
     gameplaySupported[_gameplay] = true;
   }
 
@@ -65,13 +65,14 @@ contract PMCStaking is Ownable, PMC_IStaking {
   }
 
   /***
-   * @dev Adds ETH to reward pool.
+   * @dev Replenishes reward pool with eth.
    */
   function replenishRewardPool() override external payable {
     require(gameplaySupported[msg.sender], "Wrong sender");
-    require(msg.value > 0, "Wrong value");
     
-    incomes.push(StateForIncome(msg.value, tokensStaked));
+    if (msg.value > 0) {
+      replenishments.push(StateForReplenishment(msg.value, tokensStaked));
+    }
   }
 
   /***
@@ -84,18 +85,18 @@ contract PMCStaking is Ownable, PMC_IStaking {
     
     if (stakeOf[msg.sender] == 0) {
       if (tokensStaked == 0) {
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = incomeIdxToStartCalculatingRewardIfNoStakes;
+        replenishmentIdxToStartCalculatingRewardOf[msg.sender] = replenishmentIdxToStartCalculatingRewardIfNoStakes;
       } else {
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = getIncomeCount();
+        replenishmentIdxToStartCalculatingRewardOf[msg.sender] = getReplenishmentCount();
       }
     } else {
       uint256 reward;
-      uint256 _incomeIdxToStartCalculatingRewardOf;
-      (reward, _incomeIdxToStartCalculatingRewardOf) = calculateRewardAndStartIncomeIdx(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
+      uint256 _replenishmentIdxToStartCalculatingRewardOf;
+      (reward, _replenishmentIdxToStartCalculatingRewardOf) = calculateRewardAndStartReplenishmentIdx(0);  //  if tx fails, then firstly withdrawReward(_loopNumber)
       
       if (reward > 0) {
         pendingRewardOf[msg.sender] = pendingRewardOf[msg.sender] + reward;
-        incomeIdxToStartCalculatingRewardOf[msg.sender] = _incomeIdxToStartCalculatingRewardOf;
+        replenishmentIdxToStartCalculatingRewardOf[msg.sender] = _replenishmentIdxToStartCalculatingRewardOf;
       }
     }
 
@@ -118,7 +119,7 @@ contract PMCStaking is Ownable, PMC_IStaking {
     tokensStaked = tokensStaked - tokens;
 
     if (tokensStaked == 0) {
-      incomeIdxToStartCalculatingRewardIfNoStakes = getIncomeCount();
+      replenishmentIdxToStartCalculatingRewardIfNoStakes = getReplenishmentCount();
     }
     
     ERC20(pmcAddr).transfer(msg.sender, tokens);
@@ -133,13 +134,15 @@ contract PMCStaking is Ownable, PMC_IStaking {
   function withdrawReward(uint256 _maxLoop) public {
     uint256 reward;
     uint256 idx;
-    (reward, idx) = calculateRewardAndStartIncomeIdx(_maxLoop);
+    (reward, idx) = calculateRewardAndStartReplenishmentIdx(_maxLoop);
 
     if (reward > 0) {
-      incomeIdxToStartCalculatingRewardOf[msg.sender] = idx;
+      replenishmentIdxToStartCalculatingRewardOf[msg.sender] = idx;
+      
       if (pendingRewardOf[msg.sender] > 0) {
-        reward = reward + pendingRewardOf[msg.sender];
+        uint256 pendingReward = pendingRewardOf[msg.sender];
         delete pendingRewardOf[msg.sender];
+        reward = reward + pendingReward;
       }
 
       stakingRewardWithdrawnOf[msg.sender] = stakingRewardWithdrawnOf[msg.sender] + reward;
@@ -151,45 +154,46 @@ contract PMCStaking is Ownable, PMC_IStaking {
    * @dev Calculates staking reward.
    * @param _maxLoop Max loop. Used as a safeguard for block gas limit.
    * @return reward Reward amount.
-   * @return _incomeIdxToStartCalculatingRewardOf Income index to start calculate.
+   * @return _replenishmentIdxToStartCalculatingRewardOf Replenishment index to start calculating for next staker.
    */
-  function calculateRewardAndStartIncomeIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _incomeIdxToStartCalculatingRewardOf) {
-    uint256 incomesLength = getIncomeCount();
-    if (incomesLength > 0) {
+  function calculateRewardAndStartReplenishmentIdx(uint256 _maxLoop) public view returns(uint256 reward, uint256 _replenishmentIdxToStartCalculatingRewardOf) {
+    uint256 replenishmentsLength = getReplenishmentCount();
+    if (replenishmentsLength > 0) {
       if (stakeOf[msg.sender] > 0) {
-        uint256 startIdx = incomeIdxToStartCalculatingRewardOf[msg.sender];
-        if (startIdx < incomesLength) {
-          uint256 incomesToCalculate = incomesLength - startIdx;
-          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop < incomesToCalculate)) ? startIdx + _maxLoop : startIdx + incomesToCalculate;
+        uint256 startIdx = replenishmentIdxToStartCalculatingRewardOf[msg.sender];
+        
+        if (startIdx < replenishmentsLength) {
+          uint256 replenishmentsToCalculate = replenishmentsLength - startIdx;
+          uint256 stopIdx = ((_maxLoop > 0 && _maxLoop <= replenishmentsToCalculate)) ? startIdx + _maxLoop - 1 : startIdx + replenishmentsToCalculate - 1;
       
-          for (uint256 i = startIdx; i < stopIdx; i++) {
-            StateForIncome storage incomeTmp = incomes[i];
-            uint256 incomeReward = (incomeTmp.tokensStaked > 0) ? incomeTmp.income * stakeOf[msg.sender] / incomeTmp.tokensStaked : incomeTmp.income;
-            reward = reward + incomeReward;
+          for (uint256 i = startIdx; i <= stopIdx; i++) {
+            StateForReplenishment storage replenishmentTmp = replenishments[i];
+            uint256 replenishmentReward = (replenishmentTmp.tokensStaked > 0) ? replenishmentTmp.replenishment * stakeOf[msg.sender] / replenishmentTmp.tokensStaked : replenishmentTmp.replenishment;
+            reward = reward + replenishmentReward;
           }
 
-          _incomeIdxToStartCalculatingRewardOf = stopIdx;
+          _replenishmentIdxToStartCalculatingRewardOf = stopIdx + 1;
         }
       }
     }
   }
 
   /***
-   * @dev Gets income count.
-   * @return Income count.
+   * @dev Gets replenishment count.
+   * @return Replenishment count.
    */
-  function getIncomeCount() public view returns (uint256) {
-    return incomes.length;
+  function getReplenishmentCount() public view returns (uint256) {
+    return replenishments.length;
   }
 
   /***
-   * @dev Gets income info.
+   * @dev Gets replenishment info.
    * @param _idx Index.
-   * @return income Income amount replenished.
+   * @return Replenishment replenishment amount replenished.
    * @return tokensStakedAmount Tokens staked when replenished.
    */
-  function getIncomeInfo(uint256 _idx) public view returns (uint256 income, uint256 tokensStakedAmount) {
-    income = incomes[_idx].income;
-    tokensStakedAmount = incomes[_idx].tokensStaked;
+  function getReplenishmentInfo(uint256 _idx) public view returns (uint256 replenishment, uint256 tokensStakedAmount) {
+    replenishment = replenishments[_idx].replenishment;
+    tokensStakedAmount = replenishments[_idx].tokensStaked;
   }
 }
