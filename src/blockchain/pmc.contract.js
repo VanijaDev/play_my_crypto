@@ -3,7 +3,7 @@ export default {
     ETH: {
       '0x1': "", // Main
       '0x3': "", // ropsten
-      '0x539': "0xc5572401285D742B06Ca3A2265c1823BE67952ad", // ganache
+      '0x539': "0x6965d72d5E978E1dC36E529325395326Ae4Ae052", // ganache
     },
     BSC: {
       '0x38': "", // Main

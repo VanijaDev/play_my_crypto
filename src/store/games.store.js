@@ -350,7 +350,7 @@ const state = {
         ETH: {
           '0x1': "", // Main
           '0x3': "", // ropsten
-          '0x539': "0x67e9618D9ab62122558C7ee8Ae24014B6211F0d4", // ganache
+          '0x539': "0xA62E02548C1ef44de8DF3F7900Fb488aaaEe173D", // ganache
         },
         BSC: {
           '0x38': "", // Main

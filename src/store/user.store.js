@@ -75,7 +75,7 @@ const actions = {
     Vue.$log.debug('user/GET_STAKING_DATA')
     const stakingContract = rootState.blockchain.stakingContract
     try {
-      const calculateRewardAndStartIncomeIdx = await stakingContract.calculateRewardAndStartIncomeIdx(state.accountAddress)
+      const calculateRewardAndStartReplenishmentIdx = await stakingContract.calculateRewardAndStartReplenishmentIdx(state.accountAddress)
       const pendingRewardOf = await stakingContract.pendingRewardOf(state.accountAddress) // Staking - Available to withdraw
       const tokensStaked = await stakingContract.tokensStaked()
       const stake = await stakingContract.stakeOf(state.accountAddress)
@@ -83,9 +83,9 @@ const actions = {
       if (stake.gt(0)) stakePercent = stake.mul(BigNumber.from('1000000000000000000')).div(tokensStaked)
 
       const stakingData = {
-        calculateRewardAndStartIncomeIdxReward: calculateRewardAndStartIncomeIdx.reward, // Staking - Available to withdraw
+        calculateRewardAndStartReplenishmentIdxReward: calculateRewardAndStartReplenishmentIdx.reward, // Staking - Available to withdraw
         pendingRewardOf: pendingRewardOf,
-        availableToWithdraw: calculateRewardAndStartIncomeIdx.reward.add(pendingRewardOf), // ?????????????????
+        availableToWithdraw: calculateRewardAndStartReplenishmentIdx.reward.add(pendingRewardOf), // ?????????????????
         tokensStaked: tokensStaked, // Stats - Total staken
         stakingRewardWithdrawn: await stakingContract.stakingRewardWithdrawnOf(state.accountAddress), // User Profile - Staking
         stake: stake, // Stats - Your stake

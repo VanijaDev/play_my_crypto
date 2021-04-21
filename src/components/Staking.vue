@@ -23,8 +23,8 @@
       <span>{{ $t('available_to_withdraw') }}</span>
       <div class="__img_value_block">
         <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
-        <span id="staking_2">{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalanceShort}}</span>
-        <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartIncomeIdxReward | formatBalance}}</b-tooltip>  
+        <span id="staking_2">{{gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward | formatBalanceShort}}</span>
+        <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward | formatBalance}}</b-tooltip>  
       </div>
       <button type="button" class="btn btn-primary __blue_button ml-2" :disabled="withdrawDisabled">{{ $t('withdraw') }}</button>
                        
@@ -67,8 +67,8 @@ import { ethers, BigNumber } from "ethers";
         return false  
       },
       withdrawDisabled() { 
-        if (!this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward ) return true
-        if (this.gUser.stakingData.calculateRewardAndStartIncomeIdxReward.eq(0) ) return true    
+        if (!this.gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward ) return true
+        if (this.gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward.eq(0) ) return true    
         return false  
       }
     },
