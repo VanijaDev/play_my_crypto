@@ -53,6 +53,9 @@ const actions = {
           dispatch('user/GET_BALANCE', null, {
             root: true
           });
+          dispatch('user/GET_STAKING_DATA', null, {
+            root: true
+          });
           dispatch('GET_GAMES');
         });
 
