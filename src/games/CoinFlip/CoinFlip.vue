@@ -781,7 +781,9 @@
       showTXNotification(_id, _text, _delay) {
         this.$store.dispatch('notification/OPEN', {
           id: _id,
-          data: _text,
+          data: {
+            tx: _text
+          },
           delay: _delay
         }, {
           root: true
