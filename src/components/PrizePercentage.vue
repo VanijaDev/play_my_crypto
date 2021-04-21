@@ -75,7 +75,7 @@
           p3: 'of prize goes <br> to raffle',
           p4: 'of prize goes to <br>our partner project',
           p5: 'of prize goes to <br>staking pool',
-          p6: 'of PMC during other <br> player\'s withdraw',
+          p6: 'of PMC withdrawal gets <br> randomly distributed',
         },
       }
     }
