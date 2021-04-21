@@ -851,6 +851,10 @@
       },
 
       reloadAfterTXFinished() {
+        if (this.isShowResult) {
+          this.isShowResult = false;
+        }
+        
         this.$store.dispatch('user/GET_BALANCE', null, {
           root: true
         });
