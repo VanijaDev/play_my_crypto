@@ -132,7 +132,7 @@
           raffle: 'Raffle:',
           withdraw: 'Withdraw',
           how_to_play: 'How to play?',
-          game_faq: 'Game FAQ',
+          game_faq: 'Gameplay FAQ',
         },
       }
     },

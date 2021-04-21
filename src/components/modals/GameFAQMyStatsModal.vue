@@ -1,4 +1,4 @@
-<!-- Game FAQ Gameplay Stats Modal -->
+<!-- Gameplay FAQ Gameplay Stats Modal -->
 <template>
   <Modal size="lg" :id="modalId" :title="$t('title')">
     <template v-slot:content>
@@ -26,8 +26,8 @@ export default {
   i18n: {
     messages: {
       en: {
-        title: 'Game FAQ Gameplay Stats',
-        info: 'This is Game FAQ Gameplay Stats',
+        title: 'Gameplay FAQ Gameplay Stats',
+        info: 'This is Gameplay FAQ Gameplay Stats',
         qa: [
           {
             q: 'How does it work?',

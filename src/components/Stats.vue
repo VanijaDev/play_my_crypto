@@ -32,7 +32,7 @@
     <!-- Info -->
     <div class="__text_line mt-2">
       <a href="" class="h3 __info_link" @click.prevent="$eventBus.$emit('how-to-stake-modal::open')">{{ $t('how_to_stake') }}</a>
-      <a href="" class="h3 __info_link" @click.prevent="$eventBus.$emit('game-faq-stats-modal::open')">{{ $t('game_faq') }}</a>
+      <a href="" class="h3 __info_link" @click.prevent="$eventBus.$emit('game-faq-stats-modal::open')">{{ $t('staking_faq') }}</a>
     </div>
 
     <HowToStakeModal/>
@@ -69,7 +69,7 @@
           your_stake: 'Your stake',
           unstake: 'Unstake',
           how_to_stake: 'How to stake?',
-          game_faq: 'Game FAQ',
+          staking_faq: 'Staking FAQ',
         },
       }
     }

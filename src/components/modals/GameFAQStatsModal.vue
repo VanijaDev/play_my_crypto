@@ -1,4 +1,4 @@
-<!-- Game FAQ Stats Modal -->
+<!-- Gameplay FAQ Stats Modal -->
 <template>
   <Modal size="lg" :id="modalId" :title="$t('title')"> 
     <template v-slot:content>
@@ -18,16 +18,16 @@ import ModalAccordion from './ModalAccordion';
 export default {
   name: "GameFAQStatsModal",
   computed: { accordionList() { return this.$i18n.messages[this.$i18n.locale].qa } },
-  components: { Modal, ModalAccordion },  
-  data () { return { modalId: 'GameFAQStatsModal' } },    
-  mounted () { this.$eventBus.$on('game-faq-stats-modal::open', this.open) },  
+  components: { Modal, ModalAccordion },
+  data () { return { modalId: 'GameFAQStatsModal' } },
+  mounted () { this.$eventBus.$on('game-faq-stats-modal::open', this.open) },
   beforeDestroy () { this.$eventBus.$off('game-faq-stats-modal::open') },
   methods: { open() { this.$eventBus.$emit('modal::' + this.modalId + '::open') } },
   i18n: {
     messages: {
       en: {
-        title: 'Game FAQ Stats',
-        info: 'This is Game FAQ Stats',
+        title: 'Staking FAQ',
+        info: 'This is Staking FAQ',
         qa: [
           {
             q: 'How does it work?',
