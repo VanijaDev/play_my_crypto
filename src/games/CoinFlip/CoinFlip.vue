@@ -348,13 +348,13 @@
           return this.MODE_START;
         }
 
-        if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) <= new Date(Date.now())) {
-          return this.MODE_FINISH_TIMEOUT_START;
-        }
-
         //  start / result
         if (this.gGame.gameplay.gamesStarted.eq(this.gGame.gameplay.gamesFinished)) {
           return (this.isShowResult) ? this.MODE_RESULT : this.MODE_START;
+        }
+
+        if (new Date((this.gGame.info.startTime.toString() * 1000) + constants.MAX_GAME_DURATION_MILLISECONDS) <= new Date(Date.now())) {
+          return this.MODE_FINISH_TIMEOUT_START;
         }
          
         // ongoing game
@@ -585,7 +585,8 @@
           }
         } catch (error) {
           Vue.$log.error(error)
-          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+          const errMsg = "Error: " + error.data.message;
+          this.showTXNotification("ERROR", errMsg, 10);
         }
 
         this.isTXRunning = false;
@@ -623,14 +624,14 @@
           Vue.$log.debug('Coinflip/JOIN_GAME - receipt', receipt);
 
           if (receipt.status) {
-            this.isShowResult = true;
             this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
           } else {
             this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
           }
         } catch (error) {
           Vue.$log.error(error);
-          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+          const errMsg = "Error: " + error.data.message;
+          this.showTXNotification("ERROR", errMsg, 10);
         }
 
         this.isTXRunning = false;
@@ -669,7 +670,6 @@
           Vue.$log.debug('Coinflip/PLAY_GAME - receipt', receipt);
 
           if (receipt.status) {
-            this.isShowResult = true;
             this.showTXNotification("TRANSACTION_MINED", receipt.transactionHash, 10);
           } else {
             this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
@@ -729,8 +729,9 @@
             this.showTXNotification("TRANSACTION_ERROR", receipt.transactionHash, 10);
           }
         } catch (error) {
-          Vue.$log.error(error)
-          this.showTXNotification("ERROR", "ERROR: ${error.message}", 10);
+          Vue.$log.error(error);
+          const errMsg = "Error: " + error.data.message;
+          this.showTXNotification("ERROR", errMsg, 10);
         }
 
         this.isTXRunning = false;
@@ -743,9 +744,7 @@
 
       resetDataForViewUI() {
         Vue.$log.debug('resetDataForViewUI');
-
-        this.isShowResult = false;
-        
+       
         this.selectedCoin = null;
         this.referralAddress = null;
         this.seedPhrase = null;
@@ -782,9 +781,7 @@
       showTXNotification(_id, _text, _delay) {
         this.$store.dispatch('notification/OPEN', {
           id: _id,
-          data: {
-            tx: _text
-          },
+          data: _text,
           delay: _delay
         }, {
           root: true
