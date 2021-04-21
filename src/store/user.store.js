@@ -112,15 +112,15 @@ const actions = {
     }
   },
 
-  APPROVE_PCM_STAKE: async ({
+  APPROVE_PMC_STAKE: async ({
     dispatch,
     rootState
   }) => {
-    Vue.$log.debug('user/APPROVE_PCM_STAKE')
+    Vue.$log.debug('user/APPROVE_PMC_STAKE')
     //dispatch('notification/OPEN', { id: 'TRANSACTION_PENDING', data: { tx: '0x8a7caa0e7587262e1d2aa87ac44b6396e30623059e45f5daec22bb3e5e6f665a' } }, { root: true })
     try {
       const tx = await rootState.blockchain.pmcContract.approve(rootState.blockchain.stakingContract.address, ethers.constants.MaxUint256)
-      Vue.$log.debug('user/APPROVE_PCM_STAKE - tx', tx);
+      Vue.$log.debug('user/APPROVE_PMC_STAKE - tx', tx);
 
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
@@ -132,7 +132,7 @@ const actions = {
       })
 
       const receipt = await tx.wait();
-      Vue.$log.debug('user/APPROVE_PCM_STAKE - receipt', receipt)
+      Vue.$log.debug('user/APPROVE_PMC_STAKE - receipt', receipt)
       if (receipt.status) {
         dispatch('notification/OPEN', {
           id: 'TRANSACTION_MINED',
@@ -231,12 +231,9 @@ const actions = {
       Vue.$log.debug('user/WITHDRAW_STAKING_REWARD - tx', tx);
       dispatch('notification/OPEN', {
         id: 'TRANSACTION_PENDING',
-        data: {
-          tx: tx.hash
-        }
-      }, {
-        root: true
-      })
+        data: { tx: tx.hash }
+      }, { root: true })
+
       const receipt = await tx.wait();
       Vue.$log.debug('user/WITHDRAW_STAKING_REWARD - receipt', receipt)
       if (receipt.status) {
@@ -270,6 +267,7 @@ const actions = {
         root: true
       })
     }
+
     dispatch('GET_BALANCE');
     dispatch('GET_STAKING_DATA');
   },

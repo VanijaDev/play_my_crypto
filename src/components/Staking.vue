@@ -24,18 +24,18 @@
       <div class="__img_value_block">
         <img :src="gCurrentNetworkIcon" height="25"  width="25" alt="ETH">
         <span id="staking_2">{{gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward | formatBalanceShort}}</span>
-        <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward | formatBalance}}</b-tooltip>  
+        <b-tooltip target="staking_2" custom-class="__tooltip" >{{gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward | formatBalance}}</b-tooltip>
       </div>
-      <button type="button" class="btn btn-primary __blue_button ml-2" :disabled="withdrawDisabled">{{ $t('withdraw') }}</button>
-                       
-    </div>               
+      <button type="button" class="btn btn-primary __blue_button ml-2" :disabled="withdrawDisabled" @click="withdrawStakingReward()">{{ $t('withdraw') }}</button>
+
+    </div>
   </div>
 </template>
 
 <script>
 import { ethers, BigNumber } from "ethers";
   export default {
-    name: 'Staking', 
+    name: 'Staking',
     data: () => ({
       addStakeAmount: null,
     }), 
@@ -46,11 +46,11 @@ import { ethers, BigNumber } from "ethers";
     },
     computed: {
       userAccount() { return this.gUser.accountAddress },
-      addStakeAllowed() { 
+      addStakeAllowed() {
         if (!this.gUser.pmcAllowance ) return false
         if (this.gUser.pmcAllowance.eq(0) ) return false
         // if (this.addStakeAmount && ethers.utils.parseEther(this.addStakeAmount).lte(0) && this.gUser.pmcAllowance.gte(ethers.utils.parseEther(this.addStakeAmount)) ) return false   
-        return true  
+        return true
       },
       addStakeDisabled() { 
         try {
@@ -76,33 +76,28 @@ import { ethers, BigNumber } from "ethers";
 
         return true;
       },
-      maxStakeDisabled() { 
+      maxStakeDisabled() {
         if (!this.gUser.balancePMC || this.gUser.balancePMC.eq(0)) return true
-        return false  
+        return false
       },
-      withdrawDisabled() { 
+      withdrawDisabled() {
         if (!this.gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward ) return true
-        if (this.gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward.eq(0) ) return true    
-        return false  
+        if (this.gUser.stakingData.calculateRewardAndStartReplenishmentIdxReward.eq(0) ) return true
+        return false
       }
     },
     methods: {
       approvePMC() {
-        this.$store.dispatch('user/APPROVE_PCM_STAKE')  
+        this.$store.dispatch('user/APPROVE_PMC_STAKE')
       },
       addStake() {
-        try {
-          this.$store.dispatch('user/ADD_STAKE', ethers.utils.parseEther(this.addStakeAmount));
-        } catch(error) {
-          this.$store.dispatch('notification/OPEN', {
-            id: 'ERROR',
-            data: `Error: wrong value to stake.`,
-            delay: 5
-          }, {
-            root: true
-          })
-        }
+        this.$store.dispatch('user/ADD_STAKE', ethers.utils.parseEther(this.addStakeAmount));
       },
+      withdrawStakingReward() {
+        this.$store.dispatch('user/WITHDRAW_STAKING_REWARD')
+      },
+
+
       setMaxPMCStake() {
         this.addStakeAmount = ethers.utils.formatEther(this.gUser.balancePMC.toString()).toString();
       },

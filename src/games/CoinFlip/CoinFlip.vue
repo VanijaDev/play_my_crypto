@@ -585,7 +585,7 @@
           }
         } catch (error) {
           Vue.$log.error(error)
-          const errMsg = "Error: " + error.data.message;
+          const errMsg = "Error: " + ((error.data && error.data.message) ? error.data.message : error.message);
           this.showTXNotification("ERROR", errMsg, 10);
         }
 
@@ -630,7 +630,7 @@
           }
         } catch (error) {
           Vue.$log.error(error);
-          const errMsg = "Error: " + error.data.message;
+          const errMsg = "Error: " + ((error.data && error.data.message) ? error.data.message : error.message);
           this.showTXNotification("ERROR", errMsg, 10);
         }
 
@@ -730,7 +730,7 @@
           }
         } catch (error) {
           Vue.$log.error(error);
-          const errMsg = "Error: " + error.data.message;
+          const errMsg = "Error: " + ((error.data && error.data.message) ? error.data.message : error.message);
           this.showTXNotification("ERROR", errMsg, 10);
         }
 
@@ -851,7 +851,7 @@
       },
 
       reloadAfterTXFinished() {
-        if (this.isShowResult) {
+        if (this.currentMode === this.MODE_RESULT) {
           this.isShowResult = false;
         }
         

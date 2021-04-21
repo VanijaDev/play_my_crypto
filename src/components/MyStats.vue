@@ -1,9 +1,9 @@
 <template>
   <!-- TODO : withdraw click methods -->
-  <div class="__content-block __cb_white h-100 __my_stats">
+  <div class="__content-block __cb_white h-100 __gameplay_stats">
     <b-row class="h-100">      
       <b-col xs="12" sm="6">
-        <h3>{{ $t('my_stats') }}</h3>
+        <h3>{{ $t('gameplay_stats') }}</h3>
         <!-- My in -->
         <div class="__text_line">
           <span>{{ $t('my_in') }}</span>
@@ -119,7 +119,7 @@
     i18n: {
       messages: {
         en: {
-          my_stats: 'My stats',
+          gameplay_stats: 'Gameplay stats',
           my_in: 'My in:',
           my_out: 'My out:',
           ongoing_raffle: 'Ongoing raffle',
@@ -158,7 +158,7 @@
 
 <style lang="scss" scoped>  
   @import '@/assets/css/variables.scss';
-  .__my_stats {
+  .__gameplay_stats {
     .__price_change_down {
       color: $_red;
     }

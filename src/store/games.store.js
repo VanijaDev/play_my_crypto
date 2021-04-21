@@ -194,12 +194,12 @@ const actions = {
     Vue.$log.debug('games/GET_GAME_DATA')
     try {
       const gameData = {
-        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / My stats - My in
-        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
-        playerWithdrawedPMCTotal: await game.contract.playerWithdrawedPMCTotal(ethers.constants.AddressZero), // User Profile - Total out / My stats - My out
+        playerStakeTotal: await game.contract.getPlayerStakeTotal(ethers.constants.AddressZero), // User Profile - Total in / Gameplay stats - My in
+        playerWithdrawedTotal: await game.contract.getPlayerWithdrawedTotal(ethers.constants.AddressZero), // User Profile - Total out / Gameplay stats - My out
+        playerWithdrawedPMCTotal: await game.contract.playerWithdrawedPMCTotal(ethers.constants.AddressZero), // User Profile - Total out / Gameplay stats - My out
         referralFeeWithdrawn: await game.contract.getReferralFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Referral 
         partnerFeeWithdrawn: await game.contract.getPartnerFeeWithdrawn(ethers.constants.AddressZero), // User Profile - Partnership
-        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // My Stats - Referral
+        referralFeePending: await game.contract.getReferralFeePending(ethers.constants.AddressZero), // Gameplay Stats - Referral
         partnerFeePending: await game.contract.getPartnerFeePending(ethers.constants.AddressZero),
         betsTotal: await game.contract.betsTotal(ethers.constants.AddressZero), // Platform Stats - Total in
         pendingGameplayPmcTokens: await game.contract.playerPendingWithdrawalPMC(rootState.user.accountAddress),
@@ -211,8 +211,8 @@ const actions = {
       }
 
       const prizeObj = (await game.contract.pendingPrizeToWithdraw(ethers.constants.AddressZero, 0));
-      gameData.pendingPrizeToWithdrawPrize = prizeObj.prize; // My Stats - Gameplay
-      gameData.pendingPrizeToWithdrawPMCBonus = prizeObj.pmc_tokens;  // My Stats - Gameplay PMC bonus
+      gameData.pendingPrizeToWithdrawPrize = prizeObj.prize; // Gameplay Stats - Gameplay
+      gameData.pendingPrizeToWithdrawPMCBonus = prizeObj.pmc_tokens;  // Gameplay Stats - Gameplay PMC bonus
 
       commit('SET_GAME_DATA', {
         game,
