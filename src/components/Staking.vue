@@ -15,8 +15,8 @@
       <span>{{ $t('add_stake') }}</span>
       <input type="number" min="0" step="0.01"  class="form-control w-25" v-model="addStakeAmount" placeholder="0.12345">
       <button type="button" class="btn btn-primary __orange_outline_button" :disabled="maxStakeDisabled" @click="setMaxPMCStake()">{{ $t('max') }}</button> 
-      <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" @click="addStake()" :disabled="addStakeDisabled">{{ $t('add') }}</button>
-      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" @click="approvePMC()">{{ $t('approve') }}</button>
+      <button type="button" class="btn btn-primary __blue_button" v-if="addStakeAllowed" :disabled="addStakeDisabled" @click="addStake()">{{ $t('add') }}</button>
+      <button type="button" class="btn btn-primary __blue_button" v-if="!addStakeAllowed" :disabled="approvePMCDisabled" @click="approvePMC()">{{ $t('approve') }}</button>
     </div>
     <!-- Available to withdraw -->
     <div class="__text_line">
@@ -62,6 +62,20 @@ import { ethers, BigNumber } from "ethers";
           return true;
         }
       },
+      approvePMCDisabled() {
+        if (!this.addStakeAllowed) {
+          try {
+            if (!this.addStakeAmount) return true
+            if (ethers.utils.parseEther(this.addStakeAmount).lte(0)) return true
+            if (this.gUser.balancePMC.lt(ethers.utils.parseEther(this.addStakeAmount))) return true
+            return false 
+          } catch (error) {
+            return true;
+          }
+        }
+
+        return true;
+      },
       maxStakeDisabled() { 
         if (!this.gUser.balancePMC || this.gUser.balancePMC.eq(0)) return true
         return false  
@@ -100,7 +114,7 @@ import { ethers, BigNumber } from "ethers";
           available_to_stake: 'Available to stake:',
           add_stake: 'Add stake:',
           max: 'MAX',
-          add: 'Add',
+          add: 'Stake',
           approve: 'Approve',
           available_to_withdraw: 'Available to withdraw:',
           withdraw: 'Withdraw',
