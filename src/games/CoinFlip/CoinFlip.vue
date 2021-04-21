@@ -63,11 +63,11 @@
               <input type="text" class="form-control w-100 mb-3" v-model="referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
-              <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="Hello World">
+              <div class="__cf_line __red_text">(IMPORTANT to keep it in secret):</div>
+              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="@ny Rand0m_sTr1ng">
 
               <div class="__cf_line">Game bet:</div>
-              <input type="number" class="form-control w-50 mb-3" v-model="bet" placeholder="1.2345" step="0.1">
+              <input type="number" class="form-control w-75 mb-3" v-model="bet" placeholder="1.2345" step="0.1">
 
             </div> 
 
@@ -142,7 +142,7 @@
               </div>
 
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
-                <span class="mr-2 __blue_text">Approximate profit:</span>
+                <span class="mr-2 __blue_text">Approx reward:</span>
                 <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 <span id="playing_creator_potential_profit" class="ml-3 text-monospace __blue_text">{{calculatePotentialProfit | formatBalanceShort}}</span>
                 <b-tooltip target="playing_creator_potential_profit" custom-class="__tooltip" >{{calculatePotentialProfit | formatBalance}}</b-tooltip>
@@ -233,7 +233,7 @@
               </div>
               
               <div class="__cf_line mb-2  d-flex align-items-center __text_grow_1">
-                <span class="mr-2 __blue_text">Approximate profit:</span>
+                <span class="mr-2 __blue_text">Approx reward:</span>
                 <img :src="gCurrentNetworkIcon" height="20"  width="20" alt="BTC">
                 <span id="result_potential_profit" class="ml-3 text-monospace __blue_text">{{lastGamePrize | formatBalanceShort}}</span>
                 <b-tooltip target="result_potential_profit" custom-class="__tooltip" >{{lastGamePrize | formatBalance}}</b-tooltip>
@@ -254,11 +254,11 @@
               <input type="text" class="form-control w-100 mb-3" v-model="referralAddress" placeholder="0x313745d2A7A7dD88c76cd4Aee6C25">
 
               <div class="__cf_line mb-1">Enter seed phrase</div>
-              <div class="__cf_line __red_text">(IMPORTANT to remember it):</div>
-              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="Hello World">
+              <div class="__cf_line __red_text">(IMPORTANT to keep it in secret):</div>
+              <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="@ny Rand0m_sTr1ng">
 
               <div class="__cf_line">Game bet:</div>
-              <input id="id_5_bet" type="text" class="form-control w-50 mb-3" v-model="bet" placeholder="1.2345">
+              <input id="id_5_bet" type="text" class="form-control w-75 mb-3" v-model="bet" placeholder="1.2345">
                 <!-- <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip> -->
 
               <div class="__timer d-flex mb-3">
@@ -325,7 +325,6 @@
       MODE_PLAYING_OPPONENT: "MODE_PLAYING_OPPONENT",
       MODE_FINISH_TIMEOUT_START: "MODE_FINISH_TIMEOUT_START",
       MODE_RESULT: "MODE_RESULT",
-      // isTimeout: false,
       currentMode: null,
       isShowResult: false,
       isTXRunning: false,
@@ -513,8 +512,6 @@
       },
 
       mode(_newValue, _oldValue) {
-        // this.isTimeout = false;
-
         if (_newValue === this.MODE_PLAYING_CREATOR || _newValue === this.MODE_PLAYING_OPPONENT) {
           this.isShowResult = true;
         }
