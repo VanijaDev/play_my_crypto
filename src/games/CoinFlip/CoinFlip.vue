@@ -66,7 +66,7 @@
               <div class="__cf_line __red_text">(IMPORTANT to keep it in secret):</div>
               <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="@ny Rand0m_sTr1ng">
 
-              <div class="__cf_line">Game bet:</div>
+              <div class="__cf_line">Crypto amount:</div>
               <input type="number" class="form-control w-75 mb-3" v-model="bet" placeholder="1.2345" step="0.1">
 
             </div> 
@@ -75,7 +75,7 @@
             <div class="__cf_view" v-if="mode === this.MODE_JOIN">
               
               <div class="__cf_line">
-                <span>Game bet:</span>
+                <span>Crypto amount:</span>
                 <span id="join_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
                 <b-tooltip target="join_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
@@ -117,7 +117,7 @@
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
-                <span>Game bet:</span>
+                <span>Crypto amount:</span>
                 <span id="playing_creator_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
                 <b-tooltip target="playing_creator_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
@@ -163,7 +163,7 @@
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
-                <span>Game bet:</span>
+                <span>Crypto amount:</span>
                 <span id="playing_creator_opponent" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
                 <b-tooltip target="playing_creator_opponent" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
@@ -208,7 +208,7 @@
               <div class="__cf_line text-monospace text-truncate mb-4">{{myReferralAddressForGame}}</div>
               
               <div class="__cf_line">
-                <span>Game bet:</span>
+                <span>Crypto amount:</span>
                 <span id="id_4_bet" class="ml-3 text-monospace" >{{gGame.info.stake | formatBalanceShort}}</span>
                 <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip>
               </div>
@@ -257,7 +257,7 @@
               <div class="__cf_line __red_text">(IMPORTANT to keep it in secret):</div>
               <input type="text" class="form-control w-100 mb-3" v-model="seedPhrase" placeholder="@ny Rand0m_sTr1ng">
 
-              <div class="__cf_line">Game bet:</div>
+              <div class="__cf_line">Crypto amount:</div>
               <input id="id_5_bet" type="text" class="form-control w-75 mb-3" v-model="bet" placeholder="1.2345">
                 <!-- <b-tooltip target="id_4_bet" custom-class="__tooltip" >{{gGame.info.stake | formatBalance}}</b-tooltip> -->
 
