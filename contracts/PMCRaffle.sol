@@ -165,6 +165,6 @@ abstract contract PMCRaffle is Ownable {
       ERC20(_token).transfer(msg.sender, amountToSend);
     }
     
-    CF_RaffleJackpotWithdrawn(_token, amountToSend, msg.sender);
+    emit CF_RaffleJackpotWithdrawn(_token, amountToSend, msg.sender);
   }
 }
