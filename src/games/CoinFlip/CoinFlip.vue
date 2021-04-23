@@ -514,6 +514,10 @@
       mode(_newValue, _oldValue) {
         if (_newValue === this.MODE_PLAYING_CREATOR || _newValue === this.MODE_PLAYING_OPPONENT) {
           this.isShowResult = true;
+        } else if (_oldValue === this.MODE_RESULT) {
+          if (this.isShowResult) {
+            this.isShowResult = false;
+          }
         }
 
         this.resetDataForViewUI();
@@ -851,10 +855,6 @@
       },
 
       reloadAfterTXFinished() {
-        if (this.currentMode === this.MODE_RESULT) {
-          this.isShowResult = false;
-        }
-        
         this.$store.dispatch('user/GET_BALANCE', null, {
           root: true
         });
