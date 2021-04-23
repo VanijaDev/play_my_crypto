@@ -3,12 +3,19 @@
   <Modal size="lg" :id="modalId" :title="$t('title')">
     <template v-slot:content>
       <p class="__info">{{ $t('info') }}</p>
-      <p>{{ $t('p1') }}</p>
+        <span class="paragraph_padding">{{ $t('p1') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p2') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p3') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p4') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p5') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p6') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p7') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p8') }}</span><br>
 
       <!--ModalAccordion :list="accordionList"/-->
-    </template>    
-  </Modal> 
-</template> 
+    </template>
+  </Modal>
+</template>
 
 <style lang="scss" scoped>
   //@import '@/assets/css/variables.scss';
@@ -29,11 +36,25 @@ export default {
     messages: {
       en: {
         title: 'How to play?',
-        info: 'This is How to play',
-        p1: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text. It`s a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero. Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it`s not genuine, correct, or comprehensible Latin anymore. While lorem ipsum`s still resembles classical Latin, it actually has no meaning whatsoever. As Cicero`s text doesn`t contain the letters K, W, or Z, alien to latin, these, and others are often inserted randomly to mimic the typographic appearence of European languages, as are digraphs not to be found in the original.'      
+        info: ' ',
+        p1: 'To Start a new game user must:',
+        p2: '1. select coin side',
+        p3: '2. set crypto amount',
+        p4: '3. input random string that will be used for hashing coin side prediction; optionally user can set referral address that will receive 1% of user’s reward in case of winning',
+        p5: 'If user wants to Join ongoing game, he must have corresponding amount of crypto on his balance and select the coin side. The same rules apply to optional referral address.',
+        p6: 'When participating in ongoing game users can see selected values and game statistics.',
+        p7: 'Game creator must Finish ongoing game within 24h period after the game was started. Result screen will be shown to all of the participants.',
+        p8: 'In case ongoing game is not finished by creator within 24h it is impossible to join or finish it. A new game should be created. In case there are players who joined that game, they become winners and game creator loses. Creator’s crypto amount is distributed equally among winners as a reward. If there are no players except game creator, anyone can start new game and crypto amount from the timeout game will be added to the next game’s crypto amount.'
       },
     }
   }
 };
 
 </script>
+
+<style lang="scss" scoped>
+  //@import '@/assets/css/variables.scss';
+  .paragraph_padding {
+    padding-left: 1em;
+  }
+</style>

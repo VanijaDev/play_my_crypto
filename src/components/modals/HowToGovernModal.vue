@@ -3,7 +3,10 @@
   <Modal size="lg" :id="modalId" :title="$t('title')">
     <template v-slot:content>
       <p class="__info">{{ $t('info') }}</p>
-      <p>{{ $t('p1') }}</p>
+        <span class="paragraph_padding">{{ $t('p1') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p2') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p3') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p4') }}</span><br>
     </template>
   </Modal>
 </template>
@@ -23,8 +26,11 @@
       messages: {
         en: {
           title: 'How to govern?',
-          info: 'This is How to govern',
-          p1: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text. It`s a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero. Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it`s not genuine, correct, or comprehensible Latin anymore. While lorem ipsum`s still resembles classical Latin, it actually has no meaning whatsoever. As Cicero`s text doesn`t contain the letters K, W, or Z, alien to latin, these, and others are often inserted randomly to mimic the typographic appearence of European languages, as are digraphs not to be found in the original.'      
+          info: ' ',
+          p1: 'Play My Crypto is a community - driven platform. Players owning PMC tokens can participate in updating some of the properties of the games on the platform. There are three variables that can be changed by the governance community.',
+          p2: 'First one is game duration. Initially maximum game duration is set to 24 hours. If community decides for more appropriate duration, let it be so.',
+          p3: 'Second variable is a minimum crypto amount to start or participate in the game. Crypto price may change, so community has ability to update this crypto amount variable if needed.',
+          p4: 'Thirdly, other tokens can be used to play with. Play My Crypto is launched with support of two Blockchains and respectful crypto: Ethereum (ETH), Binance Smart Chain (BNB). Player can vote to add more tokens to be used for game play.'
         },
       }
     }
@@ -33,4 +39,7 @@
 
 <style lang="scss" scoped>
   //@import '@/assets/css/variables.scss';
+  .paragraph_padding {
+    padding-left: 1em;
+  }
 </style>

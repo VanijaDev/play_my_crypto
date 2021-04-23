@@ -3,8 +3,9 @@
   <Modal size="lg" :id="modalId" :title="$t('title')"> 
     <template v-slot:content>
       <p class="__info">{{ $t('info') }}</p>
-      <p>{{ $t('p1') }}</p>            
-    </template>    
+        <span class="paragraph_padding">{{ $t('p1') }}</span><br>
+        <span class="paragraph_padding">{{ $t('p2') }}</span>
+    </template>
   </Modal> 
 </template> 
 
@@ -13,23 +14,27 @@
   //import ModalAccordion from './ModalAccordion';
   export default {
     name: "PartnershipModal",
-    components: { Modal },  
-    data () { return { modalId: 'PartnershipModal' } },    
-    mounted () { this.$eventBus.$on('partnership-modal::open', this.open) },  
+    components: { Modal },
+    data () { return { modalId: 'PartnershipModal' } },
+    mounted () { this.$eventBus.$on('partnership-modal::open', this.open) },
     beforeDestroy () { this.$eventBus.$off('partnership-modal::open') },
     methods: { open() { this.$eventBus.$emit('modal::' + this.modalId + '::open') } },
     i18n: {
       messages: {
         en: {
           title: 'Partnership',
-          info: 'This is Partnership',  
-          p1: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text. It`s a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero. Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it`s not genuine, correct, or comprehensible Latin anymore. While lorem ipsum`s still resembles classical Latin, it actually has no meaning whatsoever. As Cicero`s text doesn`t contain the letters K, W, or Z, alien to latin, these, and others are often inserted randomly to mimic the typographic appearence of European languages, as are digraphs not to be found in the original.'      
-        },         
-      }      
-    } 
+          info: ' ',
+          p1: 'Anyone can became a partner of Play My Crypto and get benefit from collaboration. This can be blogger making a review of the project. This may be a website placing link to Play My Crypto. Advisor, reviewer, marketer or anyone who wants to assist with Play My Crypto mass adoption is able to use “THE MORE YOU PLAY THE MORE YOU WIN” block on Play My Crypto web site while partnership continues.',
+          p2: 'The reward for our partner would be 1% of each gameplay withdrawal. Contact development team via Telegram or email.'
+        },
+      }
+    }
   }
 </script>
 
 <style lang="scss" scoped>
-  //@import '@/assets/css/variables.scss';   
+  //@import '@/assets/css/variables.scss';
+  .paragraph_padding {
+    padding-left: 1em;
+  }
 </style>

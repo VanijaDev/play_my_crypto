@@ -9,9 +9,9 @@
           <polygon points="1.62,4.35 1.62,3.63 6.36,3.63 6.36,4.35 "/>
         </svg>
       </button>                
-      <b-collapse :id="'ac_'+i" visible accordion="acc">     
-        <div class="__accordion_content">
-          {{qa.a}}
+      <b-collapse :id="'ac_'+i" visible accordion="acc">
+        <div class="__accordion_content" v-html="qa.a">
+
         </div>
       </b-collapse>
     </div>    

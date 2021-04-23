@@ -27,40 +27,40 @@ export default {
     messages: {
       en: {
         title: 'Staking FAQ',
-        info: 'This is Staking FAQ',
+        info: ' ',
         qa: [
           {
-            q: 'How does it work?',
-            a: 'But I really must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness.',
+            q: 'Why should I stake?',
+            a: 'When staking PMC tokens you receive rewards from other games being played. Every time the creator finishes game staking pool is replenished and you can withdraw additional crypto amount.  PMC tokens allow user to HODL them or get additional rewards.',
           },
           {
-            q: 'Can I stake?',
-            a: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text.',
+            q: 'What is PMC token?',
+            a: 'PMC token is ERC-20 token (or respectful standard on other Blockchain) that was developed for tracking user’s portion in staking pool. It has no financial value and does not suppose to be security token.',
           },
           {
-            q: 'How does it work?',
-            a: 'But I really must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness.',
-          },          
-          {
-            q: 'Can I stake?',
-            a: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text.',
+            q: 'How to get PMC tokens?',
+            a: 'PMC tokens are distributed as bonuses only. The first way to receive them is to become game creator and finish game as a winner. Second way is to be game participant when game is finished by timeout. The third way is to be lucky enough to get tokens when they are randomly distributed when game creator withdraws his PMC tokens. Read more about PMC tokens in footer FAQ.',
           },
           {
-            q: 'How does it work?',
-            a: 'But I really must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness.',
+            q: 'How to stake PMC tokens?',
+            a: 'After user receives PMC tokens he can use them to get rewards from other players. User should set amount of PMC tokens he wants to stake and stake them. Tokens should be approved for staking Smart Contract (corresponding button will be shown).',
           },
           {
-            q: 'Can I stake?',
-            a: 'Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It`s also called placeholder (or filler) text.',
+            q: 'When can I withdraw my pending reward?',
+            a: 'Anytime.',
           },
           {
-            q: 'How does it work?',
-            a: 'But I really must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness.',
+            q: 'When can I unstake PMC tokens?',
+            a: 'Anytime.',
+          },
+          {
+            q: 'What happens with PMC tokens after they are staken?',
+            a: 'Tokens are kept in staking Smart Contract. They are used to determine user’s share of staking pool.',
           },
         ]
-      },        
-    }      
-  }  
+      },
+    }
+  }
 };
 
 </script>
